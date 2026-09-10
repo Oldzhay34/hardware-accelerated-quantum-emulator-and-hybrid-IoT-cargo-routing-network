@@ -33,6 +33,7 @@ qir-engine/
 ├── web/                 React arayüzü (Faz 6, 8, 9, 10.2)
 ├── infra/               docker/, k8s/, railway/ (dağıtım tanımları)
 ├── scripts/             Tek satırlık yardımcı betikler
+├── data/                synthetic/ — sentetik teslimat/şoför verisi (commit EDİLİR, bkz. docs/data-governance.md)
 ├── docs/                thesis/, figures/, measurements/, runbooks/, decisions/ + Faz 0 çıktı dosyaları
 ├── artifacts/            bitstream/, overlay/, models/ — GİT'E COMMIT EDİLMEZ
 ├── .specify/             spec-kit motoru (specify-cli tarafından yönetilir)

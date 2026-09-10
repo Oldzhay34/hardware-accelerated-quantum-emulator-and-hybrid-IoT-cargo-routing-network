@@ -151,6 +151,10 @@ git bundle create altin-kopya.bundle --all
 # + artifacts/, docs/thesis/, docs/figures/ içeriğinin ayrı, dokunulmayan bir kopyası
 ```
 
+**Altın kopya alınmadan önce kontrol** (Faz 0.4'ten, [data-governance.md §4](data-governance.md)):
+
+- [ ] `DEMO_MODE=true` mu? Sunucu yanıtında hiçbir kişi adı görünmediği elle doğrulandı mı? (Jüri projeksiyonunda kişi adı/adres görünmemeli.)
+
 ---
 
 ## 7. Devredilenler

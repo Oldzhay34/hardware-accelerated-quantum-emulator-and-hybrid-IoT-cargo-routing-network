@@ -1,0 +1,10 @@
+{
+  "generator": "scripts/generate_synthetic_data.py",
+  "seed": 20260910,
+  "faker_version": "40.38.0",
+  "counts": {
+    "drivers": 20,
+    "deliveries": 200
+  },
+  "note": "Tamamen sentetik. Gerçek kişi, adres veya plaka içermez. Bkz. docs/data-governance.md"
+}

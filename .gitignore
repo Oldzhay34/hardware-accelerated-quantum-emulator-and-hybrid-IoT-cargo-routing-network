@@ -27,6 +27,10 @@ keys.txt
 *.agekey
 age-key*.txt
 
+# NOT: data/synthetic/ commit EDİLİR (gitignore'da değil). Sentetiktir, gizlilik riski
+# yoktur ve ölçümlerin dayandığı girdinin sabit kalmasını garanti eder.
+# Bkz. docs/data-governance.md §2.3. Gerçek kişisel veri hiçbir koşulda commit edilmez.
+
 # Büyük ikili dosyalar — bkz. docs/repo-conventions.md §3 (harici depo kararı)
 artifacts/bitstream/*
 artifacts/overlay/*
