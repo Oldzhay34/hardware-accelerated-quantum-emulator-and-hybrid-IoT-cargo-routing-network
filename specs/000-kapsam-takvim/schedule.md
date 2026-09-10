@@ -150,13 +150,21 @@ Sıralama kuralı kaba kıyası 7. haftaya bağlıyor, ama H7 düşük kapasitel
 
 Her Cuma, 10 dakika. Çıktı `specs/000-kapsam-takvim/haftalik/HXX.md` dosyasına yazılır.
 
+> Ritüel [docs/risk-register.md](../../docs/risk-register.md) **açılarak** başlar (adım 1): vadesi gelen satırlar
+> kapatılır/tetiklenir, erken uyarı işareti görülenler `İZLENİYOR`'a çekilir, yeni risk varsa eklenir.
+> Güncellenmeyen risk kaydı, risk kaydı değildir.
+
 ```markdown
 # Hafta XX kontrolü — <tarih>
 
-## 1. Kesme tetiği kontrolü (2 dk)
-- Bu hafta vadesi gelen tetik: <K-XX / yok>
+## 1. Risk kaydı ve kesme tetikleri (4 dk)
+*docs/risk-register.md açık olarak doldurulur — K-XX tetikleri zaten o kaydın satırlarıdır.*
+- Bu hafta vadesi gelen risk/tetik: <ID'ler / yok>
 - Ölçüt tuttu mu: <evet / hayır / henüz ölçülmedi>
-- Karar: <devam / kes — cut-plan.md K-XX uygulanıyor>
+- `AÇIK` → `İZLENİYOR` geçen (erken uyarı işareti görüldü): <ID / yok>
+- `TETİKLENDİ` olan: <ID / yok> → cut-plan.md'de yazılan uygulanıyor
+- Yeni eklenen risk: <ID / yok>
+- risk-register.md "Son güncelleme" satırı değiştirildi mi: <evet/hayır>
 
 ## 2. Takvim sapması (3 dk)
 - Bu haftanın planlanan çıktısı: <schedule.md'den kopyala>
@@ -168,7 +176,7 @@ Her Cuma, 10 dakika. Çıktı `specs/000-kapsam-takvim/haftalik/HXX.md` dosyası
 - Tampon 2 (H11): <dokunulmadı / X gün yendi>
 - 🔴 Toplam 1 haftadan fazla yendiyse: H kümesinden kesme BAŞLAT (cut-plan.md §3 sırası)
 
-## 4. Gelecek hafta (3 dk)
+## 4. Gelecek hafta (1 dk)
 - Gelecek hafta verilecek karar: <...>
 - Gelecek hafta vadesi gelen tetik: <K-XX>
 - Onay kapısı gereken var mı (Prensip I): <evet/hayır — varsa karşılaştırma tablosu hazırla>
