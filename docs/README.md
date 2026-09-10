@@ -8,4 +8,4 @@
 | `measurements/` | Ham ölçüm verisi (gecikme, enerji, fidelity) — damgalı (tarih + git hash + konfig) | Faz 1, 2, 4, 5, 10 |
 | `runbooks/` | Operasyonel prosedürler (geri yükleme, felaket provası, demo kurulumu) | 0.5, 12.4 |
 
-Kök seviyedeki dosyalar (`risk-register.md`, `repo-conventions.md`, `cost.md`, `secrets-audit.md`, `data-governance.md`, `backup.md`) Faz 0 alt dallarının çıktılarıdır ve tek dosya olarak kalır.
+Kök seviyedeki dosyalar (`risk-register.md`, `repo-conventions.md`, `cost.md`, `secrets-audit.md`, `data-governance.md`, `backup.md`, `siradaki-standardi.md`, `faz-sonu-kontrol.md`) Faz 0 alt dallarının çıktılarıdır ve tek dosya olarak kalır.
