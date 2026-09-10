@@ -1,6 +1,6 @@
 # Yedekleme, Geri Yükleme ve Felaket Provası
 
-**Kaynak**: Faz 0 alt dal 0.5 · **Oluşturma**: 2026-09-10
+**Kaynak**: Faz 0 alt dal 0.5 · **Oluşturma**: 2026-09-10 · **Son güncelleme**: 2026-09-10 (SSD hedefi + otomatik zamanlama eklendi)
 
 > Savunmadan bir hafta önce diskin bozulması senaryosuna hazırlıksız yakalanmak, projeyi bitirmiş olmana rağmen kaybetmek demektir. Bu belge o senaryoyu bugün, maliyeti sıfırken önlüyor.
 
@@ -33,32 +33,41 @@
 | Hedef | Tür | Neyi kapsıyor | Sıklık |
 |---|---|---|---|
 | `%OneDrive%\yedekler\qir-engine\` | Bulut, fiziksel olarak ayrı | Git bundle (kod+specs+docs, metin) | Her `scripts/backup.ps1` çalıştığında |
-| `D:\yedekler\qir-engine\` | İkinci sabit disk, aynı makinede | Git bundle (aynısı) | Her `scripts/backup.ps1` çalıştığında |
-| — | **Uzak git barındırma (GitHub vb.)** | — | 🔴 **YOK — bkz. §5 BK-00, en kritik açık madde** |
+| `G:\yedekler\qir-engine\` | Harici SSD, gerçek fiziksel ayrılık | Git bundle (aynısı) | Her `scripts/backup.ps1` çalıştığında (SSD takılıyken) |
+| — | **Uzak git barındırma (GitHub vb.)** | — | 🔴 **YOK — bkz. §5 BK-00, açık madde** |
 
 ### ⚠️ Bilinçli sınırlama — neden "uzak git" yok
 
-Bu depo şu an **hiçbir uzak sunucuya bağlı değil** (`git remote -v` boş). Bir GitHub deposu eklemek en doğal çözüm olurdu, ama bu **senin GitHub hesabını** kullanmayı gerektiriyor — hesap/kimlik doğrulama işlemleri benim tek başıma alabileceğim bir karar değil. Bunun yerine bugün elimdeki araçlarla (OneDrive + D: sürücüsü) gerçek bir 3-2-1 kurdum ve BK-00'ı riske açıkça yazdım. **Bu konuşmanın sonunda sana soracağım.**
+Bu depo şu an **hiçbir uzak sunucuya bağlı değil** (`git remote -v` boş). Bir GitHub deposu eklemek en doğal çözüm olurdu, ama bu **senin GitHub hesabını** kullanmayı gerektiriyor — hesap/kimlik doğrulama işlemleri benim tek başıma alabileceğim bir karar değil. Kullanıcıya soruldu; şimdilik OneDrive + harici SSD (G:) ile devam kararı verildi (2026-09-10). BK-00 **İZLENİYOR** durumunda kaldı — SSD her zaman takılı olmayabileceği için hâlâ tam koruma değil.
 
 ### Büyük ikili dosyalar (bitstream, video, model)
 
 [ADR 0001](decisions/0001-monorepo.md) ve [repo-conventions.md §3](repo-conventions.md) kararı gereği bu dosyalar git'e **hiç girmiyor** — dolayısıyla `git bundle` onları **kapsamaz**. Bu tür dosyalar doğduğunda (Faz 2+ sentez raporları, Faz 12 video):
 
-- `scripts/backup.ps1`'e bir **ikinci adım** eklenecek: `artifacts/` ve `docs/figures/`, `docs/thesis/` içindeki büyük dosyaları da aynı iki hedefe (OneDrive + D:) kopyalayan bir `robocopy /MIR`.
-- Bu genişletme **Faz 0.5'in kapsamı dışında bırakıldı** çünkü bugün `artifacts/` boş — olmayan dosyayı yedekleme kodu yazmak spekülatif olurdu. Genişletme görevi aşağıda §6'da devredildi.
+- `scripts/backup.ps1`'e bir **ikinci adım** eklenecek: `artifacts/` ve `docs/figures/`, `docs/thesis/` içindeki büyük dosyaları da aynı iki hedefe (OneDrive + G:) kopyalayan bir `robocopy /MIR`.
+- Bu genişletme **Faz 0.5'in kapsamı dışında bırakıldı** çünkü bugün `artifacts/` boş — olmayan dosyayı yedekleme kodu yazmak spekülatif olurdu. Genişletme görevi aşağıda §7'de devredildi.
 
-### Otomatikleştirme
+### Otomatikleştirme — ✅ KURULDU
 
-**Elle yapılan yedek yapılmayan yedektir.** [scripts/backup.ps1](../scripts/backup.ps1) yazıldı ve çalıştırıldı (bkz. §4). Windows Görev Zamanlayıcı'ya bağlamak için hazır komut:
+**Elle yapılan yedek yapılmayan yedektir.** [scripts/backup.ps1](../scripts/backup.ps1) yazıldı, çalıştırıldı (bkz. §4) **ve Windows Görev Zamanlayıcı'ya kaydedildi** (onaylandı, 2026-09-10):
 
-```powershell
-# HAFTALIK OTOMATİK YEDEK — bunu kaydetmek için (sistem değişikliği, onayın gerekiyor):
-$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument '-NoProfile -File "C:\Users\olcay\IdeaProjects\qir-engine\scripts\backup.ps1"'
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 18:00
-Register-ScheduledTask -TaskName "qir-engine-backup" -Action $action -Trigger $trigger -Description "Faz 0.5 haftalık git yedek"
+```
+Görev adı     : qir-engine-backup
+Tetikleyici   : Her Cuma, 18:00
+Ayarlar       : StartWhenAvailable (kaçırılan çalıştırma, bilgisayar açılınca yapılır)
+                AllowStartIfOnBatteries + DontStopIfGoingOnBatteries
+                (varsayılan "yalnızca şarjda çalış" kısıtı KAPATILDI — yedek küçük/hızlı,
+                bataryada çalışmaması riski göze alınamaz)
 ```
 
-Bu komut **çalıştırılmadı** — Görev Zamanlayıcı'ya kalıcı bir görev eklemek sistem durumunu değiştiriyor, onayın soruluyor (bkz. konuşmanın sonu).
+Kayıt komutu (referans için, zaten uygulandı):
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument '-NoProfile -ExecutionPolicy Bypass -File "C:\Users\olcay\IdeaProjects\qir-engine\scripts\backup.ps1"'
+$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 18:00
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+Register-ScheduledTask -TaskName "qir-engine-backup" -Action $action -Trigger $trigger -Settings $settings -Description "Faz 0.5 haftalik git yedek (OneDrive + G: harici SSD)"
+```
 
 ---
 
@@ -72,7 +81,7 @@ Henüz hiçbir servis veya veritabanı kurulmadı (`services/` boş). Bu bölüm
 | Sıklık | Günlük, zamanlanmış iş (yukarıdaki Görev Zamanlayıcı deseniyle aynı) |
 | Şifreleme | **Zorunlu** — dump kişisel veri içerir ([docs/data-governance.md](data-governance.md), Faz 0.4 ile bağlı, henüz yazılmadı). SOPS+age ile değil (o küçük yapılandırma sırları için), ayrı bir şifreli arşiv (`age -e` doğrudan dump dosyasına) kullanılacak. |
 | Saklama süresi | 30 gün, sonra otomatik silinir (kişisel veri saklama disiplini, 0.4 ile hizalanacak) |
-| Yer | Aynı iki hedef: OneDrive + D: |
+| Yer | Aynı iki hedef: OneDrive + G: (harici SSD) |
 
 ---
 
@@ -94,6 +103,16 @@ Komut: scripts/backup.ps1
 SONUÇ: GEÇTİ
 ```
 
+**İkinci prova** (2026-09-10 12:52, G: SSD hedefe geçildikten ve script'e "takılı değilse atla" toleransı eklendikten sonra):
+
+```
+1) git bundle oluştur     → 106.8 KB, 9 commit
+2) hedeflere kopyala      → OneDrive VE G:\yedekler\qir-engine\ — ikisi de doğrulandı
+3) geri yükleme           → 0.227 saniye, 9/9 commit, HEAD EŞLEŞTİ
+
+SONUÇ: GEÇTİ
+```
+
 **Bugünkü süre (0.25 sn) küçük depo boyutundan (896 KB) kaynaklanıyor** — `artifacts/` büyüdükçe bu süre değişmeyecek çünkü bundle yalnızca git-tracked içeriği kapsıyor (büyük ikili dosyalar zaten dışarıda, §2). Kod+specs+docs tarafı için geri yükleme süresi projenin sonuna kadar saniyeler mertebesinde kalacaktır.
 
 **Prova ritüeli**: Bu script her çalıştığında §3 doğrulaması otomatik koşuyor (`.\scripts\backup.ps1` içinde adım 3) — yani her yedek, alındığı anda kendi kendini test ediyor. Ayrıca [faz-sonu-kontrol.md](faz-sonu-kontrol.md)'ye bir madde eklendi (§6).
@@ -104,7 +123,7 @@ SONUÇ: GEÇTİ
 
 | Senaryo | Geri dönüş süresi | Nasıl |
 |---|---|---|
-| 🔴 **BK-00: Laptop çalındı/bozuldu VE OneDrive/D: senkron olmamış** | **Belirsiz — bugünkü en büyük açık** | D: aynı makinede olduğu için laptop kaybında **o da gider**; yalnızca OneDrive kalır. OneDrive senkronu gecikmişse son commit'ler kaybolabilir. **Kalıcı çözüm: uzak git remote (§2 BK-00 notu, onayın bekleniyor).** |
+| 🟡 **BK-00: Laptop çalındı/bozuldu VE hem OneDrive senkron değil hem G: SSD o an takılı değil** | Dakikalar (SSD takılıysa) / belirsiz (ikisi de yoksa) | G: harici SSD olduğu için laptopla birlikte kaybolmuyor — ama Cuma 18:00'de takılı değilse o haftanın yedeği eksik kalır. Kalıcı çözüm hâlâ uzak git remote; kullanıcı şimdilik bu riski kabul etti (2026-09-10). |
 | Laptop çalındı/bozuldu (OneDrive güncel) | Dakikalar | Yeni makinede OneDrive'dan bundle indir → `git clone` → age anahtarını ayrı yedekten geri yükle. |
 | microSD bozuldu (PYNQ) | ~1 saat | Yeni SD karta PYNQ imajını tekrar yaz (imaj zaten yerel diskte duruyor, [risk kaydı DT-03](risk-register.md)). Kod/overlay git'ten veya `artifacts/` yedeğinden. |
 | k3s düğümü çöktü | Değişken, ~30 dk – birkaç saat | Manifestler git'te (`infra/k8s/`); küme yeniden kurulur, `kubectl apply -f`. Kalıcı veri varsa (henüz yok) ayrı ele alınır. |
@@ -142,5 +161,5 @@ git bundle create altin-kopya.bundle --all
 | Veritabanı `pg_dump` + şifreleme scriptini gerçek servis koduna bağla | Faz 3.1/3.2 |
 | Kişisel veri saklama süresiyle veritabanı yedek saklama süresini hizala | Faz 0.4 |
 | Altın kopya tarihini (13 Aralık 2026) schedule.md'ye işle | Bu commit'te yapılıyor (§8) |
-| Görev Zamanlayıcı'ya haftalık otomatik yedek kaydı | **Onayın gerekiyor** — konuşmanın sonunda soruluyor |
-| Uzak git remote (GitHub) ekleme | **Onayın gerekiyor** — §2 BK-00, en kritik açık madde |
+| ~~Görev Zamanlayıcı'ya haftalık otomatik yedek kaydı~~ | ✅ Tamamlandı (2026-09-10) |
+| Uzak git remote (GitHub) ekleme | Kullanıcı kararı: şimdilik OneDrive+G: ile devam (2026-09-10). BK-00 İZLENİYOR'da kalıyor, istenirse tekrar açılır. |

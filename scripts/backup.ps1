@@ -13,7 +13,7 @@ $bundleName = "qir-engine-$stamp.bundle"
 
 $destinations = @(
     (Join-Path $env:OneDrive 'yedekler\qir-engine'),   # bulut, fiziksel olarak ayrı
-    'D:\yedekler\qir-engine'                             # ikinci sabit disk, farklı fiziksel ortam
+    'G:\yedekler\qir-engine'                             # harici SSD — gerçek fiziksel ayrılık (takılı değilse atlanır)
 )
 
 if (-not $VerifyOnly) {
@@ -28,21 +28,29 @@ if (-not $VerifyOnly) {
     $sizeKB = [math]::Round((Get-Item $tmpBundle).Length / 1KB, 1)
     Write-Host "Bundle: $tmpBundle ($sizeKB KB)" -ForegroundColor Green
 
-    Write-Host "`n=== 2) iki hedefe kopyala ===" -ForegroundColor Cyan
+    Write-Host "`n=== 2) hedeflere kopyala ===" -ForegroundColor Cyan
+    $copiedAny = $false
     foreach ($dest in $destinations) {
-        if (-not (Test-Path (Split-Path $dest -Parent -ErrorAction SilentlyContinue))) {
-            # üst dizin (ör. D:\yedekler) yoksa uyar, atlama - oluştur
+        $driveRoot = Split-Path $dest -Qualifier
+        if (-not (Test-Path $driveRoot)) {
+            Write-Warning "$driveRoot takılı değil, atlanıyor: $dest"
+            continue
         }
         New-Item -ItemType Directory -Force -Path $dest | Out-Null
         Copy-Item $tmpBundle -Destination $dest -Force
         Write-Host "-> $dest\$bundleName" -ForegroundColor Green
+        $copiedAny = $true
     }
+    if (-not $copiedAny) { throw "Hiçbir yedek hedefine yazılamadı — OneDrive ve harici SSD ikisi de erişilemez." }
     Remove-Item $tmpBundle -Force
 }
 
 Write-Host "`n=== 3) DOGRULAMA: en yeni bundle'dan gercekten geri yukle ===" -ForegroundColor Cyan
-$latestBundle = Get-ChildItem $destinations[0] -Filter '*.bundle' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $latestBundle) { throw "Hicbir bundle bulunamadi: $($destinations[0])" }
+$latestBundle = $destinations |
+    Where-Object { Test-Path (Split-Path $_ -Qualifier) } |
+    ForEach-Object { Get-ChildItem $_ -Filter '*.bundle' -ErrorAction SilentlyContinue } |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if (-not $latestBundle) { throw "Erişilebilir hiçbir hedefte bundle bulunamadı." }
 
 $restoreDir = Join-Path $env:TEMP "qir-restore-test-$stamp"
 $sw = [System.Diagnostics.Stopwatch]::StartNew()

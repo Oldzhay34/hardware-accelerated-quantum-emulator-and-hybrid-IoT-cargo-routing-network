@@ -101,9 +101,10 @@
 
 | ID | Risk | Ol. | Etki | Erken uyarı işareti | Karar tarihi | Ölçüt | Tetiklenirse yapılacak | Sahibi | Durum |
 |---|---|---|---|---|---|---|---|---|---|
-| **BK-00** | 🔴 Laptop kaybı + OneDrive/D: senkron değil → tek nokta hatası | O | **Y** | `scripts/backup.ps1` bir haftadan uzun süre çalışmamış | **Bugün** — uzak remote kararı bekliyor | Uzak git remote (GitHub) bağlı ve son commit'i tutuyor | Uzak remote yoksa: OneDrive senkron durumu elle kontrol edilir, D: yedeği tazelenir | Olcay | **AÇIK — kullanıcı kararı bekliyor** |
+| **BK-00** | 🟡 Laptop kaybı + OneDrive senkron değil + G: SSD o an takılı değil → tek nokta hatası | D | **Y** | `scripts/backup.ps1` bir haftadan uzun süre çalışmamış (Cuma çalıştığında SSD takılı değildi) | Sürekli izleniyor, uzak remote eklenirse kapanır | Uzak git remote (GitHub) bağlı ve son commit'i tutuyor | Haftalık ritüelde SSD'nin son yedek tarihine bakılır; 2 hafta üst üste eksikse uzak remote sorusu tekrar açılır | Olcay | 🟡 İZLENİYOR — kullanıcı OneDrive+G: ile devam kararı verdi (2026-09-10), uzak remote ertelendi |
 | **BK-01** | Yedek script'i sessizce bozuldu (çalışıyor görünüp aslında hata veriyor) | D | **Y** | Script çıktısında "Dogrulama: GECTI" satırı yoksa | Her çalıştırmada | Adım 3 (geri yükleme doğrulaması) her seferinde otomatik koşuyor ve HEAD eşleşmesini kontrol ediyor | Doğrulama FAILED ise script'i düzeltmeden bir sonraki yedeğe geçilmez | Olcay | ✅ KAPALI (2026-09-10, otomatik doğrulama script içine gömülü) |
-| **BK-02** | Büyük ikili dosyalar (`artifacts/`) hiç yedeklenmiyor | O | **Y** | İlk gerçek `.bit`/overlay dosyası oluştuğunda `backup.ps1` onu hâlâ kapsamıyorsa | **Faz 2** (ilk sentez çıktısı, ~H4) | `artifacts/` içeriği OneDrive+D:'ye kopyalanıyor | `backup.ps1`'e robocopy adımı eklenir — bkz. [backup.md §7](backup.md) devir maddesi | Olcay | AÇIK (bilinçli — henüz içerik yok) |
+| **BK-02** | Büyük ikili dosyalar (`artifacts/`) hiç yedeklenmiyor | O | **Y** | İlk gerçek `.bit`/overlay dosyası oluştuğunda `backup.ps1` onu hâlâ kapsamıyorsa | **Faz 2** (ilk sentez çıktısı, ~H4) | `artifacts/` içeriği OneDrive+G:'ye kopyalanıyor | `backup.ps1`'e robocopy adımı eklenir — bkz. [backup.md §7](backup.md) devir maddesi | Olcay | AÇIK (bilinçli — henüz içerik yok) |
+| **BK-05** | Otomatik yedek çalıştırılıyor ama kimse çıktısını kontrol etmiyor | O | O | Görev Zamanlayıcı geçmişinde art arda 2 "başarısız" durumu | Her hafta (ritüelin parçası) | `Get-ScheduledTaskInfo qir-engine-backup` son çalıştırma sonucu 0 | Ritüele madde eklendi (bkz. §10) | Olcay | AÇIK (yeni — otomasyon 2026-09-10'da kuruldu) |
 | **BK-03** | age özel anahtarı ayrıca yedeklenmedi | O | **Y** | Anahtar üretildiğinden beri (bugün) ikinci bir kopyası yok | **Bugün** | Anahtar parola yöneticisi veya ayrı bir güvenli yerde ikinci kez duruyor | Kayıpsa `secrets.enc.yaml` kurtarılamaz, tüm sırlar sıfırdan üretilir | Olcay | 🟡 İZLENİYOR — masaüstüne geçici kopya (`qir-engine-age-keys-YEDEK.txt`) alındı 2026-09-10, parola yöneticisine taşınıp masaüstünden silinince KAPALI olacak |
 | **BK-04** | Savunma öncesi altın kopya alınmayı unutuluyor | D | **Y** | H13 bitiminde (13 Ara) `git tag altin-kopya-*` yok | **H13** (13 Ara) | Etiket ve dondurulmuş kopya mevcut | H14 başında acilen alınır — geç ama hâlâ mümkün | Olcay | AÇIK |
 
@@ -126,7 +127,7 @@
 | **S-8** | VR-03 | **Ölçüm çıktısına otomatik damga** (tarih + git hash + konfigürasyon JSON'u). İlk ölçümden **önce** | 3 saat | **H3** | Damgasız koşum geçersizdir; donanım zamanını iki kez harcamazsın |
 | **S-9** | AA-03 | **Demoyu baştan çevrimdışı tasarla** + yedek video çekme kararını takvime yaz. H12'de değil şimdi karar ver | 1 saat | **H1** | Jüri günü ağ arızası, hazırlıklıysa 30 saniyelik olay; hazırlıksızsa proje kaybı |
 | **S-10** | TK-01 | **1.3 altın referansını H2'nin ilk yarısına çek** (zaten takvimde). Kritik yolun en kırılgan halkası burası | — | **H2** | Zincirin tamamının kayma riskini bir haftadan yarım haftaya indirir |
-| **S-11** | KS-02, BK-00 | **Her hafta sonunda çalışan durumu commit'le ve `scripts/backup.ps1` çalıştır.** ⚠️ Uzak git remote yok — bu script OneDrive+D:'ye yedekler, "uzağa push" değil; BK-00 kalıcı çözüm bekliyor | 30 dk/hafta | **Her Cuma** | Hastalık veya donanım kaybında en fazla 1 haftalık iş kaybedersin |
+| **S-11** | KS-02, BK-00 | **Her hafta çalışan durumu commit'le.** `scripts/backup.ps1` artık otomatik (Cuma 18:00, Görev Zamanlayıcı) — elle çalıştırmaya gerek yok, ama SSD'nin takılı olduğunu haftalık ritüelde kontrol et | 2 dk/hafta (kontrol) | **Her Cuma** | Hastalık veya donanım kaybında en fazla 1 haftalık iş kaybedersin |
 | **S-12** | KS-03 | **Ders müfredat tarihini H1'de öğren; hocaya bankalama sorusunu H2'de sor** — müfredatın gelmesini bekleme | 1 saat | **H1–H2** | Desteğin geç kalıp kalmayacağını 5 hafta önceden bilirsin |
 | **S-13** | BK-03 | **age özel anahtarını (`%APPDATA%\sops\age\keys.txt`) bugün parola yöneticisine veya harici bir yere elle kopyala** | 10 dakika | **Bugün** | Bu anahtar olmadan `secrets.enc.yaml` kalıcı olarak kurtarılamaz — en ucuz sigorta en pahalı riski kapatıyor |
 
@@ -143,6 +144,7 @@
 3. **Gerçekleşemez hale gelen** riskleri `KAPALI` yap ve tarihi yaz (örn. DT-00). Kapalı satır silinmez — kaydın geçmişi de bilgidir.
 4. **Yeni risk** çıktıysa ekle: kategorisi, ID'si (sıradaki numara), en az bir erken uyarı işareti. Erken uyarı işareti yazılamayan risk, henüz yeterince anlaşılmamıştır.
 5. Bu dosyanın başındaki **"Son güncelleme"** satırını değiştir.
+6. **Otomatik yedek kontrolü** (BK-00, BK-05): `Get-ScheduledTaskInfo qir-engine-backup` ile son çalışma sonucunu kontrol et. Başarısızsa veya SSD o gün takılı değildiyse, elle `.\scripts\backup.ps1` çalıştır.
 
 **Kırmızı çizgi**: `TETİKLENDİ` durumuna geçen bir risk için [cut-plan.md](../specs/000-kapsam-takvim/cut-plan.md)'de yazılana uyulur. "Bir hafta daha deneyeyim" demek, hem kesme planını hem bu kaydı geçersiz kılar.
 
@@ -154,3 +156,4 @@
 |---|---|---|
 | 2026-09-10 | H0 | Kayıt oluşturuldu. 22 risk, 7 kategori. DT-00 (tedarik) kapalı doğdu — kart elde. |
 | 2026-09-10 | H0 | Faz 0.5: Yedekleme kategorisi eklendi (BK-00..BK-04, 5 risk). BK-01 aynı gün kapandı (otomatik doğrulama script'e gömülü). BK-00 (uzak git remote yok) en kritik açık madde — kullanıcı kararı bekliyor. S-13 eklendi (age anahtarı yedekleme). |
+| 2026-09-10 | H0 | Kullanıcı kararı: D: yerine harici SSD (G:) kalıcı yedek hedefi; uzak git remote şimdilik ertelendi. BK-00 İZLENİYOR'a çekildi (KAPALI değil). Otomatik haftalık yedek (Görev Zamanlayıcı, Cuma 18:00) kuruldu ve doğrulandı — BK-05 eklendi (otomasyon çıktısını kontrol etme riski). BK-03: age anahtarı masaüstüne geçici kopyalandı, İZLENİYOR. |
