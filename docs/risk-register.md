@@ -95,6 +95,20 @@
 
 ---
 
+## 8b. Yedekleme / veri kaybı
+
+*Kaynak: Faz 0.5 ([docs/backup.md](backup.md)).*
+
+| ID | Risk | Ol. | Etki | Erken uyarı işareti | Karar tarihi | Ölçüt | Tetiklenirse yapılacak | Sahibi | Durum |
+|---|---|---|---|---|---|---|---|---|---|
+| **BK-00** | 🔴 Laptop kaybı + OneDrive/D: senkron değil → tek nokta hatası | O | **Y** | `scripts/backup.ps1` bir haftadan uzun süre çalışmamış | **Bugün** — uzak remote kararı bekliyor | Uzak git remote (GitHub) bağlı ve son commit'i tutuyor | Uzak remote yoksa: OneDrive senkron durumu elle kontrol edilir, D: yedeği tazelenir | Olcay | **AÇIK — kullanıcı kararı bekliyor** |
+| **BK-01** | Yedek script'i sessizce bozuldu (çalışıyor görünüp aslında hata veriyor) | D | **Y** | Script çıktısında "Dogrulama: GECTI" satırı yoksa | Her çalıştırmada | Adım 3 (geri yükleme doğrulaması) her seferinde otomatik koşuyor ve HEAD eşleşmesini kontrol ediyor | Doğrulama FAILED ise script'i düzeltmeden bir sonraki yedeğe geçilmez | Olcay | ✅ KAPALI (2026-09-10, otomatik doğrulama script içine gömülü) |
+| **BK-02** | Büyük ikili dosyalar (`artifacts/`) hiç yedeklenmiyor | O | **Y** | İlk gerçek `.bit`/overlay dosyası oluştuğunda `backup.ps1` onu hâlâ kapsamıyorsa | **Faz 2** (ilk sentez çıktısı, ~H4) | `artifacts/` içeriği OneDrive+D:'ye kopyalanıyor | `backup.ps1`'e robocopy adımı eklenir — bkz. [backup.md §7](backup.md) devir maddesi | Olcay | AÇIK (bilinçli — henüz içerik yok) |
+| **BK-03** | age özel anahtarı ayrıca yedeklenmedi | O | **Y** | Anahtar üretildiğinden beri (bugün) ikinci bir kopyası yok | **Bugün** | Anahtar parola yöneticisi veya ayrı bir güvenli yerde ikinci kez duruyor | Kayıpsa `secrets.enc.yaml` kurtarılamaz, tüm sırlar sıfırdan üretilir | Olcay | AÇIK |
+| **BK-04** | Savunma öncesi altın kopya alınmayı unutuluyor | D | **Y** | H13 bitiminde (13 Ara) `git tag altin-kopya-*` yok | **H13** (13 Ara) | Etiket ve dondurulmuş kopya mevcut | H14 başında acilen alınır — geç ama hâlâ mümkün | Olcay | AÇIK |
+
+---
+
 ## 9. Ucuz sigortalar
 
 > Kural: **bugün veya bu hafta, yarım günde** yapılabilen; riski *karar tarihinden haftalar önce* görünür kılan iş.
@@ -112,8 +126,9 @@
 | **S-8** | VR-03 | **Ölçüm çıktısına otomatik damga** (tarih + git hash + konfigürasyon JSON'u). İlk ölçümden **önce** | 3 saat | **H3** | Damgasız koşum geçersizdir; donanım zamanını iki kez harcamazsın |
 | **S-9** | AA-03 | **Demoyu baştan çevrimdışı tasarla** + yedek video çekme kararını takvime yaz. H12'de değil şimdi karar ver | 1 saat | **H1** | Jüri günü ağ arızası, hazırlıklıysa 30 saniyelik olay; hazırlıksızsa proje kaybı |
 | **S-10** | TK-01 | **1.3 altın referansını H2'nin ilk yarısına çek** (zaten takvimde). Kritik yolun en kırılgan halkası burası | — | **H2** | Zincirin tamamının kayma riskini bir haftadan yarım haftaya indirir |
-| **S-11** | KS-02 | **Her hafta sonunda çalışan durumu commit'le ve uzağa push'la.** İstisnasız | 30 dk/hafta | **Her Cuma** | Hastalık veya donanım kaybında en fazla 1 haftalık iş kaybedersin |
+| **S-11** | KS-02, BK-00 | **Her hafta sonunda çalışan durumu commit'le ve `scripts/backup.ps1` çalıştır.** ⚠️ Uzak git remote yok — bu script OneDrive+D:'ye yedekler, "uzağa push" değil; BK-00 kalıcı çözüm bekliyor | 30 dk/hafta | **Her Cuma** | Hastalık veya donanım kaybında en fazla 1 haftalık iş kaybedersin |
 | **S-12** | KS-03 | **Ders müfredat tarihini H1'de öğren; hocaya bankalama sorusunu H2'de sor** — müfredatın gelmesini bekleme | 1 saat | **H1–H2** | Desteğin geç kalıp kalmayacağını 5 hafta önceden bilirsin |
+| **S-13** | BK-03 | **age özel anahtarını (`%APPDATA%\sops\age\keys.txt`) bugün parola yöneticisine veya harici bir yere elle kopyala** | 10 dakika | **Bugün** | Bu anahtar olmadan `secrets.enc.yaml` kalıcı olarak kurtarılamaz — en ucuz sigorta en pahalı riski kapatıyor |
 
 **Toplam**: ≈ 28 saat, büyük kısmı H1–H3'te. Bu, 14 haftanın **%2'sinden azı** karşılığında on yüksek etkili riski görünür kılar.
 
@@ -138,3 +153,4 @@
 | Tarih | Hafta | Değişiklik |
 |---|---|---|
 | 2026-09-10 | H0 | Kayıt oluşturuldu. 22 risk, 7 kategori. DT-00 (tedarik) kapalı doğdu — kart elde. |
+| 2026-09-10 | H0 | Faz 0.5: Yedekleme kategorisi eklendi (BK-00..BK-04, 5 risk). BK-01 aynı gün kapandı (otomatik doğrulama script'e gömülü). BK-00 (uzak git remote yok) en kritik açık madde — kullanıcı kararı bekliyor. S-13 eklendi (age anahtarı yedekleme). |

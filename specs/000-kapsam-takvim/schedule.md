@@ -125,7 +125,7 @@ Sentez turları uzun sürer (PYNQ-Z2 sınıfı için tur başına saatler). Sent
 | **H10** | 16–22 Kas | **10.2** Karşılaştırma sunumu · **6.3** Mühendis konsolu · **8.1** Gateway | **12.1** Şekil biriktirme başlar | ✅ **Uçtan uca gösterilebilir demo** |
 | **H11** | 23–29 Kas | 🛡️ **TAMPON 2** + 🔒 **KOD DONDURMA** · Tekrarlanabilirlik koşusu | Kalan H işleri (varsa) | 🔒 **Dondurulmuş depo + nihai ölçüm veri seti** |
 | **H12** | 30 Kas–6 Ara | **12.2** Tez yazımı (bölüm bölüm) | **12.1** Figürler tamamlanır | Tez taslağı v1 — tam metin |
-| **H13** ⚠️ | 7–13 Ara | *Final hazırlık · %40 kapasite* · **12.3** Sunum destesi + poster | Tez revizyonu | Sunum destesi · Poster baskıya hazır |
+| **H13** ⚠️ | 7–13 Ara | *Final hazırlık · %40 kapasite* · **12.3** Sunum destesi + poster · 🔒 **13 Aralık: ALTIN KOPYA** ([backup.md §6](../../docs/backup.md#6-savunma-öncesi-dondurma--altın-kopya)) | Tez revizyonu | Sunum destesi · Poster baskıya hazır · dokunulmayan dondurulmuş kopya |
 | **H14** ⚠️ | 14–20 Ara | *Final haftası · %40 kapasite* · **12.4** Demo videosu + jüri provası | — | ✅ **TESLİM** |
 
 ### 3.1 Sıralama kuralından sapma — gerekçe
