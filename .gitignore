@@ -15,9 +15,17 @@ __pycache__/
 .env.*
 !.env.example
 !**/.env.example
+!*.env.enc
 *.pem
 *.p12
 *.jks
+
+# age özel anahtarları — bunlar repoda DEĞİL, %APPDATA%\sops\age\keys.txt'te.
+# Yine de kazara kopyalanma ihtimaline karşı desen olarak kapatılıyor.
+# NOT: secrets.enc.yaml şifrelidir ve commit EDİLİR — buradaki desenler onu kapsamaz.
+keys.txt
+*.agekey
+age-key*.txt
 
 # Büyük ikili dosyalar — bkz. docs/repo-conventions.md §3 (harici depo kararı)
 artifacts/bitstream/*

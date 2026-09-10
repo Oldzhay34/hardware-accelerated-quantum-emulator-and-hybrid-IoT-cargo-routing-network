@@ -18,7 +18,8 @@ ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 ## Kırmızı çizgiler
 
 - Onaysız migration yok.
-- Sır (şifre, anahtar, token) repoya **asla** girmez — bkz. `.env.example` standardı, [docs/repo-conventions.md](docs/repo-conventions.md) §7.
+- Sır düz metin olarak repoya **asla** girmez. Tek kaynak: `secrets.enc.yaml` (SOPS+age ile şifreli, commit edilir). Düzenleme: `.\scripts\secrets.ps1 edit`. Ayrıntı: [docs/secrets-audit.md](docs/secrets-audit.md).
+- Türkçe locale tuzağı: string büyütmede `ToUpper()` değil **`ToUpperInvariant()`** kullan (`i` → `İ` geçersiz tanımlayıcı üretir).
 - Ölçüm rakamı (fidelity, II, BRAM %, gecikme, enerji) elle sabitlenmez — [docs/measurements/](docs/measurements/) altına damgalı (tarih+git hash+konfig) yazılır.
 - Domain kodunda çerçeve anotasyonu yok (hexagonal — bkz. aşağı).
 

@@ -1,0 +1,17 @@
+# SOPS konfigürasyonu — Faz 0.3 (onaylandı 2026-09-10)
+# Hangi dosyaların hangi anahtarla şifreleneceğini belirler.
+# Ayrıntı: docs/secrets-audit.md
+#
+# Özel anahtar bu depoda DEĞİLDİR: %APPDATA%\sops\age\keys.txt
+# Yedekleme zorunluluğu: docs/backup.md (Faz 0.5) "yeniden üretilemez" kategorisi.
+
+creation_rules:
+  # Tüm *.enc.yaml / *.enc.json dosyaları şifrelenir.
+  # SOPS varsayılanı: YAML'da yalnızca DEĞERLER şifrelenir, anahtar adları düz kalır —
+  # böylece git diff'te "hangi değişken değişti" görülür, değeri görünmeden.
+  - path_regex: \.enc\.(yaml|yml|json)$
+    age: age14tkstls957repyqvaa6xhn73ww4nllrtk32rz939u4tre0l3eddsuuxv55
+
+  # .env.enc dosyaları (dotenv biçimi)
+  - path_regex: \.env\.enc$
+    age: age14tkstls957repyqvaa6xhn73ww4nllrtk32rz939u4tre0l3eddsuuxv55

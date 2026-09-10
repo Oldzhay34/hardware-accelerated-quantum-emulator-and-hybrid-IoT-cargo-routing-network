@@ -94,13 +94,16 @@ docs(faz0.2): depo iskeletini kur
 
 ---
 
-## 7. Sır yönetimi (iskelet — tam denetim Faz 0.3'te)
+## 7. Sır yönetimi — SOPS + age
 
-Bu alt dal yalnızca **standardı** kurar; tarama ve rotasyon Faz 0.3'ün işidir.
+**Karar Faz 0.3'te verildi ve onaylandı** (2026-09-10). Tam gerekçe ve karşılaştırma: [docs/secrets-audit.md](secrets-audit.md).
 
-- Her servis/bileşen **kendi** `.env.example` dosyasını taşır (gerçek değer yok, her değişkenin açıklaması var).
-- Kök `.gitignore` tüm `.env` dosyalarını (örnek hariç) ve sertifika/anahtar uzantılarını (`.pem`, `.p12`, `.jks`) hariç tutar.
-- CI'da bir sır tarayıcı kapısı vardır: [.github/workflows/secrets-scan.yml](../.github/workflows/secrets-scan.yml). Uzak depo bağlanmadan çalışmaz ama dosya baştan hazır.
+- **Tek doğruluk kaynağı**: [`secrets.enc.yaml`](../secrets.enc.yaml) — SOPS+age ile şifreli, **git'e commit edilir**. Şifreli olduğu için güvenlidir; YAML anahtar adları düz kaldığından `git diff` "hangi değişken değişti"yi gösterir, değeri sızdırmadan.
+- **age özel anahtarı repoda DEĞİL**: `%APPDATA%\sops\age\keys.txt`. Kaybolursa sırlar kurtarılamaz — Faz 0.5 yedekleme envanterine dahildir.
+- **Komutlar**: `.\scripts\secrets.ps1 edit | env | check`
+- Her servis/bileşen ayrıca **kendi** `.env.example` dosyasını taşır (gerçek değer yok, her değişkenin açıklaması var) — servis kodu doğduğunda, Faz 3'ten itibaren.
+- Kök `.gitignore` tüm `.env` dosyalarını (örnek hariç), sertifika/anahtar uzantılarını (`.pem`, `.p12`, `.jks`) ve age anahtar desenlerini hariç tutar.
+- CI'da sır tarayıcı kapısı: [.github/workflows/secrets-scan.yml](../.github/workflows/secrets-scan.yml) — yerelde kullanılan gitleaks ile aynı araç. Uzak depo bağlanınca devreye girer; yerel karşılığı `secrets.ps1 check`.
 
 ---
 

@@ -1,9 +1,9 @@
 # Sır Denetimi
 
-**Kaynak**: Faz 0 alt dal 0.3 · **Tarama tarihi**: 2026-09-10 · **Durum**: Bölüm 1-2 tamamlandı, **Bölüm 4 (uygulama) onay bekliyor**
+**Kaynak**: Faz 0 alt dal 0.3 · **Tarama tarihi**: 2026-09-10 · **Durum**: ✅ Tamamlandı (SOPS+age onaylandı ve uygulandı 2026-09-10)
 
-> Bu alt dal iki aşamalıdır: önce tara+rapor+karşılaştır (bu belge), sonra **kullanıcı onayı**, sonra uygulama.
-> Aşağıdaki Bölüm 1 ve 2 tamamlanmıştır. **Bölüm 3'te durulmuştur** — Anayasa Prensip I gereği.
+> Bu alt dal iki aşamalıdır: önce tara+rapor+karşılaştır, sonra **kullanıcı onayı**, sonra uygulama.
+> Bölüm 3'te durulmuş, onay alınmış, Bölüm 4 uygulanmıştır.
 
 ---
 
@@ -87,22 +87,106 @@ Gerekçe (14 hafta kısıtı ile doğrudan bağlı):
 
 ---
 
-## 3. 🚦 ONAY BEKLİYOR
+## 3. ✅ Onay
 
-Yukarıdaki tavsiye (**SOPS + age**) uygulanmadan önce onayın gerekiyor (Anayasa Prensip I — onay kapısı, pazarlıksız).
-
-Onaylarsan Bölüm 4'te şunlar yapılacak:
-- `sops` + `age` kurulumu (winget/scoop).
-- Kök `.sops.yaml` konfigürasyonu.
-- `age` anahtar çifti üretimi + özel anahtarın **git dışı** saklanma talimatı (Faz 0.5 ile bağlı).
-- Örnek şifreli `secrets.enc.yaml` iskeleti (henüz gerçek sır yok, ama biçim hazır olur).
-- Yerel + Railway + k8s için çözme (decrypt) komutlarının `scripts/` altına yazılması.
-- CI kapısı zaten var ([.github/workflows/secrets-scan.yml](../.github/workflows/secrets-scan.yml), Faz 0.2'den).
-
-**Onaylamazsan veya farklı bir seçenek istersen** (platform-native veya harici kasa), söyle — Bölüm 2'deki tabloyu senin tercihine göre uygularım.
+**SOPS + age onaylandı** (kullanıcı, 2026-09-10). Anayasa Prensip I gereği bu onay alınmadan Bölüm 4'e geçilmemişti.
 
 ---
 
 ## 4. Uygulama
 
-*Bölüm 3'teki onay alınmadan bu bölüm doldurulmaz.*
+### 4.1 Kurulan araçlar
+
+| Araç | Sürüm | Kaynak |
+|---|---|---|
+| gitleaks | 8.30.1 | `winget install Gitleaks.Gitleaks` |
+| sops | 3.13.3 | `winget install SecretsOPerationS.SOPS` |
+| age | 1.3.1 | `winget install FiloSottile.age` |
+
+### 4.2 age anahtarı — konum ve koruma
+
+| | |
+|---|---|
+| **Açık anahtar** (repoda, `.sops.yaml` içinde) | `age14tkstls957repyqvaa6xhn73ww4nllrtk32rz939u4tre0l3eddsuuxv55` |
+| **Özel anahtar** (repoda **DEĞİL**) | `%APPDATA%\sops\age\keys.txt` |
+| Dosya izni | `icacls` ile kısıtlandı: yalnızca `olcay:(R,W)`. `age-keygen`'in "world-readable" uyarısı bu adımla kapatıldı. |
+
+> 🔴 **Bu özel anahtar kaybolursa şifreli sırlar KURTARILAMAZ.**
+> Faz 0.5'in ([docs/backup.md](backup.md)) "yeniden üretilemez" envanterine **bu dosya eklenecektir** — bu, 0.5'e devredilen bağlayıcı bir gerekliliktir.
+> Anahtar git'in dışında, ayrı bir yerde (parola yöneticisi veya harici disk) yedeklenmelidir.
+
+### 4.3 Kurulan dosyalar
+
+| Dosya | Rol | Git'te? |
+|---|---|---|
+| [`.sops.yaml`](../.sops.yaml) | Hangi dosya hangi anahtarla şifrelenir | ✅ evet |
+| [`secrets.enc.yaml`](../secrets.enc.yaml) | Tek doğruluk kaynağı, şifreli | ✅ evet (şifreli olduğu için güvenli) |
+| [`scripts/secrets.ps1`](../scripts/secrets.ps1) | `edit` / `env` / `check` komutları | ✅ evet |
+| `.env` | Yerelde üretilen düz dosya | ❌ `.gitignore`'da |
+| `%APPDATA%\sops\age\keys.txt` | Özel anahtar | ❌ repoda değil |
+
+**Şifreleme davranışı doğrulandı**: YAML'da anahtar adları düz kalıyor (`database:`, `password:`), yalnızca değerler `ENC[AES256_GCM,...]` oluyor. Yani `git diff` "hangi değişken değişti" sorusunu cevaplıyor, değeri sızdırmadan.
+
+`secrets.enc.yaml` içindeki değerler şu an **yer tutucudur** (`PLACEHOLDER_*`) — Bölüm 1'in bulgusu gereği henüz gerçek sır yok. Biçim hazır; ilk gerçek sır üretildiğinde `sops secrets.enc.yaml` ile yerine yazılır.
+
+### 4.4 Kullanım
+
+```powershell
+.\scripts\secrets.ps1 edit    # şifreli dosyayı editörde aç (kaydedince otomatik şifreler)
+.\scripts\secrets.ps1 env     # yerel geliştirme için .env üret (gitignore'da)
+.\scripts\secrets.ps1 check   # çözme çalışıyor mu + depoda düz sır kaldı mı
+```
+
+### 4.5 Doğrulama koşuları
+
+| Test | Sonuç |
+|---|---|
+| Şifrele → çöz (round-trip) | ✅ 9 değişkenin tamamı doğru çözüldü |
+| `.env` üretimi | ✅ 9 değişken yazıldı |
+| `.env` gitignore'da mı | ✅ `git check-ignore` doğruladı |
+| `secrets.enc.yaml` izlenebilir mi | ✅ ignore edilmiyor |
+| `secrets.ps1 check` | ✅ çözme OK + gitleaks temiz (6 commit) |
+
+**Uygulama sırasında yakalanan iki hata** (ikisi de düzeltildi):
+
+1. **Türkçe locale `ToUpper()` tuzağı** — `.env` üretiminde `jwt_signing_key` → `AUTH_JWT_SİGNİNG_KEY` oluyordu (noktalı büyük İ), bu geçersiz bir ortam değişkeni adı. `ToUpperInvariant()` ile düzeltildi ve script'e yorum olarak not edildi. Bu tuzak Türkçe locale'de çalışan her string dönüşümünde tekrar edebilir.
+2. **`check` komutunda `--no-git`** — `.gitignore`'u atlayıp `.venv`'deki üçüncü parti test sabitlerini sızıntı sanıyordu (39 yanlış pozitif), yani komut her zaman fail ederdi. Git moduna çevrildi.
+
+### 4.6 Rotasyon
+
+**Şu an rotasyon gerektiren sır yok** — Bölüm 1 taraması temiz çıktı, sızmış sır bulunmadı.
+
+İleride bir sır sızarsa uygulanacak sıra:
+
+| Sır tipi | Rotasyon adımı | Yan etki |
+|---|---|---|
+| Veritabanı parolası | DB'de değiştir → `secrets.ps1 edit` → redeploy | Kısa kesinti |
+| JWT imza anahtarı | Yeni anahtar üret → redeploy | **Tüm oturumlar düşer** — düşük trafikli bir saate planla |
+| MQTT cihaz parolası | Broker'da değiştir → **her ESP32'ye yeniden yükleme** | Fiziksel erişim gerekir, bkz. risk `DT-02` |
+| PYNQ SSH | Kartta `passwd` → `secrets.ps1 edit` | Yok |
+| Railway / Cloudflare token | Panelden iptal + yeni üret | Yok |
+
+**Rotasyon kaydı**: *(boş — henüz rotasyon yapılmadı)*
+
+### 4.7 Git geçmişi temizliği
+
+**Gerekmiyor.** Bölüm 1'deki git modu taraması 5 commit'in tamamını taradı ve hiçbir sır bulmadı; temizlenecek geçmiş yok.
+
+İleride gerekirse: `git-filter-repo` (önerilen) veya BFG kullanılır. **Ama önce rotasyon** — geçmiş temizliği rotasyonun yerine geçmez, çünkü sır zaten görülmüş olabilir (klon, fork, CI logu).
+
+### 4.8 CI kapısı
+
+[.github/workflows/secrets-scan.yml](../.github/workflows/secrets-scan.yml) Faz 0.2'de hazırlanmıştı, `gitleaks-action` kullanıyor — yerelde kullandığımız araçla aynı, sonuç tutarlılığı garanti. Uzak depo (GitHub) bağlandığında otomatik devreye girer.
+
+Yerelde aynı kontrol: `.\scripts\secrets.ps1 check`.
+
+### 4.9 Sonraki fazlara devredilenler
+
+| Devredilen | Hedef |
+|---|---|
+| age özel anahtarını "yeniden üretilemez" envanterine ekle | **Faz 0.5** ([backup.md](backup.md)) |
+| Servis başına `.env.example` yaz (gerçek servis kodu doğduğunda) | **Faz 3** ve sonrası |
+| Açılışta zorunlu değişken doğrulaması (eksikse servis çalışmayı reddetsin) | **Faz 3.2** servis sözleşmeleri |
+| Log maskeleme filtresi + testle kanıt | **Faz 3** / **Faz 0.4** (kişisel veri) |
+| Testlerde Testcontainers'ın geçici kimlik bilgileri | **Faz 11** test stratejisi |
+| PYNQ tarafı için `secrets.ps1`'in bash karşılığı | **Faz 5** (agent Linux'ta koşuyor) |
