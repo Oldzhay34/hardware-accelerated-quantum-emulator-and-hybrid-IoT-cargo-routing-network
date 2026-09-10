@@ -1,6 +1,30 @@
+# Python
 .venv/
-.idea/
 __pycache__/
 *.pyc
-.claude/
+
+# IDE / editor
+.idea/
 .ipynb_checkpoints/
+
+# Claude Code local state (bkz. Faz 0 setup notu — kimlik bilgisi içerebilir)
+.claude/
+
+# Sırlar — gerçek .env asla commit edilmez, yalnızca .env.example
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.p12
+*.jks
+
+# Büyük ikili dosyalar — bkz. docs/repo-conventions.md §3 (harici depo kararı)
+artifacts/bitstream/*
+artifacts/overlay/*
+artifacts/models/*
+!artifacts/**/.gitkeep
+!artifacts/README.md
+*.bit
+*.hwh
+*.xclbin
