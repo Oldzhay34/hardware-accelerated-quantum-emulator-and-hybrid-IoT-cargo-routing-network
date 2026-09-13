@@ -1,0 +1,16 @@
+.git/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.idea/
+.claude/
+specs/
+docs/
+artifacts/
+data/osm/
+data/osrm/
+*.log
+.env*
+!*.env.enc
+secrets.enc.yaml

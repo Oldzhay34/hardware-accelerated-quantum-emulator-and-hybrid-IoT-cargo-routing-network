@@ -38,10 +38,10 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 **Amaç**: Bağımlılıklar ve dizin yapısı.
 
-- [ ] T001 `uv pip install --python .venv\Scripts\python.exe qiskit-aer pytest fastapi uvicorn httpx` ile bağımlılıkları kur (qiskit 2.5.2 ve numpy zaten kurulu; qiskit-aer 0.17.2 ölçümde doğrulandı)
-- [ ] T002 [P] `services/qubo/`, `services/reference/`, `services/matrix/app/` ve her birinin `tests/` alt dizinini `__init__.py` ile oluştur
-- [ ] T003 [P] `.gitignore`'a `data/osm/` ekle (OSM dökümü 44,6 MB — commit edilmez); `data/matrices/` **commit edilir**, hariç tutulmaz
-- [ ] T004 [P] Depo kökünde `pytest.ini` oluştur: `testpaths = services`, `pythonpath = .`
+- [X] T001 `uv pip install --python .venv\Scripts\python.exe qiskit-aer pytest fastapi uvicorn httpx` ile bağımlılıkları kur (qiskit 2.5.2 ve numpy zaten kurulu; qiskit-aer 0.17.2 ölçümde doğrulandı)
+- [X] T002 [P] `services/qubo/`, `services/reference/`, `services/matrix/app/` ve her birinin `tests/` alt dizinini `__init__.py` ile oluştur
+- [X] T003 [P] `.gitignore`'a `data/osm/` ekle (OSM dökümü 44,6 MB — commit edilmez); `data/matrices/` **commit edilir**, hariç tutulmaz
+- [X] T004 [P] Depo kökünde `pytest.ini` oluştur: `testpaths = services`, `pythonpath = .`
 
 ---
 
@@ -51,10 +51,10 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 **⚠️ Bu faz bitmeden hiçbir kullanıcı hikâyesi başlayamaz.**
 
-- [ ] T005 `scripts/fetch_osm.ps1` yaz: BBBike İstanbul dökümünü `data/osm/Istanbul.osm.pbf` olarak indir, MD5'i `cb101d9243c3c605907e94f4266159c2` ile karşılaştır, **tutmazsa hata verip dur** (spec FR-005 — "en güncel veriyi indir" davranışı yasak)
-- [ ] T006 [P] `services/conftest.py` içinde `fixture_matrix_5x5` pytest fixture'ı oluştur: elle yazılmış, **asimetrik**, köşegeni 0 olan 5×5 `float64` matris. US1'in OSRM beklemeden ilerlemesini sağlar
-- [ ] T007 [P] `services/common/stamp.py` yaz: çıktı dosyalarına tarih + `git rev-parse --short HEAD` + konfigürasyon damgası basan yardımcı ([risk VR-03](../../docs/risk-register.md) gereği — damgasız ölçüm geçersiz)
-- [ ] T008 [P] `docs/measurements/.gitkeep` ve `data/matrices/.gitkeep` oluştur
+- [X] T005 `scripts/fetch_osm.ps1` yaz: BBBike İstanbul dökümünü `data/osm/Istanbul.osm.pbf` olarak indir, MD5'i `cb101d9243c3c605907e94f4266159c2` ile karşılaştır, **tutmazsa hata verip dur** (spec FR-005 — "en güncel veriyi indir" davranışı yasak)
+- [X] T006 [P] `services/conftest.py` içinde `fixture_matrix_5x5` pytest fixture'ı oluştur: elle yazılmış, **asimetrik**, köşegeni 0 olan 5×5 `float64` matris. US1'in OSRM beklemeden ilerlemesini sağlar
+- [X] T007 [P] `services/common/stamp.py` yaz: çıktı dosyalarına tarih + `git rev-parse --short HEAD` + konfigürasyon damgası basan yardımcı ([risk VR-03](../../docs/risk-register.md) gereği — damgasız ölçüm geçersiz)
+- [X] T008 [P] `docs/measurements/.gitkeep` ve `data/matrices/.gitkeep` oluştur
 
 **Checkpoint**: Zemin hazır — US3 başlayabilir.
 
@@ -68,17 +68,17 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 ### Tests for User Story 3 ⚠️ (önce yaz, BAŞARISIZ olduklarını gör)
 
-- [ ] T009 [P] [US3] `services/qubo/tests/test_qubo_energy.py`: geçerli turların enerji sıralaması = gerçek tur uzunluğu sıralaması (spec FR-010)
-- [ ] T010 [P] [US3] `services/qubo/tests/test_penalty.py`: kısıt ihlal eden **her** atama, geçerli **her** turdan yüksek enerjili — ihlal sayısı **0** olmalı (spec SC-003)
-- [ ] T011 [P] [US3] `services/qubo/tests/test_penalty.py` içine ikinci test: `max(durations)` değişince `penalty_A` de değişir (sabit gömülü değer **yok**, spec FR-009)
-- [ ] T012 [P] [US3] `services/qubo/tests/test_brute_force.py`: N=5 için tur sayısı **tam 24** olmalı — `(N−1)!`, `5!=120` **değil** ([data-model.md §5](data-model.md))
+- [X] T009 [P] [US3] `services/qubo/tests/test_qubo_energy.py`: geçerli turların enerji sıralaması = gerçek tur uzunluğu sıralaması (spec FR-010)
+- [X] T010 [P] [US3] `services/qubo/tests/test_penalty.py`: kısıt ihlal eden **her** atama, geçerli **her** turdan yüksek enerjili — ihlal sayısı **0** olmalı (spec SC-003)
+- [X] T011 [P] [US3] `services/qubo/tests/test_penalty.py` içine ikinci test: `max(durations)` değişince `penalty_A` de değişir (sabit gömülü değer **yok**, spec FR-009)
+- [X] T012 [P] [US3] `services/qubo/tests/test_brute_force.py`: N=5 için tur sayısı **tam 24** olmalı — `(N−1)!`, `5!=120` **değil** ([data-model.md §5](data-model.md))
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] `services/qubo/qubo.py` içinde `QUBOProblem` veri sınıfı: alanlar `Q` (`ndarray (V,V) float64`, simetrik), `penalty_A` (float), `n_stops` (int), `var_map` (`dict[(city,time) → index]`). `V = (n_stops − 1)²`
-- [ ] T014 [US3] `services/qubo/qubo.py` içinde `matrix_to_qubo(durations, *, epsilon=0.1)`: one-hot TSP QUBO'su üretir, başlangıç şehrini sabitler, `penalty_A = (1+epsilon) * max(durations)` olarak **türetir** (R-6). `durations` kare değilse / köşegen ≠ 0 ise / `inf`/`nan` içeriyorsa `ValueError`
-- [ ] T015 [P] [US3] `services/qubo/qubo.py` içinde `energy(problem, assignment) -> float` ve `assignment_to_tour(problem, assignment) -> list[int] | None` — kısıt ihlalinde **`None`** döner, "en yakın geçerli tur" uydurmaz ([contracts/python-api.md](contracts/python-api.md))
-- [ ] T016 [US3] `services/qubo/brute_force.py` içinde `solve(durations) -> BruteForceResult`: başlangıç sabit, **`(N−1)!` tur** dolaşır (N=5 → 24). N > 8 ise `ValueError`
+- [X] T013 [US3] `services/qubo/qubo.py` içinde `QUBOProblem` veri sınıfı: alanlar `Q` (`ndarray (V,V) float64`, simetrik), `penalty_A` (float), `n_stops` (int), `var_map` (`dict[(city,time) → index]`). `V = (n_stops − 1)²`
+- [X] T014 [US3] `services/qubo/qubo.py` içinde `matrix_to_qubo(durations, *, epsilon=0.1)`: one-hot TSP QUBO'su üretir, başlangıç şehrini sabitler, `penalty_A = (1+epsilon) * max(durations)` olarak **türetir** (R-6). `durations` kare değilse / köşegen ≠ 0 ise / `inf`/`nan` içeriyorsa `ValueError`
+- [X] T015 [P] [US3] `services/qubo/qubo.py` içinde `energy(problem, assignment) -> float` ve `assignment_to_tour(problem, assignment) -> list[int] | None` — kısıt ihlalinde **`None`** döner, "en yakın geçerli tur" uydurmaz ([contracts/python-api.md](contracts/python-api.md))
+- [X] T016 [US3] `services/qubo/brute_force.py` içinde `solve(durations) -> BruteForceResult`: başlangıç sabit, **`(N−1)!` tur** dolaşır (N=5 → 24). N > 8 ise `ValueError`
 
 **Checkpoint**: QUBO doğrulanmış — US1 başlayabilir.
 

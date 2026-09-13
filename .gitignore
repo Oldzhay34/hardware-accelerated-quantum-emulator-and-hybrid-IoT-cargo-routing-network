@@ -31,6 +31,17 @@ age-key*.txt
 # yoktur ve ölçümlerin dayandığı girdinin sabit kalmasını garanti eder.
 # Bkz. docs/data-governance.md §2.3. Gerçek kişisel veri hiçbir koşulda commit edilmez.
 
+# OSM dökümü — 44,6 MB, sürümü MD5 ile pinli (scripts/fetch_osm.ps1 doğrular).
+# Yeniden indirilebilir olduğu için commit edilmez. Bkz. specs/001-.../research.md R-3
+data/osm/
+# OSRM ön işleme çıktısı — 282 MB, yeniden üretilebilir
+data/osrm/
+
+# NOT: data/matrices/ commit EDİLİR — ölçüm girdisinin sabit kalması için (Prensip II)
+
+# pytest
+.pytest_cache/
+
 # Büyük ikili dosyalar — bkz. docs/repo-conventions.md §3 (harici depo kararı)
 artifacts/bitstream/*
 artifacts/overlay/*
