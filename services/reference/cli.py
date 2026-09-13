@@ -77,8 +77,10 @@ def main() -> None:
     eslesme = ref.best_tour == bf.optimal_tour
 
     print(f"\n--- OLCULEN (tahmin degil) ---")
-    print(f"QAOA suresi        : {sure*1000:.1f} ms")
+    print(f"QAOA suresi        : {sure*1000:.1f} ms  (optimizasyon dahil)")
     print(f"Tepe bellek        : {tepe:.2f} MB")
+    print(f"Optimizer          : {ref.optimizer}, {ref.optimizer_iterations} degerlendirme")
+    print(f"Beklenti (once/sonra): {ref.cost_before:.1f} -> {ref.cost_after:.1f}")
     print(f"Genlik sayisi      : {ref.amplitudes.size} ({ref.amplitudes.dtype})")
     print(f"Norm               : {np.linalg.norm(ref.amplitudes):.12f}")
     print(f"Kubit sirasi       : {ref.qubit_order}")

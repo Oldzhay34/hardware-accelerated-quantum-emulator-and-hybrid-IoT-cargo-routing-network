@@ -16,12 +16,18 @@ import qiskit
 import qiskit_aer
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import QAOAAnsatz
-from qiskit.quantum_info import SparsePauliOp
+from qiskit.quantum_info import SparsePauliOp, Statevector
 from qiskit_aer import AerSimulator
+from scipy.optimize import minimize
 
 from services.qubo import qubo as qubo_mod
 
 MAX_QUBITS = 16  # Anayasa Prensip III
+
+# COBYLA iterasyon tavanı. Amaç sınırsız arama değil, sınırlı bütçede
+# gerçek bir optimizasyon sinyali görmek. Tahmin değil kısıt: değiştirilirse
+# run() çıktısındaki optimizer_iterations bunu yansıtır (Prensip II).
+MAX_QAOA_ITER = 100
 
 
 @dataclass(frozen=True)
@@ -36,6 +42,10 @@ class ReferenceResult:
     qubit_order: str             # "little" | "big" — DG-02, olculur, varsayilmaz
     backend: str
     n_qubits: int
+    optimizer: str = "cobyla"
+    optimizer_iterations: int = 0
+    cost_before: float = 0.0     # optimizasyon oncesi beklenti degeri
+    cost_after: float = 0.0      # optimizasyon sonrasi beklenti degeri
 
 
 def _olc_qubit_order() -> str:
@@ -130,11 +140,28 @@ def run(
     cost_op, _offset = _qubo_to_ising(problem)
 
     ansatz = QAOAAnsatz(cost_operator=cost_op, reps=p)
-    rng = np.random.default_rng(seed)
-    params = rng.uniform(0, np.pi, ansatz.num_parameters)
+    ansatz_ac = ansatz.decompose(reps=3)  # save_statevector'suz sablon, optimizasyonda kullanilir
 
-    qc = ansatz.assign_parameters(params)
-    qc = qc.decompose(reps=3)
+    def _beklenti(theta: np.ndarray) -> float:
+        """<psi(theta)|H|psi(theta)> — QAOA'nin gercekten optimize ettigi buyukluk."""
+        bound = ansatz_ac.assign_parameters(theta)
+        sv_ = Statevector.from_instruction(bound)
+        return float(np.real(sv_.expectation_value(cost_op)))
+
+    rng = np.random.default_rng(seed)
+    x0 = rng.uniform(0, np.pi, ansatz.num_parameters)
+    cost_before = _beklenti(x0)
+
+    # COBYLA kendi icinde rastgelelik tasimaz; determinizm x0'in tohumlu
+    # olmasindan gelir (Prensip II). MAX_QAOA_ITER ile sinirlanir.
+    sonuc = minimize(
+        _beklenti, x0, method="COBYLA",
+        options={"maxiter": MAX_QAOA_ITER, "tol": 1e-6},
+    )
+    opt_params = sonuc.x
+    cost_after = float(sonuc.fun)
+
+    qc = ansatz_ac.assign_parameters(opt_params)
     qc.save_statevector()
 
     sim = AerSimulator(method="statevector", seed_simulator=seed)
@@ -172,4 +199,8 @@ def run(
         qubit_order=_olc_qubit_order(),
         backend=f"aer_simulator_statevector/{qiskit_aer.__version__}",
         n_qubits=n,
+        optimizer="cobyla",
+        optimizer_iterations=int(sonuc.nfev),
+        cost_before=float(cost_before),
+        cost_after=cost_after,
     )

@@ -35,6 +35,10 @@ def save(result: ReferenceResult, path: str | Path) -> tuple[Path, Path]:
             "qubit_order": result.qubit_order,
             "backend": result.backend,
             "n_qubits": result.n_qubits,
+            "optimizer": result.optimizer,
+            "optimizer_iterations": result.optimizer_iterations,
+            "cost_before": result.cost_before,
+            "cost_after": result.cost_after,
             "amplitudes_file": npy.name,
             "dtype": str(result.amplitudes.dtype),
             "length": int(result.amplitudes.size),
@@ -60,4 +64,9 @@ def load(path: str | Path) -> ReferenceResult:
         qubit_order=meta["qubit_order"],
         backend=meta["backend"],
         n_qubits=int(meta["n_qubits"]),
+        # eski dosyalarda (optimizasyon eklenmeden once) bu alanlar yok — geriye uyumlu varsayilan
+        optimizer=meta.get("optimizer", "unassigned"),
+        optimizer_iterations=int(meta.get("optimizer_iterations", 0)),
+        cost_before=float(meta.get("cost_before", 0.0)),
+        cost_after=float(meta.get("cost_after", 0.0)),
     )
