@@ -158,7 +158,8 @@ Her Cuma, 10 dakika. Çıktı `specs/000-kapsam-takvim/haftalik/HXX.md` dosyası
 # Hafta XX kontrolü — <tarih>
 
 ## 1. Risk kaydı ve kesme tetikleri (4 dk)
-*docs/risk-register.md açık olarak doldurulur — K-XX tetikleri zaten o kaydın satırlarıdır.*
+*docs/risk-register.md açık olarak doldurulur — K-XX tetikleri zaten o kaydın satırlarıdır.
+Servis kurulduysa (Railway/CI) MC-XX satırları da burada kontrol edilir — bkz. docs/cost.md.*
 - Bu hafta vadesi gelen risk/tetik: <ID'ler / yok>
 - Ölçüt tuttu mu: <evet / hayır / henüz ölçülmedi>
 - `AÇIK` → `İZLENİYOR` geçen (erken uyarı işareti görüldü): <ID / yok>

@@ -111,6 +111,18 @@
 
 ---
 
+## 8c. Maliyet
+
+*Kaynak: Faz 0.6 ([docs/cost.md](cost.md)).*
+
+| ID | Risk | Ol. | Etki | Erken uyarı işareti | Karar tarihi | Ölçüt | Tetiklenirse yapılacak | Sahibi | Durum |
+|---|---|---|---|---|---|---|---|---|---|
+| **MC-01** | CI dakikaları — yanlışlıkla ARM64/çoklu-platform iş eklenip kota erimesi | D | O | Yeni bir CI job'ı `ubuntu-latest` dışında bir runner kullanıyorsa | Her CI değişikliğinde | Tüm işler `ubuntu-latest` | `runs-on` satırı gözden geçirilir, gerekçesiz farklı runner kaldırılır | Olcay | AÇIK (bilinçli — henüz CI aktif değil, remote yok) |
+| **MC-02** | Railway servisi unutulup 7/24 açık kalması | O | O | Haftalık kontrolde "son ne zaman kapatıldı" bilinmiyorsa | Servis kurulduktan itibaren, her hafta | Geliştirme dışı saatlerde servis kapalı | Servis durdurulur, kredi/kota kontrol edilir | Olcay | AÇIK (bilinçli — henüz Railway hesabı yok) |
+| **MC-03** | Kart bağlı olmadan tavan aşımı endişesi | — | — | — | — | Hiçbir serviste ödeme yöntemi yok | — | Olcay | ✅ KAPALI (2026-09-13 itibariyle doğrulandı — otomatik faturalama fiziksel olarak imkânsız) |
+
+---
+
 ## 9. Ucuz sigortalar
 
 > Kural: **bugün veya bu hafta, yarım günde** yapılabilen; riski *karar tarihinden haftalar önce* görünür kılan iş.
@@ -160,3 +172,4 @@
 | 2026-09-10 | H0 | Kullanıcı kararı: D: yerine harici SSD (G:) kalıcı yedek hedefi; uzak git remote şimdilik ertelendi. BK-00 İZLENİYOR'a çekildi (KAPALI değil). Otomatik haftalık yedek (Görev Zamanlayıcı, Cuma 18:00) kuruldu ve doğrulandı — BK-05 eklendi (otomasyon çıktısını kontrol etme riski). BK-03: age anahtarı masaüstüne geçici kopyalandı, İZLENİYOR. |
 | 2026-09-10 | H0 | Faz 0.4: Sentetik veri kararı ([ADR 0004](decisions/0004-sentetik-veri.md)). VR-04 riski düştü (veri zaten sentetik). VR-05 eklendi ve aynı gün kapandı (CSV commit'li + MANIFEST'te Faker sürümü). Telefon alanı "gerekmeyen veri toplanmaz" kuralıyla şemadan çıkarıldı. |
 | 2026-09-13 | H0 | **DT-00 YENİDEN AÇILDI** — kart 10 Eylül'de "elde" diye kapatılmıştı, gerçekte arkadaşta; teslim 14 Eylül. Takvime etkisi yok. **S-3 yapıldı** ([memory-budget.md](memory-budget.md)): 16 kübit + double imkânsız çıktı (%162), SK-01 olasılığı O→**Y**'ye yükseltildi ve İZLENİYOR'a alındı; K-02 kesme merdiveni gerçek sayılarla düzeltildi. |
+| 2026-09-13 | H0 | Faz 0.6: Maliyet kategorisi eklendi (MC-01..MC-03, [cost.md](cost.md)). MC-03 aynı gün kapandı (hiçbir serviste kart bağlı değil). Bütçe tavanı kararı: 0 TL + son 1-2 ay Railway Hobby (~$5) istisnası ([ADR 0005](decisions/0005-butce-tavani.md)). Faz 0 alt dalları TAMAMLANDI (0.1-0.7). |
