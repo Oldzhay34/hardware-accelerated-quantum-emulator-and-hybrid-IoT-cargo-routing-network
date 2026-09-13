@@ -23,7 +23,9 @@ Kapsam, promptun varsaydığının **yaklaşık iki katı**. Bu, triyajı yumuş
 ## 1. GÖREV 0 — Fizibilite Kapısı
 
 ### S1 — PYNQ-Z2 tedariki
-**[CEVAPLANDI 2026-09-10]** Kart **ELDE**. PYNQ işletim sistemi imajı indirilmiş durumda. Tedarik riski **KAPALI** — risk kaydından düşürüldü, takvimde kart bekleme süresi ayrılmadı.
+**[CEVAPLANDI 2026-09-10 · DÜZELTİLDİ 2026-09-13]** Kart **erişilebilir ama henüz fiziksel olarak elde değil** — arkadaşta, teslim tarihi **14 Eylül 2026** (H1'in ilk günü). PYNQ imajı indirilmiş durumda.
+
+Tedarik riski *kapalı sayılmıştı*; bu düzeltmeyle [DT-00](../../docs/risk-register.md) **yeniden açıldı** ve 14 Eylül'e bağlandı. Takvime etkisi yok (H1'in ilk günü), ama donanım gerektiren doğrulamalar (S-1 boot testi, DT-01) 14 Eylül'den önce yapılamaz — bu yüzden H1'in ilk günü donanımsız işlere ayrıldı (Prensip V).
 
 ### S2 — FPGA/HLS bilgisi olan destek
 **[CEVAPLANDI 2026-09-10]** **VAR.** Danışman/bölüm tarafında FPGA bilen kişi mevcut ve öğrenci bu dönem **Reconfigurable Programming** dersini alacak; ders FPGA'i detaylı işleyecek.

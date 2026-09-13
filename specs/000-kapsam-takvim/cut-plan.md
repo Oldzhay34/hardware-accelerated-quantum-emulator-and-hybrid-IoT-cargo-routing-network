@@ -46,10 +46,13 @@
 - **RİSK**: 16 kübit statevector + çalışma bellekleri PYNQ-Z2'nin BRAM bütçesini aşıyor; tasarım DDR'a taşmadan sentezlenemiyor (Anayasa Prensip III ihlali).
 - **KARAR TARİHİ**: **H4 sonu (11 Ekim 2026)** — ilk sentez raporu elde.
 - **ÖLÇÜT**: Sentez raporunda **BRAM kullanımı ≤ %85** ve statevector'ün tamamı çip-içi. Ölçülebilir, rapordan okunur.
+- **🔴 GÜNCELLEME (2026-09-13, S-3 aritmetiği — [memory-budget.md](../../docs/memory-budget.md))**: Aşağıdaki merdivenin **ilk basamağı geçersizdi**. 16 kübit + çift duyarlık BRAM'in **%162'sini** istiyor — hiçbir zaman mümkün değildi. Merdiven gerçek sayılarla yeniden yazıldı:
 - **ÖLÇÜT TUTMAZSA** — sırayla, her adım en fazla 3 gün:
-  1. **Kübit sayısı düşürülür**: 16 → 14 → 12. (14 kübit statevector'ü 16'nın dörtte biri kadar yer kaplar; genelde tek adımda çözer.)
-  2. Yetmezse **sayı formatı daraltılır**: çift duyarlık → tek duyarlık → sabit noktalı Q1.15. Her daraltma sonrası K-05 fidelity ölçütü **yeniden koşulur** — daraltma doğruluğu bozarsa geri alınır.
-  3. Yetmezse **şerit (lane) sayısı azaltılır**: paralel işlem hattı sayısı yarıya iner.
+  1. **16 kübit + float32, yerinde (in-place)** — %81,3. Ping-pong'a bütçe yok; bankalama en zor haliyle çözülmek zorunda (bkz. K-03).
+  2. **16 kübit + Q1.15, ping-pong** — %81,3. Bankalama kolaylaşır ama 16-bit sabit nokta fidelity eşiğini (K-05, ≥0,99) tehdit eder; her daraltma sonrası K-05 **yeniden koşulur**.
+  3. **14 kübit + float32, ping-pong** — %40,6. İkisi de rahat, ama **"16 kübite kadar" iddiası düşer**.
+  4. Yetmezse **şerit (lane) sayısı azaltılır**: paralel işlem hattı sayısı yarıya iner.
+- **⚠️ %81,3 rakamları ideal paketleme varsayıyor.** BRAM36 blokları tam dolmadığı için gerçek sentezde doluluk **yukarı** çıkar; 1. ve 2. basamaklar %85 tavanını aşabilir. Faz 2.1 granülariteyi netleştirene kadar 16 kübit "sığıyor" değil **"sınırda"** sayılır.
 - **NİHAİ SINIR**: **12 kübit ve tek şerit.** Bunun altına inilmez; inilmesi gerekiyorsa tasarım bu FPGA sınıfında fizibil değildir → Senaryo B.
 - **KAYIP**: 16 kübit iddiası. Rapordaki "16 kübite kadar" ifadesi gerçek sayıyla değiştirilir. Ölçek küçüldüğü için hızlanma oranı da düşer — ve düşük ölçekte CPU'nun kazanma olasılığı artar (bkz. K-10).
 
