@@ -1,0 +1,44 @@
+# Faz 1 T038 — Mesafe matrisi veri hattı.
+#
+# Kullanım (Git Bash'te MSYS_NO_PATHCONV=1 export etmeyi unutma — R-4):
+#   docker compose -f infra/docker/docker-compose.yml up osrm-prepare   # bir kez
+#   docker compose -f infra/docker/docker-compose.yml up -d osrm matrix
+
+services:
+  osrm-prepare:
+    image: osrm/osrm-backend:latest
+    volumes:
+      - ../../data/osm:/data
+      - ./osrm:/scripts:ro
+    entrypoint: ["bash", "/scripts/prepare.sh"]
+    profiles: ["prepare"]
+
+  osrm:
+    image: osrm/osrm-backend:latest
+    volumes:
+      - ../../data/osm:/data
+    command: ["osrm-routed", "--algorithm", "mld", "/data/Istanbul.osrm"]
+    ports:
+      - "5000:5000"
+    healthcheck:
+      # osrm-routed'in /health ucu yok; gercek bir /route sorgusu kullanilir.
+      test: ["CMD", "curl", "-f", "http://localhost:5000/route/v1/driving/0,0;0.001,0.001"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  matrix:
+    build:
+      context: ../..
+      dockerfile: infra/docker/matrix.Dockerfile
+    environment:
+      OSRM_URL: http://osrm:5000
+      OSM_MD5: cb101d9243c3c605907e94f4266159c2
+      MATRIX_CACHE_DIR: /data/matrices
+    volumes:
+      - ../../data/matrices:/data/matrices
+    ports:
+      - "8080:8080"
+    depends_on:
+      osrm:
+        condition: service_healthy

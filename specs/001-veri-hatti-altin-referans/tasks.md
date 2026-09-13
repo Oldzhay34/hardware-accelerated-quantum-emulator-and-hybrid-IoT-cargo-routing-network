@@ -119,20 +119,20 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T028 [P] [US2] `services/matrix/tests/test_cache.py`: aynı girdi → aynı önbellek anahtarı; **farklı sıradaki** aynı noktalar → **farklı** anahtar (spec edge case: yanlış önbellek isabeti)
-- [ ] T029 [P] [US2] `services/matrix/tests/test_matrix_api.py`: N < 2 ve N > 30 → `400 stop_count_out_of_range` ([contracts/matrix-api.md](contracts/matrix-api.md))
-- [ ] T030 [P] [US2] `services/matrix/tests/test_matrix_api.py` içine: ulaşılamayan çift → **`422 unreachable_pair`**; matris üretilmez, büyük sayıyla doldurulmaz (spec FR-007, Prensip II)
-- [ ] T031 [P] [US2] `services/matrix/tests/test_matrix_api.py` içine entegrasyon testi: OSRM ayaktayken 30 durak → 30×30, **900/900 hücre dolu**, asimetrik çift oranı yüksek (spec FR-002 kanıtı)
+- [X] T028 [P] [US2] `services/matrix/tests/test_cache.py`: aynı girdi → aynı önbellek anahtarı; **farklı sıradaki** aynı noktalar → **farklı** anahtar (spec edge case: yanlış önbellek isabeti)
+- [X] T029 [P] [US2] `services/matrix/tests/test_matrix_api.py`: N < 2 ve N > 30 → `400 stop_count_out_of_range` ([contracts/matrix-api.md](contracts/matrix-api.md))
+- [X] T030 [P] [US2] `services/matrix/tests/test_matrix_api.py` içine: ulaşılamayan çift → **`422 unreachable_pair`**; matris üretilmez, büyük sayıyla doldurulmaz (spec FR-007, Prensip II)
+- [X] T031 [P] [US2] `services/matrix/tests/test_matrix_api.py` içine entegrasyon testi: OSRM ayaktayken 30 durak → 30×30, **900/900 hücre dolu**, asimetrik çift oranı yüksek (spec FR-002 kanıtı)
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] `services/matrix/app/config.py`: `OSRM_URL`, `OSM_MD5`, `MATRIX_CACHE_DIR` ortam değişkenlerini okur ve **eksikse servis çalışmayı REDDEDER** (sessiz varsayılanla kalkmaz — [repo-conventions.md §7](../../docs/repo-conventions.md))
-- [ ] T033 [US2] `services/matrix/app/osrm_client.py`: OSRM `/table/v1/driving/{lon,lat;...}` çağrısı. Yanıtta `null` süre varsa `UnreachablePairError` fırlatır
-- [ ] T034 [US2] `services/matrix/app/cache.py`: anahtar `sha256(json(points) + osm_md5)`; `data/matrices/<anahtar>.npy` + `.json` yazar/okur
-- [ ] T035 [US2] `services/matrix/app/main.py`: FastAPI `POST /matrix` — girdi `points` (**2 ≤ N ≤ 30**), `use_cache` (varsayılan `true`); yanıt `durations`, `n`, `cache_hit`, `osm_md5`, `engine`, `cache_key`, `elapsed_ms`
-- [ ] T036 [US2] `services/matrix/app/main.py` içine `GET /health`: OSRM erişilemiyorsa `503` + `"osrm": "unreachable"`
-- [ ] T037 [P] [US2] `infra/docker/osrm/prepare.sh`: `osrm-extract -p /opt/car.lua` → `osrm-partition` → `osrm-customize`. Başına **`MSYS_NO_PATHCONV=1` uyarısı** yorum olarak yazılır (R-4)
-- [ ] T038 [US2] `infra/docker/docker-compose.yml`: `osrm-prepare` (bir kez koşar), `osrm-routed` (port 5000), `matrix` (port 8080) servisleri; OSM dökümü ve önbellek dizini bind-mount
+- [X] T032 [US2] `services/matrix/app/config.py`: `OSRM_URL`, `OSM_MD5`, `MATRIX_CACHE_DIR` ortam değişkenlerini okur ve **eksikse servis çalışmayı REDDEDER** (sessiz varsayılanla kalkmaz — [repo-conventions.md §7](../../docs/repo-conventions.md))
+- [X] T033 [US2] `services/matrix/app/osrm_client.py`: OSRM `/table/v1/driving/{lon,lat;...}` çağrısı. Yanıtta `null` süre varsa `UnreachablePairError` fırlatır
+- [X] T034 [US2] `services/matrix/app/cache.py`: anahtar `sha256(json(points) + osm_md5)`; `data/matrices/<anahtar>.npy` + `.json` yazar/okur
+- [X] T035 [US2] `services/matrix/app/main.py`: FastAPI `POST /matrix` — girdi `points` (**2 ≤ N ≤ 30**), `use_cache` (varsayılan `true`); yanıt `durations`, `n`, `cache_hit`, `osm_md5`, `engine`, `cache_key`, `elapsed_ms`
+- [X] T036 [US2] `services/matrix/app/main.py` içine `GET /health`: OSRM erişilemiyorsa `503` + `"osrm": "unreachable"`
+- [X] T037 [P] [US2] `infra/docker/osrm/prepare.sh`: `osrm-extract -p /opt/car.lua` → `osrm-partition` → `osrm-customize`. Başına **`MSYS_NO_PATHCONV=1` uyarısı** yorum olarak yazılır (R-4)
+- [X] T038 [US2] `infra/docker/docker-compose.yml`: `osrm-prepare` (bir kez koşar), `osrm-routed` (port 5000), `matrix` (port 8080) servisleri; OSM dökümü ve önbellek dizini bind-mount
 
 **Checkpoint**: Gerçek veri hattı çalışıyor; US1 artık fixture yerine gerçek matrisle de koşabilir.
 
