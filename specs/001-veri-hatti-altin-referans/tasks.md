@@ -12,10 +12,10 @@ description: "Faz 1 — Veri Hattı ve Altın Referans görev listesi"
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: MVP (Phase 1-4, T001-T027) TAMAMLANDI — altın referans üretiliyor ve kaba kuvvetle doğrulanıyor; sırada Phase 5 (OSRM matris servisi, T028-T038).
-**Dokunulacak dosyalar**: `services/matrix/app/main.py`, `services/matrix/app/osrm_client.py`, `services/matrix/app/cache.py`, `infra/docker/docker-compose.yml`
-**Bilinen tuzak**: Git Bash'te `MSYS_NO_PATHCONV=1` şart (R-4). QAOA parametreleri şu an OPTİMİZE EDİLMİYOR (rastgele tohumlu) — optimali ölçme olasılığı p=1'de 4e-6, p=2'de 3e-5 çıktı; bkz. açık soru.
-**Son güncelleme**: 2026-09-13, Faz 1
+**Hedef (tek cümle)**: **FAZ 1 TAMAMEN BİTTİ (T001-T046).** Uçtan uca kurulum gerçekten koşuldu ve doğrulandı (164,6 sn, warm run); Faz 2'ye geçilebilir.
+**Dokunulacak dosyalar**: Faz 2 için `hls/` dizini — henüz boş, ilk iş orada başlayacak.
+**Bilinen tuzak**: Git Bash'te `MSYS_NO_PATHCONV=1` şart (R-4). osrm-routed'de `/health` ucu ve `curl`/`wget` YOK. Docker ağ bağlantısı bu makinede zaman zaman kopuyor (konteyner "Running" ama `NetworkSettings` boş) — `docker restart <konteyner>` düzeltiyor. QAOA COBYLA ile optimize ediyor ama olasılık kütlesi tek duruma yoğunlaşmıyor (~18.900/65536 etkin durum) — meşru bulgu, [faz1-olcumler.md](../../docs/measurements/faz1-olcumler.md)'de raporlandı.
+**Son güncelleme**: 2026-09-13, Faz 1 TAMAMLANDI
 
 ---
 
@@ -144,19 +144,19 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 **Independent Test**: Depo temiz bir dizine klonlanır, README'deki komut koşulur, altın referans üretilir. Süre **ölçülür ve yazılır**.
 
-- [ ] T039 [US4] `README.md`'ye "Faz 1 — hızlı başlangıç" bölümü ekle: ön koşullar, tek komut, beklenen çıktı. Git Bash kullananlar için `MSYS_NO_PATHCONV=1` uyarısı
-- [ ] T040 [US4] `scripts/setup_faz1.ps1`: `fetch_osm.ps1` → `docker compose up osrm-prepare` → `docker compose up -d` zincirini tek komutta koşar
-- [ ] T041 [US4] Temiz bir dizinde uçtan uca kurulumu **gerçekten koş**, süreyi ölç ve README'ye yaz (spec SC-005 — tahmin değil, ölçüm)
+- [X] T039 [US4] `README.md`'ye "Faz 1 — hızlı başlangıç" bölümü ekle: ön koşullar, tek komut, beklenen çıktı. Git Bash kullananlar için `MSYS_NO_PATHCONV=1` uyarısı
+- [X] T040 [US4] `scripts/setup_faz1.ps1`: `fetch_osm.ps1` → `docker compose up osrm-prepare` → `docker compose up -d` zincirini tek komutta koşar
+- [X] T041 [US4] Temiz bir dizinde uçtan uca kurulumu **gerçekten koş**, süreyi ölç ve README'ye yaz (spec SC-005 — tahmin değil, ölçüm)
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T042 [P] `docs/measurements/faz1-olcumler.md`: OSRM ön işleme, matris gecikmesi, referans süresi — hepsi **ölçülmüş** değerlerle (spec SC-007: raporda tahmini tek sayı bulunmaz)
-- [ ] T043 [P] `docs/decisions/dead-ends.md`'i güncelle — Faz 1'de elenen bir yol varsa yaz (GraphHopper'ın matris API'sinin olmaması buraya düşer)
-- [ ] T044 [quickstart.md](quickstart.md)'teki 6 senaryonun tamamını koş ve geçtiğini doğrula
-- [ ] T045 [P] [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) listesini uygula: ADR'ler yazıldı mı, CLAUDE.md'nin "şu anki faz" satırı güncel mi, SIRADAKİ bloğu güncel mi
-- [ ] T046 `.\scripts\backup.ps1` çalıştır — Faz 1 çıktıları (özellikle `docs/measurements/`) yedeklensin ([backup.md §1](../../docs/backup.md): ölçüm verisi **yeniden üretilemez** kategoride)
+- [X] T042 [P] `docs/measurements/faz1-olcumler.md`: OSRM ön işleme, matris gecikmesi, referans süresi — hepsi **ölçülmüş** değerlerle (spec SC-007: raporda tahmini tek sayı bulunmaz)
+- [X] T043 [P] `docs/decisions/dead-ends.md`'i güncelle — Faz 1'de elenen bir yol varsa yaz (GraphHopper'ın matris API'sinin olmaması buraya düşer)
+- [X] T044 [quickstart.md](quickstart.md)'teki 6 senaryonun tamamını koş ve geçtiğini doğrula
+- [X] T045 [P] [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) listesini uygula: ADR'ler yazıldı mı, CLAUDE.md'nin "şu anki faz" satırı güncel mi, SIRADAKİ bloğu güncel mi
+- [X] T046 `.\scripts\backup.ps1` çalıştır — Faz 1 çıktıları (özellikle `docs/measurements/`) yedeklensin ([backup.md §1](../../docs/backup.md): ölçüm verisi **yeniden üretilemez** kategoride)
 
 ---
 

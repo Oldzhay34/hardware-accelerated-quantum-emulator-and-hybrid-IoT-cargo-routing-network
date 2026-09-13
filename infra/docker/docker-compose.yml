@@ -20,12 +20,9 @@ services:
     command: ["osrm-routed", "--algorithm", "mld", "/data/Istanbul.osrm"]
     ports:
       - "5000:5000"
-    healthcheck:
-      # osrm-routed'in /health ucu yok; gercek bir /route sorgusu kullanilir.
-      test: ["CMD", "curl", "-f", "http://localhost:5000/route/v1/driving/0,0;0.001,0.001"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+    # NOT: osrm/osrm-backend imajında curl/wget YOK (denendi, ikisi de bulunamadı) —
+    # Docker healthcheck bu yüzden konteyner İÇİNDEN çalıştırılamıyor. Hazır olma
+    # kontrolü matrix servisinin /health ucuna (host'tan HTTP ile) bırakılıyor.
 
   matrix:
     build:
@@ -38,7 +35,6 @@ services:
     volumes:
       - ../../data/matrices:/data/matrices
     ports:
-      - "8080:8080"
+      - "8090:8080"
     depends_on:
-      osrm:
-        condition: service_healthy
+      - osrm  # yalnızca başlatma sırası; OSRM'in gerçek hazır olma durumu /health ile kontrol edilir

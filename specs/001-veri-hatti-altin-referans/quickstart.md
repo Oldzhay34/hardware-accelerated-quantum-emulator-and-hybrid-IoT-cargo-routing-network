@@ -41,7 +41,7 @@ docker compose -f infra/docker/docker-compose.yml up -d osrm matrix
 **Beklenen sonuç**:
 - `fetch_osm.ps1` MD5'i `cb101d9243c3c605907e94f4266159c2` ile karşılaştırır; **tutmazsa hata verir ve durur** (spec FR-005).
 - `osrm-prepare` üç adımı koşar ve çıkış kodu 0 verir.
-- `curl http://localhost:8080/health` → `{"status":"ok","osrm":"reachable",...}`
+- `curl http://localhost:8090/health` → `{"status":"ok","osrm":"reachable",...}`
 
 **Ölçülen taban çizgisi** (bu makinede, tahmin değil): ön işleme **192 sn**, tepe **435 MiB**, üretilen veri **282 MB**.
 
@@ -53,8 +53,8 @@ docker compose -f infra/docker/docker-compose.yml up -d osrm matrix
 
 ```powershell
 # Aynı istek iki kez, iki ayrı dosyaya
-curl -s -X POST localhost:8080/matrix -H "Content-Type: application/json" -d "@ornek_30_durak.json" -o m1.json
-curl -s -X POST localhost:8080/matrix -H "Content-Type: application/json" -d "@ornek_30_durak.json" -o m2.json
+curl -s -X POST localhost:8090/matrix -H "Content-Type: application/json" -d "@ornek_30_durak.json" -o m1.json
+curl -s -X POST localhost:8090/matrix -H "Content-Type: application/json" -d "@ornek_30_durak.json" -o m2.json
 ```
 
 **Beklenen**: `durations` alanları **birebir aynı**; ikinci yanıtta `cache_hit: true`.

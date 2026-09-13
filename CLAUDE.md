@@ -4,7 +4,7 @@ Kuantum-esinli rota optimizasyonu için statevector emülasyon çekirdeğini PYN
 donanımda hızlandıran, Qiskit altın referansına karşı doğrulayan ve CPU'ya karşı gecikme/enerji
 ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 
-**Şu anki faz**: Faz 0 — Kapsam Triyajı (alt dal 0.7 çalışıyor). Bkz. [specs/000-kapsam-takvim/](specs/000-kapsam-takvim/).
+**Şu anki faz**: Faz 1 **TAMAMLANDI** (46/46 görev). Altın referans + QUBO + OSRM matris servisi gerçek veriyle doğrulandı, uçtan uca kurulum ölçüldü (164,6 sn). Sırada Faz 2 (FPGA/HLS çekirdek). Bkz. [specs/001-veri-hatti-altin-referans/](specs/001-veri-hatti-altin-referans/).
 
 ## Anayasa — altı ilke (tam metin: [.specify/memory/constitution.md](.specify/memory/constitution.md))
 

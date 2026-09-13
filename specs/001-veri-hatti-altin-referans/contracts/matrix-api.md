@@ -1,6 +1,6 @@
 # Sözleşme — Mesafe Matrisi HTTP API
 
-**Servis**: `services/matrix` · **Taban**: `http://localhost:8080`
+**Servis**: `services/matrix` · **Taban**: `http://localhost:8090`
 
 ---
 

@@ -1,0 +1,31 @@
+{
+  "stamped_at": "2026-09-13T20:27:22.592189+00:00",
+  "git_hash": "4451866",
+  "git_dirty": true,
+  "config": {
+    "p": 2,
+    "seed": 42,
+    "n_qubits": 16
+  },
+  "best_tour": [
+    0,
+    1,
+    2,
+    4,
+    3
+  ],
+  "best_energy": -15770.040000000005,
+  "optimal_probability": 2.380275080015953e-05,
+  "p": 2,
+  "seed": 42,
+  "qubit_order": "little",
+  "backend": "aer_simulator_statevector/0.17.2",
+  "n_qubits": 16,
+  "optimizer": "cobyla",
+  "optimizer_iterations": 99,
+  "cost_before": 300.9069417656291,
+  "cost_after": -3950.9272389426637,
+  "amplitudes_file": "reference_20260913_4451866_p2_n5.npy",
+  "dtype": "complex128",
+  "length": 65536
+}

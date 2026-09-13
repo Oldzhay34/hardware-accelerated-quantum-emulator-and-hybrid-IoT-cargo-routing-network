@@ -51,6 +51,33 @@ Bu bir uygulama hatası değil — objektif fonksiyon gerçekten iyileşiyor, `b
 
 Bu bulgu **saklanacak bir kusur değil, raporlanacak bir sonuç**. Yöntem bölümüne şu türden bir not düşülebilir: *"p=1 ve p=2 derinliklerinde QAOA, maliyet beklentisini anlamlı ölçüde düşürmesine rağmen (COBYLA, sırasıyla 37 ve 99 değerlendirmede %164 ve %1413 iyileşme sağladı), olasılık kütlesini tek bir optimal duruma yoğunlaştıramamıştır; etkin durum sayısı ~18.900 olarak ölçülmüştür. Bu, sığ-devre QAOA'nın bilinen bir sınırlamasıyla tutarlıdır."*
 
+## Uçtan uca kurulum (spec SC-005)
+
+**⚠️ Not**: Bu bir "temiz makine / sıfır klon" ölçümü değildir — OSM dökümü (MD5 zaten eşleşiyordu)
+ve Docker imajları önbellekteydi. Gerçek `scripts/setup_faz1.ps1` çalıştırıldı ve süre gerçekten
+ölçüldü; sadece "sıfırdan" olduğu iddia edilmiyor.
+
+```
+=== TOPLAM SÜRE: 164,6 sn ===
+```
+
+Bu, `fetch_osm.ps1` (anlık, MD5 zaten eşleşti) + OSRM ön işleme (yeniden koşuldu, ~90 sn bu seferki
+ölçümde — önceki izole ölçümden farklı, sistem yükü değişkendir) + servislerin ayağa kalkması + iki
+adet altın referans üretimi (p=1, p=2) toplamıdır.
+
+### Kurulum sırasında bulunan iki gerçek hata (dürüstçe raporlanıyor)
+
+1. **osrm/osrm-backend imajında `curl`/`wget` yok.** İlk `docker-compose.yml` healthcheck'i
+   `curl -f http://localhost:5000/...` kullanıyordu — konteyner içinde çalıştırılamadığı için
+   servis hep "unhealthy" kaldı. Healthcheck kaldırıldı; hazır olma kontrolü matrix servisinin
+   `/health` ucuna (host'tan HTTP ile) bırakıldı.
+2. **Port 8080 bu makinede zaten kullanımdaydı** (başka bir proje). Dış port **8090**'a taşındı.
+3. **Docker ağ bağlantısı koptu** (osrm-routed) — konteyner "Running" görünüyordu ama
+   `NetworkSettings.Networks` boştu, `httpx.ConnectError: No address associated with hostname`
+   veriyordu. `docker restart` ile düzeldi. Bu, ortamdaki tekrarlayan bir Docker Desktop ağ
+   kararsızlığıydı (bkz. commit `4451866` — aynı gün `EnableDockerAI` kapatılan çökme sorunuyla
+   akraba, farklı belirti).
+
 ## Devredilen
 
 | Soru | Nereye |
