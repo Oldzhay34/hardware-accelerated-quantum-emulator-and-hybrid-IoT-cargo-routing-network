@@ -1,0 +1,27 @@
+{
+  "stamped_at": "2026-09-13T15:29:38.215364+00:00",
+  "git_hash": "6fa64da",
+  "git_dirty": true,
+  "config": {
+    "p": 1,
+    "seed": 42,
+    "n_qubits": 16
+  },
+  "best_tour": [
+    0,
+    1,
+    2,
+    4,
+    3
+  ],
+  "best_energy": -15770.040000000005,
+  "optimal_probability": 3.878781485019168e-06,
+  "p": 1,
+  "seed": 42,
+  "qubit_order": "little",
+  "backend": "aer_simulator_statevector/0.17.2",
+  "n_qubits": 16,
+  "amplitudes_file": "reference_20260913_6fa64da_p1_n5.npy",
+  "dtype": "complex128",
+  "length": 65536
+}

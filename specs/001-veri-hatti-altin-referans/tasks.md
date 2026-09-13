@@ -12,9 +12,9 @@ description: "Faz 1 — Veri Hattı ve Altın Referans görev listesi"
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Faz 1 görevleri üretildi; T001 (bağımlılık kurulumu) ile başlanacak.
-**Dokunulacak dosyalar**: `services/qubo/`, `services/reference/`, `services/matrix/`, `infra/docker/`
-**Bilinen tuzak**: Git Bash'te `MSYS_NO_PATHCONV=1` şart (R-4); kaba kuvvet `(N−1)!` = 24 tur, `5!` değil.
+**Hedef (tek cümle)**: MVP (Phase 1-4, T001-T027) TAMAMLANDI — altın referans üretiliyor ve kaba kuvvetle doğrulanıyor; sırada Phase 5 (OSRM matris servisi, T028-T038).
+**Dokunulacak dosyalar**: `services/matrix/app/main.py`, `services/matrix/app/osrm_client.py`, `services/matrix/app/cache.py`, `infra/docker/docker-compose.yml`
+**Bilinen tuzak**: Git Bash'te `MSYS_NO_PATHCONV=1` şart (R-4). QAOA parametreleri şu an OPTİMİZE EDİLMİYOR (rastgele tohumlu) — optimali ölçme olasılığı p=1'de 4e-6, p=2'de 3e-5 çıktı; bkz. açık soru.
 **Son güncelleme**: 2026-09-13, Faz 1
 
 ---
@@ -92,20 +92,20 @@ Kritik kazanç: US1, **gerçek OSRM matrisi beklemeden** elle yazılmış 5×5 f
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T017 [P] [US1] `services/reference/tests/test_reference.py`: QAOA'nın en iyi turu, kaba kuvvet optimaliyle **birebir aynı** (spec SC-002, %100)
-- [ ] T018 [P] [US1] `services/reference/tests/test_determinism.py`: aynı `(problem, p, seed)` iki koşumda **bit-birebir aynı** `amplitudes` üretir (spec FR-018)
-- [ ] T019 [P] [US1] `services/reference/tests/test_amplitudes.py`: `amplitudes.dtype == complex128`, `len == 2**16`, `abs(norm − 1.0) < 1e-9` (spec SC-008)
-- [ ] T020 [P] [US1] `services/reference/tests/test_amplitudes.py` içine ikinci test: kaydet→yükle turu metadata'yı kayıpsız korur, `qubit_order` alanı `"little"` veya `"big"` olarak **dolu** ([risk DG-02](../../docs/risk-register.md))
-- [ ] T021 [P] [US1] `services/reference/tests/test_reference.py` içine tavan testi: `n_stops = 6` verildiğinde `ValueError` — 16 kübit sınırı (Anayasa Prensip III)
+- [X] T017 [P] [US1] `services/reference/tests/test_reference.py`: QAOA'nın en iyi turu, kaba kuvvet optimaliyle **birebir aynı** (spec SC-002, %100)
+- [X] T018 [P] [US1] `services/reference/tests/test_determinism.py`: aynı `(problem, p, seed)` iki koşumda **bit-birebir aynı** `amplitudes` üretir (spec FR-018)
+- [X] T019 [P] [US1] `services/reference/tests/test_amplitudes.py`: `amplitudes.dtype == complex128`, `len == 2**16`, `abs(norm − 1.0) < 1e-9` (spec SC-008)
+- [X] T020 [P] [US1] `services/reference/tests/test_amplitudes.py` içine ikinci test: kaydet→yükle turu metadata'yı kayıpsız korur, `qubit_order` alanı `"little"` veya `"big"` olarak **dolu** ([risk DG-02](../../docs/risk-register.md))
+- [X] T021 [P] [US1] `services/reference/tests/test_reference.py` içine tavan testi: `n_stops = 6` verildiğinde `ValueError` — 16 kübit sınırı (Anayasa Prensip III)
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] `services/reference/qaoa_reference.py` içinde `ReferenceResult` veri sınıfı: `amplitudes` (`ndarray complex128 (2**V,)`), `probabilities`, `best_tour`, `best_energy`, `p`, `seed`, `qubit_order`, `backend`
-- [ ] T023 [US1] `services/reference/qaoa_reference.py` içinde `run(problem, *, p, seed, shots=None)`: Qiskit `QAOAAnsatz` + `AerSimulator(method="statevector")` ile koşar. **`problem.n_stops > 5` ise `ValueError`**. `shots=None` → tam statevector (varsayılan)
-- [ ] T024 [US1] `services/reference/qaoa_reference.py` içinde `qubit_order` alanını Qiskit'in konvansiyonunu **ölçerek** doldur (varsayma — tek kübitlik bilinen bir devreyle doğrula), [risk DG-02](../../docs/risk-register.md)
-- [ ] T025 [US1] `services/reference/amplitudes.py` içinde `save(result, path)` / `load(path)`: `<path>.npy` (complex128) + `<path>.json` (metadata). Dosya adı T007'nin damgalayıcısını kullanır
-- [ ] T026 [US1] `scripts/run_reference.ps1` yaz: `-Stops`, `-P`, `-Seed` parametreleriyle referansı üretir, çıktıyı `docs/measurements/reference_<tarih>_<githash>_p<N>` olarak yazar, **gerçek süre ve bellek** raporlar (tahmin yazmaz — Prensip II)
-- [ ] T027 [US1] p=1 ve p=2 için referansı üret, optimali bulma **oranını ölç ve raporla** (spec FR-016, SC-006 — hedef değer dayatılmaz, ölçüm dürüstlüğü esastır)
+- [X] T022 [US1] `services/reference/qaoa_reference.py` içinde `ReferenceResult` veri sınıfı: `amplitudes` (`ndarray complex128 (2**V,)`), `probabilities`, `best_tour`, `best_energy`, `p`, `seed`, `qubit_order`, `backend`
+- [X] T023 [US1] `services/reference/qaoa_reference.py` içinde `run(problem, *, p, seed, shots=None)`: Qiskit `QAOAAnsatz` + `AerSimulator(method="statevector")` ile koşar. **`problem.n_stops > 5` ise `ValueError`**. `shots=None` → tam statevector (varsayılan)
+- [X] T024 [US1] `services/reference/qaoa_reference.py` içinde `qubit_order` alanını Qiskit'in konvansiyonunu **ölçerek** doldur (varsayma — tek kübitlik bilinen bir devreyle doğrula), [risk DG-02](../../docs/risk-register.md)
+- [X] T025 [US1] `services/reference/amplitudes.py` içinde `save(result, path)` / `load(path)`: `<path>.npy` (complex128) + `<path>.json` (metadata). Dosya adı T007'nin damgalayıcısını kullanır
+- [X] T026 [US1] `scripts/run_reference.ps1` yaz: `-Stops`, `-P`, `-Seed` parametreleriyle referansı üretir, çıktıyı `docs/measurements/reference_<tarih>_<githash>_p<N>` olarak yazar, **gerçek süre ve bellek** raporlar (tahmin yazmaz — Prensip II)
+- [X] T027 [US1] p=1 ve p=2 için referansı üret, optimali bulma **oranını ölç ve raporla** (spec FR-016, SC-006 — hedef değer dayatılmaz, ölçüm dürüstlüğü esastır)
 
 **Checkpoint**: 🎯 **Faz 2 artık başlayabilir.** Altın referans ve ham genlikler hazır.
 
