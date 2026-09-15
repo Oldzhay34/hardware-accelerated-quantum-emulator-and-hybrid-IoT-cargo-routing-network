@@ -265,3 +265,78 @@ toplama ağacında, ne de tablo döngülerinde. Henüz bulunmadı. 100 MHz varsa
 
 ⚠️ Mevcut hâliyle 5,67M çevrim @ 40 MHz = **0,142 sn**; CPU tabanı (Aer,
 ölçülen ~58 ms) hâlâ **2,4× hızlı**. Hiçbir hızlanma iddiası yapılamaz.
+
+---
+
+# 10. Turlar 8-9 — TASARIM ÇİPE SIĞDI (2026-09-16)
+
+| Tur | Değişiklik | Gecikme | BRAM | DSP | FF | LUT |
+|---|---|---:|---:|---:|---:|---:|
+| 7 | expectation ayrıştırması | 5.766.130 | %61 | %70 | %156 | %289 |
+| 8 | `config_compile -pipeline_loops 0` | 14.773.743 | %61 | %70 | **%65** | %149 |
+| 9 | **paylaşılan RX (çalışma zamanı k)** | 15.363.498 | **%61** | **%16** | **%12** | **%42** |
+
+**Dört kaynağın dördü de bütçede. SC-002 (BRAM ≤ %85): %61 ✅**
+
+## Tur 8: otomatik boru hattı — pragma değil, PROJE AYARI
+
+`apply_cost_layer` 81.087 → **8.374 LUT** (10×). Sebep: Vitis HLS tur sayısı
+64'ün altındaki döngüleri **kendiliğinden** boru hattına alıyor
+(`config_compile -pipeline_loops`, varsayılan 64) ve bir döngüyü boru hattına
+alırken iç döngülerini **açmak zorunda**. Tablo kurma döngülerimin iç döngüleri
+(8, 28, 64 turlu) hepsi eşiğin altındaydı.
+
+`#pragma HLS PIPELINE off` eklemek **işe yaramadı** — iki kez denendi, sonuçlar
+bit-birebir aynı çıktı. Bu bir pragma meselesi değildi.
+
+Bedeli gecikmede: tablolar artık tamamen seri, 5,77M → 14,77M.
+**Geri alınabilir**: en içteki tablo döngülerine açık `PIPELINE II=1` koymak
+hiçbir şeyi açmaz, alan bedeli ~sıfır.
+
+## Tur 9: R-7'nin hipotezi SINANDI ve YANLIŞLANDI
+
+[research.md R-7](../../specs/002-fpga-statevector-cekirdegi/research.md) `k`'nin
+derleme zamanı sabiti olmasını şart koşmuştu:
+
+> "HLS, `ARRAY_PARTITION`'lı bir diziye hangi parçadan erişildiğini derleme
+> zamanında çözemezse bütün erişimleri seri hale getirir."
+
+**Ölçüm bunu desteklemiyor.**
+
+| | `template<int K>` (16 örnek) | **paylaşılan (çalışma zamanı k)** |
+|---|---:|---:|
+| LUT | 45.114 | **2.409** |
+| DSP | 128 | **8** |
+| Toplam gecikme | 14.773.743 | 15.363.498 (**+%4**) |
+
+16× yavaşlama beklenirken **%4** oldu. R-7 bir hipotezi gerekçe olarak
+kullanmıştı ve hipotez hiç sınanmamıştı; sınanınca tutmadı.
+
+**C1 kararı geçerliliğini koruyor** — kapı listesi hâlâ derleme zamanında
+sabit, konaktan yalnızca parametre geliyor. Değişen, R-7'de C1'e yanlışlıkla
+paketlenmiş olan ayrı bir uygulama seçimi.
+
+## Kalan tek sorun: ZAMANLAMA
+
+| Tur | Zamanlama |
+|---|---:|
+| 1–8 | 25,039 ns |
+| 9 | **24,799 ns** |
+
+Dokuz turda pratikte hiç değişmedi. Hedef 10 ns; gerçek ~**40 MHz**.
+Kritik yol dokunulan hiçbir yerde değil ve **henüz araştırılmadı**.
+NC-4 (Fmax varsayımı) hâlâ açık.
+
+15,36M çevrim @ 40 MHz = **0,384 sn**. CPU tabanı (Aer, ölçülen ~58 ms) hâlâ
+**6,6× hızlı**. Hiçbir hızlanma iddiası yapılamaz.
+
+## Ama artık bol kaynak payı var
+
+LUT %42, DSP %16, FF %12. Önceki turlarda sorun "sığmıyor"du; şimdi sorun
+"yavaş". Bu, paralelliğe yatırım yapılabileceği anlamına geliyor — çevrim
+başına birden fazla genlik işlemek artık kaynak açısından mümkün.
+
+Sıradaki üç iş, öncelik sırasıyla:
+1. **Zamanlama** — 25 ns'nin kaynağını bul. Tek başına 2,5× kazanç.
+2. **Tablo döngüsü gecikmesi** — en içteki döngülere `PIPELINE II=1`, ~9M geri.
+3. **Paralellik** — kalan %58 LUT payını çevrim başına birden fazla genliğe yatır.

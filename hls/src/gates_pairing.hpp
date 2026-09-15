@@ -108,9 +108,42 @@ cnot_pair_loop:
     }
 }
 
-// --- Karıştırıcı katmanı: `k` derleme zamanında AÇILIR ----------------------
-// Şablon özyinelemesi, `for k in 0..15` döngüsünü 16 ayrı `apply_rx<K>`
-// çağrısına dönüştürür. Bu, R-7'nin koşuludur: `K` her çağrıda sabittir.
+/// PAYLAŞILAN RX birimi — `k` ÇALIŞMA ZAMANI parametresi.
+///
+/// ⚠️ Bu, R-7'nin bilinçli olarak kaçındığı şeydir. Gerekçesi şuydu: HLS
+/// `ARRAY_PARTITION`'lı diziye hangi parçadan erişildiğini derleme zamanında
+/// çözemezse bütün erişimleri seri hale getirir. O gerekçe bir HİPOTEZDİ ve
+/// hiç sınanmamıştı.
+///
+/// Sınanmasının nedeni ölçüm: `template <int K>` sürümü 16 ayrı örnek
+/// doğuruyor ve bunlar **45.114 LUT** tutuyor — kalan bütçenin %57'si. Tek
+/// birim ~3k olmalı. Karşılığında II bozulabilir; RX toplam gecikmenin ~%19'u
+/// olduğu için 16× bozulma toplamı ~3× kötüleştirir.
+///
+/// Geri dönüş tek satır: `apply_mixer_layer` içinde `mixer_unroll<0>::run`
+/// çağrısına dönmek yeterli — şablon sürümü aşağıda duruyor.
+inline void apply_rx_dyn(amp_t sv[N_AMP], int k, real_t cos_half, real_t sin_half) {
+    const int stride = 1 << k;
+rx_dyn_pair_loop:
+    for (int j = 0; j < N_PAIR; ++j) {
+#pragma HLS PIPELINE II = 1
+        const int dusuk = j & (stride - 1);
+        const int yuksek = j >> k;
+        const int i0 = (yuksek << (k + 1)) | dusuk;
+        const int i1 = i0 | stride;
+
+        const real_t ar = sv[i0].re, ai = sv[i0].im;
+        const real_t br = sv[i1].re, bi = sv[i1].im;
+
+        sv[i0].re = cos_half * ar + sin_half * bi;
+        sv[i0].im = cos_half * ai - sin_half * br;
+        sv[i1].re = cos_half * br + sin_half * ai;
+        sv[i1].im = cos_half * bi - sin_half * ar;
+    }
+}
+
+// --- Şablon sürümü: 16 ayrı örnek (ölçüm için saklanıyor) -------------------
+// `k` derleme zamanı sabiti olur, HLS partition'ı çözebilir; bedeli 16 kopya.
 template <int K>
 struct mixer_unroll {
     static void run(amp_t sv[N_AMP], real_t c, real_t s) {
@@ -125,8 +158,14 @@ struct mixer_unroll<N_QUBITS> {
 };
 
 /// Karıştırıcı: her kübite RX(2*beta).  exp(-i*beta*X) = RX(2*beta).
+///
+/// ŞU AN: paylaşılan birim (tek örnek, çalışma zamanı k).
+/// Geri dönmek için: `mixer_unroll<0>::run(sv, cos_beta, sin_beta);`
 inline void apply_mixer_layer(amp_t sv[N_AMP], real_t cos_beta, real_t sin_beta) {
-    mixer_unroll<0>::run(sv, cos_beta, sin_beta);
+mixer_loop:
+    for (int k = 0; k < N_QUBITS; ++k) {
+        apply_rx_dyn(sv, k, cos_beta, sin_beta);
+    }
 }
 
 }  // namespace qir

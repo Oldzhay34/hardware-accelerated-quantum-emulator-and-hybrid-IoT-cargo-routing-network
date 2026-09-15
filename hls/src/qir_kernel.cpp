@@ -48,6 +48,8 @@ float expectation_scaled(const amp_t sv[N_AMP], const cost_scaled_t& cs) {
     // calismayan bir yola yuzlerce toplayici orneklenir.
 exp_tablo_dusuk:
     for (int lo = 0; lo < TABLO; ++lo) {
+#pragma HLS PIPELINE off
+#pragma HLS PIPELINE off
         sum_t a = 0.0;
         for (int k = 0; k < YARIM; ++k) {
             if ((lo >> k) & 1) a -= sum_t(cs.h[k]);
@@ -64,6 +66,8 @@ exp_tablo_dusuk:
 
 exp_tablo_yuksek:
     for (int hi = 0; hi < TABLO; ++hi) {
+#pragma HLS PIPELINE off
+#pragma HLS PIPELINE off
         sum_t a = 0.0;
         for (int k = 0; k < YARIM; ++k) {
             if ((hi >> k) & 1) a -= sum_t(cs.h[YARIM + k]);

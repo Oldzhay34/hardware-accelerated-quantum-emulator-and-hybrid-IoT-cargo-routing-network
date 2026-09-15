@@ -70,6 +70,7 @@ inline void apply_cost_layer(amp_t sv[N_AMP], const cost_phases_t& ph) {
     // Kural: UNROLL yalnizca genlik basina calisan yola uygulanir.
 tablo_dusuk:
     for (int lo = 0; lo < TABLO; ++lo) {
+#pragma HLS PIPELINE off
         phase_t a(0);
         for (int k = 0; k < YARIM; ++k) {
             if ((lo >> k) & 1) a -= (uint64_t)ph.h[k];
@@ -86,6 +87,7 @@ tablo_dusuk:
 
 tablo_yuksek:
     for (int hi = 0; hi < TABLO; ++hi) {
+#pragma HLS PIPELINE off
         phase_t a(0);
         for (int k = 0; k < YARIM; ++k) {
             if ((hi >> k) & 1) a -= (uint64_t)ph.h[YARIM + k];

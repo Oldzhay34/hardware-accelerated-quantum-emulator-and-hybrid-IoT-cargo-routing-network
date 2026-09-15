@@ -75,5 +75,19 @@ open_solution -reset $SOLUTION -flow_target vivado
 set_part $PART
 create_clock -period $CLOCK_NS -name default
 
+# --- Otomatik boru hatti KAPALI ---------------------------------------------
+# Vitis HLS varsayilan olarak tur sayisi 64'un altindaki donguleri KENDILIGINDEN
+# boru hattina alir (config_compile -pipeline_loops, varsayilan 64). Bir donguyu
+# boru hattina alirken ic dongulerini ACMAK ZORUNDA oldugu icin, tablo kurma
+# dongulerimin ic donguleri (8, 28 ve 64 turlu) aciliyordu.
+#
+# OLCULDU: apply_cost_layer'in 81.087 LUT'unun ~78.000'i tablo kurma
+# dongulerindeydi; asil genlik dongusu yalnizca 2.276 LUT. "#pragma HLS PIPELINE
+# off" eklemek ISE YARAMADI -- bu bir pragma meselesi degil, PROJE AYARI.
+#
+# 0 = otomatik boru hatti yok; yalnizca acikca yazilan PIPELINE pragma'lari
+# gecerli olur.
+config_compile -pipeline_loops 0
+
 # Testbench argumanlari -- mutlak yol (csim alt dizinde kosuyor)
 set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash vitis"
