@@ -14,30 +14,19 @@
 
 ## SIRADAKİ
 
-> Bu faz henüz `/speckit-plan` aşamasına gelmedi, dolayısıyla `tasks.md` yok. SIRADAKİ bloğu
-> geçici olarak burada duruyor; `tasks.md` üretilince oraya taşınacak
-> ([docs/siradaki-standardi.md](../../docs/siradaki-standardi.md)).
+> ➡️ **SIRADAKİ bloğu [tasks.md](tasks.md)'ye taşındı** — `/speckit-tasks` çalıştığı için
+> standart konumuna geçti ([docs/siradaki-standardi.md](../../docs/siradaki-standardi.md)).
+> Güncel durum oradan okunur.
 
-**Hedef (tek cümle)**: Faz 2'nin ARAŞTIR adımı — üç bankalama stratejisi ve iki sayı formatı için
-gerçek kaynaklara dayalı karşılaştırma tabloları hazırlanacak, sonra onay kapısı.
+**Faz durumu**: ✅ spec → ✅ plan (onaylandı: **A1 + B4 + C1**,
+[ADR 0008](../../docs/decisions/0008-statevector-cekirdek-mimarisi.md)) → ✅ tasks (54 görev)
+→ ⏳ implement
 
-**Dokunulacak dosyalar**: Henüz kod yok. Araştırma çıktısı `/speckit-plan` ile
-`specs/002-fpga-statevector-cekirdegi/research.md` olacak.
+> ⚠️ **Bu spec kod üretmez ve bankalama/format seçimi yapmaz.** Prompt'un çalışma kuralı ve Anayasa Prensip I gereği bu seçimler `/speckit-plan` aşamasında karşılaştırma tablolarıyla sunulup **yazılı onay** alındıktan sonra kesinleşir. **Onay 2026-09-15'te alındı.**
 
-**Bilinen tuzaklar**:
-- **Bankalama ve format bağımsız değil** — 16 kübitte ping-pong'a yalnızca Q1.15 ile para yetiyor.
-  İki tablo ayrı doldurulup birleştirilemez, **kombinasyon** olarak değerlendirilmeli (bu spec'in
-  "bağımsız değil" bölümü).
-- **C-sim bankalama sorununa kördür.** Kabul ölçütü C-sim değil **sentez raporudur**.
-- **Vitis HLS kurulu değil** ([SK-04](../../docs/risk-register.md), karar tarihi 20 Eylül) —
-  SC-002/003/005 bu araç olmadan doğrulanamaz. Kurulum runbook'u:
-  [docs/runbooks/vitis-hls-kurulum.md](../../docs/runbooks/vitis-hls-kurulum.md).
-- Kart **geldi ve boot etti** (2026-09-15) ama Faz 2 için gerekmiyor; Jupyter/overlay ölçütleri
-  henüz doğrulanmadı.
-
-**Son güncelleme**: 2026-09-15, Faz 2 spec hazır / plan bekliyor
-
-> ⚠️ **Bu spec kod üretmez ve bankalama/format seçimi yapmaz.** Prompt'un çalışma kuralı ve Anayasa Prensip I gereği bu seçimler `/speckit-plan` aşamasında karşılaştırma tablolarıyla sunulup **yazılı onay** alındıktan sonra kesinleşir.
+> 🔴 **Aşağıdaki §"Kritik bulgu" ve §bellek tablosu ARTIK GEÇERSİZDİR.** Faz 2 araştırması
+> üçünü de çürüttü; düzeltme görevleri T045–T047. Doğru sayılar için
+> [plan.md §Onay Kapısı](plan.md) ve [docs/banking-research.md](../../docs/banking-research.md).
 
 ---
 

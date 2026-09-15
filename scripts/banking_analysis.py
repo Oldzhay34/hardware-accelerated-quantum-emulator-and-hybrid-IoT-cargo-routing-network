@@ -203,6 +203,24 @@ def devre_profili() -> dict:
     return cikti
 
 
+def verim_cift_cevrim(sema, b: int, k: int, pingpong: bool) -> tuple[float, int]:
+    """GERCEK verim: cevrim basina islenebilen cift sayisi (lanes / cevrim).
+
+    "II=1'i koruyan azami serit" metrigi yerinde sema icin 0 raporluyordu; bu
+    "verim sifir" degil "II=1 hic olmuyor" demek. Baglayici olcut budur:
+    serit sayisi uzerinde lanes/cevrim orani ENIYILENIR.
+    """
+    banks = 1 << b
+    tavan = banks * PORT_PER_BANK // (2 if pingpong else 4)
+    fn_ = cakisma_analizi_pingpong if pingpong else cakisma_analizi
+    en_iyi, en_iyi_lane = 0.0, 0
+    for lanes in range(1, tavan + 1):
+        oran = lanes / fn_(sema, b, lanes, k)[1]
+        if oran > en_iyi:
+            en_iyi, en_iyi_lane = oran, lanes
+    return en_iyi, en_iyi_lane
+
+
 def main() -> None:
     b = 4              # 16 banka
     banks = 1 << b
@@ -273,11 +291,31 @@ def main() -> None:
     print("=" * 74)
     profil = devre_profili()
 
+    print()
+    print("=" * 74)
+    print("GERCEK VERIM: cift/cevrim (serit sayisi uzerinde eniyilenmis)")
+    print("=" * 74)
+    print(f"  {'sema':<22} {'tamponlama':<12} {'en kotu k':>10} {'en iyi k':>9} {'tavan':>6}")
+    verim2 = {}
+    for ad, sema in SEMALAR.items():
+        for etiket, pp in (("yerinde", False), ("ping-pong", True)):
+            oranlar = [verim_cift_cevrim(sema, b, k, pp)[0] for k in range(N_QUBITS)]
+            tavan = banks * PORT_PER_BANK // (2 if pp else 4)
+            print(f"  {ad:<22} {etiket:<12} {min(oranlar):>10.1f} {max(oranlar):>9.1f} {tavan:>6}")
+            verim2[f"{ad} | {etiket}"] = {"en_kotu": min(oranlar), "en_iyi": max(oranlar),
+                                          "tavan": tavan, "per_k": oranlar}
+    print()
+    print("  YORUM: yerinde semanin tavani 8 cift/cevrim (cift basina 4 erisim),")
+    print("         ping-pong'unki 16 (cift basina 2 erisim, iki ayri bellek).")
+    print("         Ping-pong'un ustunlugu bankalamadan degil, PORT SAYISINI")
+    print("         ikiye katlamasindan geliyor — bedeli de tam olarak o: 2x BRAM.")
+
     # Kaydet
     meta = stamp.stamp(n_qubits=N_QUBITS, banks=banks, lanes=lanes, port_per_bank=PORT_PER_BANK)
     meta["verim"] = verim
     meta["parcalanma"] = frag
     meta["devre_profili"] = profil
+    meta["verim_cift_cevrim"] = verim2
     meta["sonuclar"] = sonuclar
     kok = Path(__file__).resolve().parents[1]
     yol = stamp.measurements_dir(kok) / f"{stamp.stamped_name('banking-analysis')}.json"

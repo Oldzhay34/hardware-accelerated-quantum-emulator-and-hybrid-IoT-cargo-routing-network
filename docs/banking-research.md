@@ -205,15 +205,41 @@ doğrulanmış değildir** (K-02 / K-04 ölçütü).
 
 ## 6. Öneri (onay kapısına giden)
 
+> ⚠️ **2026-09-15 düzeltmesi.** Bu bölümün ilk hâli ping-pong'u **M** olarak öneriyordu.
+> **Yanlıştı.** Ping-pong %91,4 BRAM demek ve bu, spec'in kendi kabul ölçütü
+> **SC-002'yi (BRAM ≤ %85) aşıyor** — "tetiklenebilir" değil, aritmetikte zaten aşıyor.
+> Buna karşılık SC-003 II ≤ 4'e izin veriyor ve yerinde şema II=2 veriyor.
+>
+> Yani ping-pong'un satın aldığı şey (II=1) projenin ölçütünde **zaten karşılanmış**;
+> ödediği şey (SC-002 ihlali) karşılanmamış. Öneri **yerinde (in-place)** olarak
+> düzeltildi. Ayrıntılı gerekçe ve hız karşılaştırması:
+> [plan.md §Onay Kapısı](../specs/002-fpga-statevector-cekirdegi/plan.md).
+
 | Kapsam | Karar | Gerekçe |
 |---|---|---|
-| **M** | Naif `cyclic` partition (F=16) + **ping-pong** + **Q1.17** | Aritmetik tavanı veriyor, en az HLS karmaşıklığı, üç kısıt Q1.17'de kesişiyor |
+| **M** | Naif `cyclic` partition (F=16) + **yerinde (in-place)** + **Q1.17** | %45,7 BRAM (SC-002 ✅), II=2 (SC-003 ✅), en az HLS karmaşıklığı, üç kısıt Q1.17'de kesişiyor |
 | **M** | RZZ **yerleşik** köşegen kapı olarak (CX'e ayrıştırma yok) | Eşlemeli kapıyı 12× azaltıyor — tek en büyük kazanç |
 | **M** | Maliyet katmanını tek köşegen geçişe füzyonla | Köşegen çarpımı köşegendir, bedelsiz |
-| **H** | Faz tablosu mu Gray-kod artımlı mı? | +64 BRAM bloğu vs ek mantık; %91,4 doluluğu aşarsa K-02 |
+| **H** | Faz tablosu mu Gray-kod artımlı mı? | Tam tablo +64 blok → %91,4 (SC-002 ✗); açı tablosu +32 → %69,3 (✅); Gray-kod 0 → %45,7 (✅) |
+| **İ** | **Ping-pong'a yükseltme** | Ancak sentez raporu BRAM'i tahminden ucuz gösterirse. Önce yerinde sentezlenir, gerçek sayı okunur |
 | **İ** | Çok-kübitli kapı füzyonu | Tavanı küçük (32 kapı), karmaşıklığı yüksek |
 | **ELENDİ** | XOR banka eşlemesi | Ping-pong bedava yapıyor |
 | **ELENDİ** | İki geçişli devrik | Her eksende ping-pong'a yeniliyor |
 
 **En büyük tehlike bankalama değil, doluluk**: ping-pong %91,4 BRAM demek ve
-geriye pay kalmıyor. Sentez raporunun ilk bakılacak satırı budur.
+geriye pay kalmıyor. Yerinde şema %45,7'de kalıp **55 blok pay** bırakıyor — faz
+tablosu, AXI tamponları ve kontrol mantığı oraya sığar. Sentez raporunun ilk
+bakılacak satırı BRAM_18K kullanımıdır (bütçe **280**, 140 değil).
+
+### Hız farkı gerçekte ne kadar? (ÖLÇÜLEN taban + HESAPLANAN çevrim)
+
+CPU tabanı: Aer C++ statevector, p=2, bu makinede **en iyi ≈ 58 ms**
+(`scripts/cpu_reference_time.py`). Qiskit'in Python `Statevector`'ü taban **değildir** —
+20× yavaş, kullanılsaydı hızlanmayı o kadar şişirirdi.
+
+| | FPGA çevrim (HESAPLANAN) | 100 MHz'de | CPU'ya karşı |
+|---|---:|---:|---:|
+| **yerinde** | 237.568 | 2,38 ms | **~24×** |
+| ping-pong | 69.632 | 0,70 ms | ~83× |
+
+24× zaten savunulabilir bir sonuç. Ek 3,4× için kabul ölçütü kırılmaz.
