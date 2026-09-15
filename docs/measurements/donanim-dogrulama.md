@@ -95,7 +95,59 @@ erişilebilir olur. Yeni IP seri porttan `hostname -I` ile öğrenilir.
 **Faz 2'yi engellemiyor** — Faz 2 (HLS çekirdek) karta hiç dokunmuyor (Anayasa Prensip V).
 Bu yalnızca **Faz 5**'in (Zynq PS entegrasyonu, kartta koşum) ön koşulu.
 
+---
+
+## 2026-09-15 · USB Wi-Fi adaptörü denemesi — ❌ iki ayrı engel
+
+Kullanıcı USB Wi-Fi adaptörü taktı ve karttan Wi-Fi'a bağlanılması istendi. **Başarısız** —
+iki bağımsız sorun tespit edildi.
+
+### Engel 1: Sürücü yok
+
+```
+$ lsusb
+Bus 001 Device 002: ID 0bda:f179 Realtek Semiconductor Corp.
+
+$ ls /sys/class/net/
+eth0  lo  sit0          <-- wlan0 YOK
+
+$ lsmod | grep -E '8188|rtl|cfg80211|mac80211'
+(bos)                   <-- hicbir kablosuz modul yuklu degil
+```
+
+USB cihazı **numaralandırılıyor** (`usb 1-1: new high-speed USB device ... using ci_hdrc`) ama
+hiçbir sürücü bağlanmıyor, dolayısıyla `wlan0` arayüzü oluşmuyor.
+
+`0bda:f179` = Realtek **RTL8188FTV / RTL8188FU**. Bu yonga, mainline Linux çekirdeğinde **yoktur**;
+ağaç-dışı (out-of-tree) bir sürücü gerektirir. Karttaki çekirdek `4.19.0-xilinx-v2019.1` ve
+`/lib/modules/.../wireless/realtek/` altında bu kimliği tanıyan bir modül bulunmuyor.
+
+### Engel 2: Kart sürekli yeniden başlıyor
+
+Adaptör takılıyken tanılama komutları çalıştırılırken kart **iki kez** kendiliğinden yeniden başladı.
+Doğrulama: `uptime` → **`up 0 min`**.
+
+Muhtemel neden: **yetersiz güç**. PYNQ-Z2 micro-USB'den beslendiğinde sınırlı akım sağlar;
+RTL8188 sınıfı bir dongle iletim anında 300-500 mA çekebilir ve kartı brownout'a sokar.
+PYNQ-Z2'de güç kaynağı **JP5 jumper** ile seçilir (USB / REG). Harici 12V adaptör kullanımı
+bu sorunu ortadan kaldırır — ama Engel 1 yine de sürer.
+
+### Karar: Wi-Fi yolu bırakıldı, Ethernet tercih edildi
+
+Wi-Fi'ı çalıştırmak için gereken iş: 2019 tarihli ARM çekirdeği için ağaç-dışı sürücü derlemek
+(çekirdek başlıkları + araç zinciri + belirsiz sonuç) **ve** güç sorununu çözmek. Karşılığında
+elde edilen şey, Ethernet kablosunun zaten sağladığı şey.
+
+**Ethernet kablosu**: sürücü gerekmez, güç sorunu yaratmaz, anında çalışır.
+
+⚠️ Bu, [Anayasa Prensip VI](../../.specify/memory/constitution.md) (14 hafta kısıtı) gereği bilinçli
+bir kesme kararıdır. Ayrıca **hiçbir şeyi engellemiyor**: Faz 2 (HLS çekirdek) karta hiç dokunmuyor
+(Prensip V); ağ yalnızca **Faz 5**'in ön koşulu.
+
 ### Henüz doğrulanmayanlar
 
 - [ ] Jupyter arayüzü ağ üzerinden açılıyor mu — **Ethernet kablosu bekliyor**
 - [ ] Örnek overlay yükleniyor mu — Jupyter erişimine bağlı
+
+> Boot logundan teyit: `Starting Jupyter Notebook Server...` — Jupyter servisi açılışta başlıyor,
+> yani tek eksik ağ erişimi.
