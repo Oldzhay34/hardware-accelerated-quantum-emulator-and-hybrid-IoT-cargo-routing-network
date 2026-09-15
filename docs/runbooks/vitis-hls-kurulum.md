@@ -44,6 +44,34 @@ Bu seçimle kurulum tipik olarak **25–40 GB**'a iner; D:'nin 119,7 GB'ı rahat
 
 ---
 
+## İndirilecek dosya ve sağlamaları (2026-09-15'te doğrulandı)
+
+AMD'nin kendi imzalı `.digests` dosyasından alındı (PGP imzalı, `SHA512` hash'li):
+
+| | |
+|---|---|
+| Dosya | `FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Win64.exe` |
+| Sürüm | Unified Installer **2025.2**, Windows 64-bit |
+| MD5 | `1ecf89bb9f8f7d124637178c3e3ca396` |
+| SHA-1 | `6cf218748e0b7540442d35a8a7af3fc46211f983` |
+| SHA-256 | `ddcea24a734b2727d152703c784bd822195a5898333cfc8c5041a92eadd6ea36` |
+
+⚠️ **Dikkat**: İndirme sayfasındaki "Download File Verification" penceresinde **Digest** butonu
+installer'ı değil, yalnızca bu sağlama dosyasını indirir (~1,4 KB). Asıl installer için pencereyi
+kapatıp **Windows Self Extracting Web Installer** satırındaki indirme bağlantısını kullan —
+Linux satırıyla karıştırma.
+
+### İndirme sonrası doğrulama
+
+```powershell
+(Get-FileHash "$env:USERPROFILE\Downloads\FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Win64.exe" -Algorithm SHA256).Hash.ToLower()
+# beklenen: ddcea24a734b2727d152703c784bd822195a5898333cfc8c5041a92eadd6ea36
+```
+
+Tutmazsa **kuruluma başlama** — bozuk installer'la 25-40 GB'lık kurulumun ortasında kalmak,
+10 saniyelik kontrolden çok daha pahalıdır. (Aynı disiplin `scripts/fetch_osm.ps1`'de OSM
+dökümü için zaten uygulanıyor — spec FR-005.)
+
 ## Adımlar
 
 1. **AMD hesabıyla giriş yap** ve *Vitis Unified Software Platform* (veya *Vivado ML Standard* + Vitis HLS bileşeni) yükleyicisini indir. İndirici küçüktür (~1 GB); asıl indirme kurulum sırasında olur.
