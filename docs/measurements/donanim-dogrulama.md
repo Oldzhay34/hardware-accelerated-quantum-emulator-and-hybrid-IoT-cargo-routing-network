@@ -144,10 +144,71 @@ elde edilen şey, Ethernet kablosunun zaten sağladığı şey.
 bir kesme kararıdır. Ayrıca **hiçbir şeyi engellemiyor**: Faz 2 (HLS çekirdek) karta hiç dokunmuyor
 (Prensip V); ağ yalnızca **Faz 5**'in ön koşulu.
 
-### Henüz doğrulanmayanlar
+---
 
-- [ ] Jupyter arayüzü ağ üzerinden açılıyor mu — **Ethernet kablosu bekliyor**
-- [ ] Örnek overlay yükleniyor mu — Jupyter erişimine bağlı
+## 2026-09-15 · Doğrudan Ethernet bağlantısı — ✅ BAŞARILI, DT-01 kapandı
 
-> Boot logundan teyit: `Starting Jupyter Notebook Server...` — Jupyter servisi açılışta başlıyor,
-> yani tek eksik ağ erişimi.
+Wi-Fi yolu bırakıldıktan sonra **PC ↔ kart doğrudan RJ45 kablo** denendi. Çalıştı.
+
+### Bağlantı kurulumu
+
+| Taraf | Durum |
+|---|---|
+| PC Ethernet (`Realtek PCIe GbE`) | `Up`, **1 Gbps** — çapraz kablo gerekmedi (Auto-MDI-X) |
+| PC IP | `169.254.54.213/16` (APIPA — arada DHCP yok, beklenen) |
+| Kart `eth0` | `carrier = 1`, `UP`, `192.168.2.99/24` (PYNQ statik yedeği) |
+
+**Sorun**: İki taraf farklı ağlardaydı (`169.254.x` ↔ `192.168.2.x`), birbirlerini göremiyorlardı.
+
+**Çözüm**: Kullanıcının PC ağ ayarını değiştirmek yerine **karta ikinci bir adres** eklendi —
+daha az invaziv, geçici (reboot'ta kaybolur), geri alınabilir:
+
+```bash
+sudo ip addr add 169.254.2.99/16 dev eth0
+# sudo parolasi: PYNQ varsayilani
+```
+
+Sonuç: `eth0  UP  192.168.2.99/24  169.254.2.99/16`
+
+> ⚠️ Bu adres **kalıcı değildir**, her boot'ta yeniden eklenmelidir. Kalıcı çözüm Faz 5'te
+> ya PC'ye statik IP atayarak ya da `/etc/network/interfaces` düzenlenerek yapılmalı.
+
+### Doğrulama sonuçları (ölçülen)
+
+| Test | Sonuç |
+|---|---|
+| `ping 169.254.2.99` | ✅ **2 ms**, 3/3 yanıt |
+| Port 9090 (Jupyter) | ✅ AÇIK |
+| Port 22 (SSH) | ✅ AÇIK |
+| Port 80 | ✅ AÇIK |
+| Jupyter HTTP | ✅ `302` → takip edilince `200`, `<title>Jupyter Notebook</title>` |
+| **Overlay yükleme** | ✅ **`OVERLAY_OK`** |
+
+Overlay testi (PL gerçekten programlandı):
+
+```python
+from pynq import Overlay
+ov = Overlay('base.bit')
+# -> OVERLAY_OK
+# -> ['iop_pmoda/mb_bram_ctrl', 'switches_gpio', 'btns_gpio',
+#     'video/hdmi_in/frontend/axi_gpio_hdmiin',
+#     'video/hdmi_out/frontend/hdmi_out_hpd_video']
+```
+
+`ip_dict` dolu döndü — yani bitstream PL'e yüklendi ve IP blokları numaralandırıldı. **Faz 5'in
+ihtiyaç duyduğu tam yol (host → Jupyter/Python → PL programlama) uçtan uca çalışıyor.**
+
+### ✅ DT-01 TAMAMEN KAPANDI
+
+Üç ölçütün hepsi geçti:
+
+- [x] Kart boot ediyor
+- [x] Jupyter ağdan açılıyor — `http://169.254.2.99:9090`
+- [x] Örnek overlay yükleniyor
+
+### Açık kalan yan konu
+
+Kart tanılama sırasında birkaç kez kendiliğinden resetlendi (`up 0 min`). USB Wi-Fi dongle takılıyken
+gözlendi; dongle çıkarıldıktan sonra tekrar edip etmediği **henüz sistematik olarak izlenmedi**.
+Faz 5'te uzun ölçüm koşuları yapılacağı için bu takip edilmeli — beslemeyi harici 12V adaptöre almak
+(JP5 jumper) ihtiyati bir önlemdir.
