@@ -38,30 +38,56 @@ Risk kaydındaki [SK-02](../../docs/risk-register.md) bu fazı projenin **1 numa
 
 > Kapının uygulandığı kübit `k` için erişim adımı `2^k` değişir. Tek bir bankalama şeması bütün `k` değerlerinde çakışmasız paralellik **vermez**. **C-simülasyon bu soruna kördür** — C kodu doğru çalışır, sentez sonucu on kat yavaş çıkar.
 
-### Bellek bütçesi zaten ölçüldü — ve tasarım alanı dar
+### Bellek bütçesi — ⚠️ ilk hesap YANLIŞTI, düzeltildi (2026-09-15)
 
-[docs/memory-budget.md](../../docs/memory-budget.md) (Faz 0 ucuz sigortası S-3) bu aritmetiği sentezden önce yaptı. Prompt'un kendi verdiği sayılarla **birebir örtüşüyor**:
+Bu bölümün ilk hâli **bayt düzeyinde** hesaplanmıştı ve BRAM36'nın 36-bit kelime
+granülaritesini görmüyordu. Blok düzeyinde hesap (`scripts/memory_budget.py`
+`blok_analizi()`) onu düzeltti. Doğru tablo:
 
-| Konfigürasyon | BRAM (630 KB üzerinden) | Durum |
-|---|---:|---|
-| 16 kübit, double | %162,5 | 🔴 **imkânsız** |
-| 16 kübit, float32 + ping-pong | %162,5 | 🔴 **imkânsız** |
-| 16 kübit, float32 **yerinde** | %81,3 | 🟡 sınırda |
-| 16 kübit, **Q1.15** + ping-pong | %81,3 | 🟡 sınırda |
-| 16 kübit, Q1.15 yerinde | %40,6 | 🟢 rahat |
-| 14 kübit, float32 + ping-pong | %40,6 | 🟢 rahat |
+| Konfigürasyon | bit/genlik | BRAM36 blok | % (140 üzerinden) | Durum |
+|---|--:|--:|---:|---|
+| 16 kübit, **Q1.17 yerinde** | 36 | **64** | **%45,7** | 🟢 **onaylanan** |
+| 16 kübit, Q1.15 yerinde | 32 | 64 | %45,7 | 🟢 ama H eşiğinde kalıyor |
+| 16 kübit, Q1.17 + ping-pong | 36 | 128 | %91,4 | 🔴 SC-002'yi (%85) **aşıyor** |
+| 16 kübit, float32 **yerinde** | 64 | 128 | %91,4 | 🔴 SC-002'yi **aşıyor** |
+| 16 kübit, float32 + ping-pong | 64 | 256 | %182,9 | 🔴 imkânsız |
+| 16 kübit, double | 128 | 256 | %182,9 | 🔴 imkânsız |
 
-### 🔴 Kritik bulgu: bankalama ve format **bağımsız değil**
+**Düzeltilen iki ifade:**
+- ~~"float32 yerinde = %81,3 🟡 sınırda"~~ → gerçek değer **%91,4**, yani
+  "sınırda" değil **SC-002'ye göre başarısız**.
+- ~~"Q1.15 + ping-pong = %81,3"~~ → **%91,4**. Q1.15'in ping-pong'da hiçbir
+  ayrıcalığı yok.
 
-Prompt iki ayrı karşılaştırma tablosu istiyor — (A) bankalama, (B) format. **Ama bunlar birbirine bağlı** ve bu bağ tasarım alanını daraltıyor:
+**Kritik ayrıntı**: Q1.11–Q1.17 **hepsi aynı 64 bloğu** kullanır, çünkü hepsi tek
+bir 36-bit BRAM kelimesine sığar. Yani Q1.15'e daralmanın **BRAM karşılığı
+yoktur** — yalnızca doğruluk kaybı vardır. Q1.17 kelimeyi israfsız dolduran tek
+formattır.
 
-> Ping-pong (çift tampon) tamponlama, bankalama çakışmasından kaçınmanın **standart yoludur**.
-> 16 kübitte ping-pong'a **yalnızca Q1.15 ile para yetiyor**.
-> Yani 16 kübitte ya **doğruluğu** (Q1.15 → fidelity riski) ya da **bankalama kolaylığını** (yerinde → SK-02'nin en zor hali) feda ediyorsun.
+> ⚠️ Vitis HLS BRAM'i **18Kb** biriminde (BRAM_18K) raporlar: bütçe **280**,
+> 140 değil. %85 eşiği = **238 BRAM_18K**.
 
-İki tablo ayrı ayrı doldurulup sonra birleştirilemez; **kombinasyon olarak** değerlendirilmelidir. Bu, `/speckit-plan` aşamasının bağlayıcı kısıtıdır.
+### ✅ Çözülen ikilem: bankalama ve format bağımsız değil — ama çatışmıyor
 
-⚠️ Ayrıca %81,3 rakamları **ideal paketleme** varsayıyor. BRAM36 blokları tam dolmadığından gerçek sentezde doluluk **yukarı** çıkar; 16 kübit "sığıyor" değil **"sınırda"** kabul edilmelidir.
+Bu bölümün ilk hâli şöyle diyordu:
+
+> ~~"16 kübitte ping-pong'a yalnızca Q1.15 ile para yetiyor. Yani ya doğruluğu ya
+> bankalama kolaylığını feda ediyorsun."~~
+
+**Bu ikilem yoktur.** Faz 2 araştırması üç sebeple çürüttü
+([docs/banking-research.md](../../docs/banking-research.md)):
+
+1. **Q1.17 her iki kısıtı da karşılıyor**: fidelity 0,999917 (ÖLÇÜLEN, H eşiğini
+   geçiyor) *ve* 36-bit kelimeye israfsız sığıyor.
+2. **Bankalama şeması seçimi anlamsız**: naif, XOR-2 ve XOR-tam şemaları her
+   tamponlama ve her `k` için **birebir aynı** verimi veriyor.
+3. **Bağlayıcı kısıt bankalama değil, SC-002**: ping-pong %91,4 BRAM demek ve
+   eşiği aşıyor. Yerinde şema %45,7'de kalıp II=2 veriyor — SC-003 zaten II≤4'e
+   izin verdiği için **ikisi de karşılanıyor**.
+
+İki tablo yine de **kombinasyon olarak** değerlendirildi; onaylanan kombinasyon
+**A1 + B4 + C1**'dir
+([ADR 0008](../../docs/decisions/0008-statevector-cekirdek-mimarisi.md)).
 
 ---
 

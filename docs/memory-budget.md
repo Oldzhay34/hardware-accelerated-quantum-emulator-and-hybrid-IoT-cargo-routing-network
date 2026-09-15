@@ -199,3 +199,32 @@ Bu, S-3'ün *ucuz ve erken* versiyonu. Faz 2.1 (M) şunları eklemeli:
 ```
 
 Deterministik ve girdisiz — donanım sabitleri script içinde tanımlı. Varsayım değişirse (ör. %85 tavanı) script'teki sabit güncellenir, tablo yeniden üretilir.
+
+---
+
+## 4. Onaylanan konfigürasyon (2026-09-15, ADR 0008)
+
+Faz 2 onay kapısından geçen kombinasyon: **A1 + B4 + C1** —
+naif `cyclic` partition (F=16) + **yerinde (in-place)** + **Q1.17**.
+
+| Kalem | Değer | Tür |
+|---|---:|---|
+| Genlik genişliği | 36 bit (18 reel + 18 sanal) | — |
+| Statevector | 65.536 × 36 bit = 64 BRAM36 | HESAPLANAN |
+| **BRAM doluluğu** | **%45,7** (140 üzerinden) | HESAPLANAN |
+| HLS raporunda | **128 BRAM_18K** (bütçe 280, eşik 238) | HESAPLANAN |
+| Kalan pay | 76 blok — faz tablosu + AXI + kontrol | HESAPLANAN |
+| Fidelity (n=16, p=2) | **0,999978** | **ÖLÇÜLEN** (C-sim) |
+
+**Ping-pong neden seçilmedi**: 128 blok = **%91,4**, SC-002'nin %85 eşiğini
+aşıyor. Kazancı (II=1) SC-003'te zaten karşılanmış durumda (II≤4 serbest,
+yerinde şema II=2 veriyor). İ etiketli yükseltme olarak saklandı; önce yerinde
+sentezlenip **gerçek** BRAM okunacak.
+
+**Q1.15 neden seçilmedi**: hiç BRAM kazandırmıyor (aynı 64 blok) ama fidelity
+0,998674 ile H eşiğinde kalıyor. Daralmanın karşılığı yok.
+
+> ⚠️ Bu bölümdeki BRAM sayıları **DOĞRULANMAMIŞTIR**. `ARRAY_PARTITION`
+> uygulandığında blok sayısı değişebilir; kesin değer yalnızca sentez
+> raporundan okunur (Prensip II). Fidelity ise ölçülmüştür —
+> [docs/measurements/faz2-csim.md](measurements/faz2-csim.md).

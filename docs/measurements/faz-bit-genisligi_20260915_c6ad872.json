@@ -1,0 +1,46 @@
+{
+  "stamped_at": "2026-09-15T17:22:52.949438+00:00",
+  "git_hash": "c6ad872",
+  "git_dirty": true,
+  "config": {
+    "not_": "faz akumulatoru bit genisligi — tur temsili",
+    "referans": "reference_20260915_c6ad872_p2_n5"
+  },
+  "sonuclar": {
+    "12bit": {
+      "fidelity": 0.9999496428598914,
+      "H_gecti": true,
+      "cozunurluk_rad": 0.0015339807878856412
+    },
+    "14bit": {
+      "fidelity": 0.9999982132665227,
+      "H_gecti": true,
+      "cozunurluk_rad": 0.0003834951969714103
+    },
+    "16bit": {
+      "fidelity": 0.9999998896488448,
+      "H_gecti": true,
+      "cozunurluk_rad": 9.587379924285257e-05
+    },
+    "18bit": {
+      "fidelity": 0.9999999946647593,
+      "H_gecti": true,
+      "cozunurluk_rad": 2.3968449810713143e-05
+    },
+    "20bit": {
+      "fidelity": 0.9999999995214393,
+      "H_gecti": true,
+      "cozunurluk_rad": 5.992112452678286e-06
+    },
+    "24bit": {
+      "fidelity": 0.9999999999980429,
+      "H_gecti": true,
+      "cozunurluk_rad": 3.7450702829239286e-07
+    },
+    "32bit": {
+      "fidelity": 0.9999999999999998,
+      "H_gecti": true,
+      "cozunurluk_rad": 1.4629180792671596e-09
+    }
+  }
+}

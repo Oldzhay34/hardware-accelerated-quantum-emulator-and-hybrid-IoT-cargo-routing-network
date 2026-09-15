@@ -1,0 +1,28 @@
+{
+  "stamped_at": "2026-09-15T17:22:24.373844+00:00",
+  "git_hash": "c6ad872",
+  "git_dirty": true,
+  "config": {
+    "not_": "yerlesik formulasyon Qiskit'e karsi dogrulandi"
+  },
+  "sonuclar": {
+    "p=1": {
+      "fidelity": 1.0000000000000009,
+      "genlik_sapmasi": 4.711595696926807e-13,
+      "beklenen_deger": -9799.62290935436,
+      "referans_cost_after": -9799.622909356425,
+      "beklenen_deger_hatasi": 2.064552973024547e-09,
+      "ising_offset": 35303.490000000034,
+      "referans": "reference_20260915_c6ad872_p1_n5"
+    },
+    "p=2": {
+      "fidelity": 1.0000000000000004,
+      "genlik_sapmasi": 1.18834282691882e-12,
+      "beklenen_deger": -3950.9272389405496,
+      "referans_cost_after": -3950.9272389426637,
+      "beklenen_deger_hatasi": 2.1141204342711717e-09,
+      "ising_offset": 35303.490000000034,
+      "referans": "reference_20260915_c6ad872_p2_n5"
+    }
+  }
+}

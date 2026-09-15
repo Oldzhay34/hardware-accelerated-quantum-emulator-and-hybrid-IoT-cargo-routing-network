@@ -1,4 +1,4 @@
-# Faz 0 — Kesme Tetikleri (Cut Plan)
+﻿# Faz 0 — Kesme Tetikleri (Cut Plan)
 
 **Oluşturma**: 2026-09-10 · **Durum**: ONAY BEKLİYOR
 
@@ -48,12 +48,14 @@
 - **ÖLÇÜT**: Sentez raporunda **BRAM kullanımı ≤ %85** ve statevector'ün tamamı çip-içi. Ölçülebilir, rapordan okunur.
 - **🔴 GÜNCELLEME (2026-09-13, S-3 aritmetiği — [memory-budget.md](../../docs/memory-budget.md))**: Aşağıdaki merdivenin **ilk basamağı geçersizdi**. 16 kübit + çift duyarlık BRAM'in **%162'sini** istiyor — hiçbir zaman mümkün değildi. Merdiven gerçek sayılarla yeniden yazıldı:
 - **ÖLÇÜT TUTMAZSA** — sırayla, her adım en fazla 3 gün:
-  1. **16 kübit + float32, yerinde (in-place)** — %81,3. Ping-pong'a bütçe yok; bankalama en zor haliyle çözülmek zorunda (bkz. K-03).
-  2. **16 kübit + Q1.15, ping-pong** — %81,3. Bankalama kolaylaşır ama 16-bit sabit nokta fidelity eşiğini (K-05, ≥0,99) tehdit eder; her daraltma sonrası K-05 **yeniden koşulur**.
-  3. **14 kübit + float32, ping-pong** — %40,6. İkisi de rahat, ama **"16 kübite kadar" iddiası düşer**.
+
+  1. **16 kübit + Q1.17, yerinde (in-place)** — **%45,7**. ✅ Onaylanan başlangıç konfigürasyonu (ADR 0008); zaten hedefin çok altında, bu basamağa "düşülmez", buradan başlanır.
+  2. **Faz tablosu yerine Gray-kod artımlı faz** — tablo +64 blok demek (%91,4, eşiği aşar); artımlı hesap 0 ek blok. NC-2 kararı sentez raporundan sonra verilir.
+  3. **9 kübit (4 durak)** — %11,4. **"16 kübite kadar" iddiası düşer.** NOT: eski merdivendeki "14 kübit" adımı problem karşılığı olmadığı için kaldırıldı; tek-sıcak TSP'de kübit sayısı (N-1)², yani 16'nın altındaki geçerli adım 9'dur.
   4. Yetmezse **şerit (lane) sayısı azaltılır**: paralel işlem hattı sayısı yarıya iner.
-- **⚠️ %81,3 rakamları ideal paketleme varsayıyor.** BRAM36 blokları tam dolmadığı için gerçek sentezde doluluk **yukarı** çıkar; 1. ve 2. basamaklar %85 tavanını aşabilir. Faz 2.1 granülariteyi netleştirene kadar 16 kübit "sığıyor" değil **"sınırda"** sayılır.
-- **NİHAİ SINIR**: **12 kübit ve tek şerit.** Bunun altına inilmez; inilmesi gerekiyorsa tasarım bu FPGA sınıfında fizibil değildir → Senaryo B.
+- **🔴 İKİNCİ GÜNCELLEME (2026-09-15, Faz 2 araştırması)**: Yukarıdaki merdivenin **ilk İKİ basamağı da geçersizdi.** Bayt düzeyindeki %81,3 rakamı yanlıştı; blok düzeyinde ikisi de **%91,4** ve ikisi de SC-002'nin %85 eşiğini **aşıyor**. Sebep: BRAM36'nın kelime genişliği 36 bittir; float32 (64 bit) ve Q1.15+ping-pong (2×32 bit) iki blok ister. Ayrıca Q1.11–Q1.17 **hepsi aynı 64 bloğu** kullandığı için Q1.15'e daralmanın BRAM karşılığı yoktur. Merdiven gerçek blok sayılarıyla yeniden yazıldı (yukarıda). Ayrıntı: [banking-research.md](../../docs/banking-research.md), [ADR 0008](../../docs/decisions/0008-statevector-cekirdek-mimarisi.md).
+- **⚠️ Blok düzeyindeki rakamlar da DOĞRULANMAMIŞTIR.** ARRAY_PARTITION uygulandığında blok sayısı değişebilir; kesin sayı yalnızca sentez raporundan okunur (Prensip II). Ayrıca HLS **BRAM_18K** biriminde raporlar: bütçe **280**, %85 eşiği **238**.
+- **NİHAİ SINIR**: **9 kübit (4 durak) ve tek şerit.** Bunun altına inilmez; inilmesi gerekiyorsa tasarım bu FPGA sınıfında fizibil değildir → Senaryo B. *(2026-09-15 düzeltmesi: eskiden "12 kübit" yazıyordu; tek-sıcak TSP'de kübit sayısı (N-1)² olduğu için 12'nin problem karşılığı yok — geçerli değerler 4, 9, 16.)*
 - **KAYIP**: 16 kübit iddiası. Rapordaki "16 kübite kadar" ifadesi gerçek sayıyla değiştirilir. Ölçek küçüldüğü için hızlanma oranı da düşer — ve düşük ölçekte CPU'nun kazanma olasılığı artar (bkz. K-10).
 
 ---
@@ -205,3 +207,5 @@ Bu belge **onay bekliyor**. Onaylandıktan sonra:
 - Her `/speckit-plan` çalıştırması bu tetiklere karşı denetlenir.
 - Karar tarihi gelen her tetik, o haftanın kontrol ritüelinde ([schedule.md](schedule.md) §4) bakılır.
 - Tetik ateşlendiğinde yazılana uyulur; sapma ancak `plan.md` Complexity Tracking tablosunda gerekçelendirilerek yapılabilir (Anayasa, Governance).
+
+

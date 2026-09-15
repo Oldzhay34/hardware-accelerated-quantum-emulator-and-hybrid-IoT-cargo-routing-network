@@ -1,4 +1,4 @@
-# Risk Kaydı (Canlı Belge)
+﻿# Risk Kaydı (Canlı Belge)
 
 **Kaynak**: Faz 0 alt dal 0.1 · **Oluşturma**: 2026-09-10 · **Son güncelleme**: 2026-09-10 (H0)
 **Bağlı belgeler**: [cut-plan.md](../specs/000-kapsam-takvim/cut-plan.md) · [schedule.md](../specs/000-kapsam-takvim/schedule.md) · [scope-triage.md](../specs/000-kapsam-takvim/scope-triage.md)
@@ -39,6 +39,7 @@
 | **SK-02** | 🔴 Bankalama çözülemiyor (2^k çakışması) · `K-03` | **Y** | **Y** | İlk sentez raporunda II beklenenin 5 katından büyük **ve** bellek çakışma (memory dependency) uyarısı var | **H5** (18 Eki) | 3 denemeden en az biri tüm `k` için çakışmasız erişim gösteriyor | **4. deneme yapılmaz.** Tek banka + seri erişim + yüksek II'ye sabitlenir; iddia "bankalama kısıtının nicel karakterizasyonu"na döner | Olcay + ders hocası | 🟡 **KÜÇÜLDÜ** — bkz. not (aş.) |
 | **SK-03** | II hedefi tutmuyor · `K-04` | O | O | İlk pipeline turunda HLS raporu "II violation" veriyor ve nedeni loop-carried dependency | **H6** (25 Eki) | II ≤ 4 | En iyi II olduğu gibi kabul edilir, optimizasyon durur. **2.4 (elle Verilog) açılmaz** | Olcay | AÇIK |
 | **SK-04** | Vitis HLS kurulum / lisans sorunu | O | **Y** | H1 sonunda kurulum bitmemiş **veya** örnek proje sentezlenemiyor | **H1** (20 Eyl) | Örnek HLS projesi uçtan uca sentezleniyor | Faz 2 hiç başlayamaz → kritik yol yeniden kurulur, acil çözüm (WebPACK sürümü / farklı makine) | Olcay | AÇIK |
+| **SK-05** | 🆕 Windows Smart App Control imzasız derleme çıktısını engelliyor | **Y** (gerçekleşti) | O | Yeni üretilen her .exe "Uygulama Denetimi ilkesi bu dosyayı engelledi" ile açılmıyor | **H1** (20 Eyl) | Vitis HLS'in C-sim/cosim akışı kendi ürettiği ikiliyi koşabiliyor | C-sim WSL'de koşulur; yalnızca sentez Windows'ta yapılır | Olcay | 🟡 **GEÇİCİ ÇÖZÜM VAR** |
 
 ---
 
@@ -204,3 +205,83 @@ Yukarıdaki II sayılarının hiçbiri doğrulanmış değildir — Prensip II.
 
 **Yeni izlenecek**: sentez raporunda ilk bakılacak satır BRAM_18K kullanımıdır
 (bütçe 280, 140 değil). %91,4 tahmininden sapma varsa önce o araştırılır.
+
+---
+
+## SK-05 — Smart App Control (2026-09-15, uygulama sırasında keşfedildi)
+
+**Belirti**: `g++` ile üretilen her yeni `.exe`, çalıştırılmak istendiğinde
+*"Uygulama Denetimi ilkesi bu dosyayı engelledi"* veriyor. İlk üretilen ikili bir
+kez koştu, sonrakilerin hepsi engellendi; aynı dosya yoluna yeniden derlemek de
+işe yaramadı (SAC dosya ÖZETİNE göre karar veriyor).
+
+**Kök neden**: Windows 11 **Smart App Control açık**
+(`HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState = 1`).
+İmzasız ve itibarı bilinmeyen çalıştırılabilirleri engelliyor.
+
+**Neden kapatılmadı**: SAC bir **sistem güvenlik ayarıdır** ve kapatılması
+**geri alınamaz** — yeniden açmak Windows'un temiz kurulumunu gerektirir. Bir
+derleme kolaylığı için kalıcı bir güvenlik zayıflatması yapılmadı.
+
+**Geçici çözüm**: C-simülasyon **WSL/Ubuntu** altında derlenip koşuluyor
+(`hls/build_and_run.sh`). Hiçbir sistem ayarı değişmedi. Doğrulama: Windows'ta
+koşabilen ilk ikili ile WSL ikilisi **birebir aynı** fidelity'yi verdi
+(0,999978359), yani geçici çözüm sonucu etkilemiyor.
+
+**Kalan risk — izlenecek**: Vitis HLS'in kendi C-sim/cosim akışı da kaynak
+kodu derleyip **çalıştırılabilir üretir**. AMD'nin kendi ikilileri imzalıdır ama
+kullanıcı kodundan üretilen geçici ikililer imzasızdır. Vitis kurulduğunda
+(SK-04) ilk denenecek şey `csim` koşusudur; engellenirse seçenekler:
+1. Vitis'i WSL altında kurmak (Linux sürümü var)
+2. Sentezi Windows'ta, C-sim'i WSL'de yapmak (şu anki bölünme zaten bu)
+
+**Yan bulgu**: MSYS2'nin `liblto_plugin.dll`'i de yüklenemiyor; `-fno-lto`
+gerekiyordu. Aynı kökten olabilir, ama WSL'e geçince konu kalmadı.
+
+---
+
+## Sentez raporu sonrası risk güncellemesi — 2026-09-15
+
+Kanıt: [docs/measurements/faz2-sentez.md](measurements/faz2-sentez.md).
+
+### SK-04 ✅ **KAPALI**
+Vitis HLS 2025.2 kuruldu (`D:\Xilinx\2025.2`), `vitis-run --mode hls` ile csim
+ve csynth uçtan uca koştu. Kapanış ölçütü karşılandı.
+
+*Not: 2025.2'de komut `vitis_hls` değil **`vitis-run`**; eski `vitis_hls.bat`
+artık yok. Runbook ve `hls/run.ps1` ikisini de destekleyecek şekilde yazıldı.*
+
+### SK-02 ✅ **KAPALI — risk gerçekleşmedi**
+Projenin 1 numaralı riskiydi. Sentez raporu **ölçtü**:
+
+| | Tahmin | **Ölçülen** | SC-003 (≤4) |
+|---|---:|---:|:---:|
+| II, k=0 | 1 | **1** | ✅ |
+| II, k=15 | 2 | **3** | ✅ |
+
+Bellek çakışma (memory dependency) uyarısı yok. Aritmetik model yüksek `k`'nin
+daha kötü olduğunu doğru öngördü, büyüklüğü bir birim şaşırdı. K-03'ün 3 deneme
+bütçesinden **hiçbiri harcanmadı**.
+
+### SK-06 🆕 🔴 **AÇIK — tasarım çipe sığmıyor**
+Sentez raporu iki kabul ölçütünü geçti ama:
+
+- **LUT %185** (98.627 / 53.200) — sığmıyor
+- **DSP %153** (337 / 220) — sığmıyor
+- **Zamanlama 25,039 ns** (hedef 10 ns) — ~40 MHz
+- **Gecikme 355M çevrim = 8,9 sn** — aritmetik tahminden **1.495×** fazla;
+  CPU'dan (~58 ms) **~150 kat yavaş**
+
+**Kök neden ikisi de ÖNCEDEN BİLİNİYORDU ama bedeli ölçülmemişti:**
+1. `hls/src/trig.hpp` çift duyarlıklı `std::cos/sin` kullanıyor → HLS tam bir
+   `double` transandantal birim sentezledi (tek örnek **85 DSP**, 6.364 LUT).
+2. `apply_cost_layer` genlik başına 136 faz terimini **seri** topluyor.
+
+**Çözüm yolu net ve kapsam içinde**: trig'i sabit-nokta LUT/CORDIC'e çevir,
+fazı Gray-kod ile artımlı hesapla (NC-2). İkisi de **M** etiketli.
+
+**Karar tarihi**: H4 sonu (11 Ekim) — K-02 ile aynı. O tarihe kadar iki düzeltme
+uygulanıp yeniden sentezlenmezse K-02 merdiveni devreye girer.
+
+⚠️ **Bu risk kapanmadan hiçbir hızlanma iddiası yapılamaz.** Daha önce hesaplanan
+"~24× hızlanma" **geçersizdir**.

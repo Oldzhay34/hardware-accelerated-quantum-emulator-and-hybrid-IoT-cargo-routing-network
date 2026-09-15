@@ -46,6 +46,14 @@ class ReferenceResult:
     optimizer_iterations: int = 0
     cost_before: float = 0.0     # optimizasyon oncesi beklenti degeri
     cost_after: float = 0.0      # optimizasyon sonrasi beklenti degeri
+    # --- Faz 2 icin eklendi (2026-09-15) ---
+    # Bu alanlar olmadan referans KENDI metadata'sindan yeniden uretilemiyordu:
+    # COBYLA'nin buldugu parametreler ve maliyet Hamiltonian'i kayitli degildi.
+    # Faz 2'nin C-sim dogrulamasi ikisine de ihtiyac duyuyor (FR-006).
+    params: dict[str, float] = field(default_factory=dict)  # ad -> optimize deger
+    ising_h: list[float] = field(default_factory=list)
+    ising_J: list[list[float]] = field(default_factory=list)  # ust ucgen, n x n
+    ising_offset: float = 0.0
 
 
 def _olc_qubit_order() -> str:
@@ -67,8 +75,17 @@ def _olc_qubit_order() -> str:
     return "little" if abs(sv[1]) > 0.5 else "big"
 
 
-def _qubo_to_ising(problem: qubo_mod.QUBOProblem) -> tuple[SparsePauliOp, float]:
-    """QUBO'yu Ising Hamiltonian'ına çevirir: x_i = (1 - z_i)/2."""
+def ising_katsayilari(
+    problem: qubo_mod.QUBOProblem,
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """QUBO -> Ising katsayıları (h, J, offset). `x_i = (1 - z_i)/2`.
+
+    Faz 2 donanım çekirdeği maliyet katmanını köşegen kapı olarak uygular ve
+    bunun için h ile J'ye DOĞRUDAN ihtiyaç duyar (SparsePauliOp'a değil).
+    `_qubo_to_ising` bu fonksiyonu çağırır — dönüşüm tek yerde yazılıdır.
+
+    Enerji: E(z) = offset + sum_i h[i]*z_i + sum_{i<j} J[i,j]*z_i*z_j,  z_i = +-1
+    """
     Q = problem.Q
     n = problem.n_vars
 
@@ -87,6 +104,14 @@ def _qubo_to_ising(problem: qubo_mod.QUBOProblem) -> tuple[SparsePauliOp, float]
             h[i] -= q / 4.0
             h[j] -= q / 4.0
             J[i, j] += q / 4.0
+
+    return h, J, offset
+
+
+def _qubo_to_ising(problem: qubo_mod.QUBOProblem) -> tuple[SparsePauliOp, float]:
+    """QUBO'yu Ising Hamiltonian'ına çevirir: x_i = (1 - z_i)/2."""
+    n = problem.n_vars
+    h, J, offset = ising_katsayilari(problem)
 
     terimler = []
     for i in range(n):
@@ -138,6 +163,7 @@ def run(
 
     n = problem.n_vars
     cost_op, _offset = _qubo_to_ising(problem)
+    h_arr, J_arr, offset = ising_katsayilari(problem)
 
     ansatz = QAOAAnsatz(cost_operator=cost_op, reps=p)
     ansatz_ac = ansatz.decompose(reps=3)  # save_statevector'suz sablon, optimizasyonda kullanilir
@@ -203,4 +229,12 @@ def run(
         optimizer_iterations=int(sonuc.nfev),
         cost_before=float(cost_before),
         cost_after=cost_after,
+        # Parametreler ADIYLA kaydedilir — sira varsayimi yapilmaz. assign_parameters
+        # bir diziyi ansatz_ac.parameters sirasina gore baglar; o siralamayi burada
+        # dondurup ada bagliyoruz ki tuketen taraf (Faz 2 testbench'i) esleme icin
+        # siralamaya guvenmek zorunda kalmasin.
+        params={pr.name: float(v) for pr, v in zip(ansatz_ac.parameters, opt_params)},
+        ising_h=[float(x) for x in h_arr],
+        ising_J=[[float(x) for x in satir] for satir in J_arr],
+        ising_offset=float(offset),
     )

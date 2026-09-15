@@ -1,0 +1,16 @@
+{
+  "stamped_date": "20260915",
+  "git_hash": "c6ad872",
+  "fidelity": 0.99998916739693489,
+  "buyukluk_sapmasi": 3.7143211958101685e-05,
+  "referans_dosya": "docs/measurements/reference_20260915_c6ad872_p1_n5.npy",
+  "kubit_konvansiyonu": "little",
+  "n_qubits": 16,
+  "p": 1,
+  "format": "Q1.17",
+  "phase_bits": 18,
+  "banks": 16,
+  "gecti_M": true,
+  "gecti_H": true,
+  "teshis": "gecti (H)"
+}

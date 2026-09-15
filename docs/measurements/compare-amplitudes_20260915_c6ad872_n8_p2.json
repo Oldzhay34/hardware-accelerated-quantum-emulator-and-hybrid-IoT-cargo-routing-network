@@ -1,0 +1,19 @@
+{
+  "stamped_at": "2026-09-15T17:30:41.976522+00:00",
+  "git_hash": "c6ad872",
+  "git_dirty": true,
+  "config": {
+    "not_": "C-sim, Python ikizi ve altin referans uclu kiyas"
+  },
+  "sonuclar": {
+    "n_qubits": 8,
+    "p": 2,
+    "python_ikizi_fidelity": 0.999999955834421,
+    "referans": "synthref_20260915_c6ad872_p2_n8",
+    "csim_fidelity": 0.999999955834421,
+    "bit_birebir": true,
+    "azami_fark": 0.0,
+    "farkli_genlik": 0,
+    "lsb": 7.62939453125e-06
+  }
+}

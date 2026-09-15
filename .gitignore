@@ -51,3 +51,19 @@ artifacts/models/*
 *.bit
 *.hwh
 *.xclbin
+
+# --- Faz 2: HLS çekirdeği -----------------------------------------------------
+# Derleme ve sentez çıktısı; kaynaktan yeniden üretilebilir.
+hls/build/
+hls/*_prj/
+hls/**/*.o
+vitis_hls.log
+*.log
+# NOT: hls/src/, hls/tb/, hls/tcl/ ve hls/build_and_run.sh COMMIT EDİLİR.
+# NOT: docs/measurements/ altındaki damgalı JSON/npy ölçüm çıktıları da
+#      commit edilir — Prensip II, ölçüm kanıtı repoda kalır.
+
+qir_hls_prj/
+
+# Vitis HLS'in depo kokune biraktigi artik
+dfx_runtime.txt

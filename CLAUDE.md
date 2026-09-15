@@ -1,10 +1,10 @@
-# qir-engine
+﻿# qir-engine
 
 Kuantum-esinli rota optimizasyonu için statevector emülasyon çekirdeğini PYNQ-Z2 üzerinde HLS ile
 donanımda hızlandıran, Qiskit altın referansına karşı doğrulayan ve CPU'ya karşı gecikme/enerji
 ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 
-**Şu anki faz**: Faz 1 **TAMAMLANDI** (46/46 görev). Altın referans + QUBO + OSRM matris servisi gerçek veriyle doğrulandı, uçtan uca kurulum ölçüldü (164,6 sn). Sırada Faz 2 (FPGA/HLS çekirdek). Bkz. [specs/001-veri-hatti-altin-referans/](specs/001-veri-hatti-altin-referans/).
+**Şu anki faz**: Faz 2 — plan **onaylandı** (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)), 54 görevden **MVP tamamlandı**: HLS çekirdeği yazıldı ve C-sim ile altın referansa karşı doğrulandı (fidelity ≥0,99998, n=8/12/16). Sentez ölçütleri (BRAM/II/Fmax) Vitis HLS kurulmadığı için **doğrulanmadı** ([SK-04](docs/risk-register.md)). Bkz. [specs/002-fpga-statevector-cekirdegi/](specs/002-fpga-statevector-cekirdegi/), [docs/measurements/faz2-csim.md](docs/measurements/faz2-csim.md).
 
 ## Anayasa — altı ilke (tam metin: [.specify/memory/constitution.md](.specify/memory/constitution.md))
 
@@ -68,3 +68,4 @@ Derleme/sentez/test komutları ilgili faz kurulduğunda buraya eklenecek (şu an
 - Faz bitince: [docs/faz-sonu-kontrol.md](docs/faz-sonu-kontrol.md) — kararlar ADR'ye yazıldı mı, SIRADAKİ güncellendi mi.
 
 Bu dosya bir arşiv değil, hatırlatmadır. Ayrıntı `docs/` altına gider; burası 100 satırı geçmez.
+

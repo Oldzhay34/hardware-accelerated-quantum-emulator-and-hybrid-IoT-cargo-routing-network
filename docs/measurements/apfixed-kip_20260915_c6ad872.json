@@ -1,0 +1,37 @@
+{
+  "stamped_at": "2026-09-15T17:18:14.482113+00:00",
+  "git_hash": "c6ad872",
+  "git_dirty": true,
+  "config": {
+    "problem": "5-durak-16-kubit",
+    "format": "Q1.17",
+    "seed": 42,
+    "not_": "ap_fixed kip secimi icin OLCUM"
+  },
+  "sonuclar": {
+    "AP_RND_CONV + AP_SAT | her kapida": {
+      "fidelity": 0.9999170320942757,
+      "H_gecti": true
+    },
+    "AP_RND_CONV + AP_SAT | YOK": {
+      "fidelity": 0.9999168192501343,
+      "H_gecti": true
+    },
+    "AP_TRN + AP_SAT (Vitis vars.) | her kapida": {
+      "fidelity": 0.9974166559723542,
+      "H_gecti": false
+    },
+    "AP_TRN + AP_SAT (Vitis vars.) | YOK": {
+      "fidelity": 0.9996069006023423,
+      "H_gecti": true
+    },
+    "AP_RND_CONV + AP_WRAP (vars.) | her kapida": {
+      "fidelity": 0.9999170320942757,
+      "H_gecti": true
+    },
+    "AP_RND_CONV + AP_WRAP (vars.) | YOK": {
+      "fidelity": 0.9999168192501343,
+      "H_gecti": true
+    }
+  }
+}
