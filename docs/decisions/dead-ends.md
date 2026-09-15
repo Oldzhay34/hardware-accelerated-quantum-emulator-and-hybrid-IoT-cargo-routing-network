@@ -57,3 +57,21 @@ sorguladı, kabul edildi ve COBYLA optimizasyon döngüsü eklendi (bkz. commit 
 **Tekrar denenmeli mi**: Hayır, mevcut sürüm (COBYLA + tohumlu başlangıç) daha doğru. Not: optimizasyon
 eklendikten sonra bile olasılık kütlesi tek duruma yoğunlaşmadı (bkz.
 [faz1-olcumler.md](../measurements/faz1-olcumler.md)) — bu ayrı, meşru bir bulgu, "olmadı" değil.
+
+### Docker healthcheck — `curl` ile OSRM sağlık kontrolü — 2026-09-13, Faz 1
+
+**Neden denendi**: `docker-compose.yml`'de `osrm` servisinin hazır olmasını beklemek için standart
+yaklaşım: `healthcheck: test: ["CMD", "curl", "-f", "http://localhost:5000/..."]` + `depends_on:
+condition: service_healthy`.
+
+**Neden olmadı**: **`osrm/osrm-backend` imajında `curl` da `wget` de YOK** (`docker exec ... which
+curl` → bulunamadı; `/usr/bin` içinde yalnızca `runcon`, `truncate` gibi birkaç araç var). Docker
+healthcheck komutu konteynerin **kendi dosya sisteminde** çalıştığından hiçbir zaman başarılı
+olamazdı — servis sonsuza dek "unhealthy" kaldı ve `matrix` servisi hiç başlamadı.
+
+Ayrıca ikinci bir yanlış varsayım: `osrm-routed`'in **`/health` ucu yoktur** (400 döner); gerçek bir
+`/route` veya `/table` sorgusu kullanılmalıdır.
+
+**Tekrar denenmeli mi**: Hayır — bu imaj için healthcheck kaldırıldı, hazır olma kontrolü `matrix`
+servisinin kendi `/health` ucuna (host'tan HTTP ile) bırakıldı. Genel ders: **minimal imajlarda
+healthcheck yazmadan önce imajda HTTP istemcisi olup olmadığını kontrol et.**
