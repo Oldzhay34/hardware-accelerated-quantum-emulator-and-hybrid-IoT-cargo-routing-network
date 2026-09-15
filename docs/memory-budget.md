@@ -108,6 +108,74 @@ Bellek bütçesi ile bankalama riski **birbirine bağlı** çıktı, ve bu bağ 
 
 ---
 
+---
+
+## 3b. 🔴 DÜZELTME (2026-09-15): blok düzeyinde hesap, bayt düzeyini geçersiz kılıyor
+
+Yukarıdaki §2 tablosu **bayt** üzerinden hesaplanmıştı ve mükemmel paketleme varsayıyordu.
+Gerçekte BRAM36'nın **azami kelime genişliği 36 bittir**; bir genlik (reel+sanal) 36 biti aşıyorsa
+yan yana **iki blok** gerekir ve artan bitler israf olur.
+
+`scripts/memory_budget.py` artık bunu blok düzeyinde hesaplıyor:
+
+| Format | bit/genlik | Blok (yerinde) | % | Ping-pong | % | İsraf bit |
+|---|---:|---:|---:|---:|---:|---:|
+| Q1.11 | 24 | 64 | 45,7% | 128 | 91,4% | 12 |
+| Q1.13 | 28 | 64 | 45,7% | 128 | 91,4% | 8 |
+| Q1.15 | 32 | 64 | 45,7% | 128 | 91,4% | 4 |
+| **Q1.17** | **36** | **64** | **45,7%** | **128** | **91,4%** | **0** |
+| Q1.19 | 40 | 128 | 91,4% | 256 | 182,9% | 32 |
+| Q1.23 | 48 | 128 | 91,4% | 256 | 182,9% | 24 |
+| **float32** | 64 | **128** | **91,4%** | 256 | 182,9% | 8 |
+
+### Bunun üç sonucu var
+
+**1. float32 yerinde tamponlama, sanılandan pahalı.** §2'de %81,3 çıkmıştı; blok düzeyinde
+**%91,4** — yani **%85 tavanını aşıyor**. 64-bitlik bir genlik iki 36-bit kelimeye yayılıyor,
+8 bit israf oluyor. §2'de yazdığım "granülarite kaybıyla doluluk yukarı çıkar" uyarısı
+artık **nicelleşti**.
+
+**2. Q1.15'ten dar formatlar BRAM kazandırmıyor.** Q1.11, Q1.13, Q1.15, Q1.17 — dördü de
+**64 blok** kullanıyor, çünkü hepsi tek bir 36-bit kelimeye sığıyor. Bit kırpmak boşuna;
+kazanç yok, sadece doğruluk kaybı var.
+
+**3. Q1.17, Q1.15'i domine ediyor.** Aynı blok sayısı (64), **sıfır israf**, ve
+[ölçülen fidelity](#fidelity-olcumu) daha iyi. Q1.15'i seçmek için hiçbir gerekçe kalmıyor.
+
+### <a name="fidelity-olcumu"></a>Fidelity ölçümü (`scripts/format_fidelity.py`)
+
+Sabit-nokta aritmetiği CPU'da taklit edildi: her kapıdan sonra genlikler hedef formata
+yuvarlandı — donanımın yapacağı şeyin aynısı. 5 durak / 16 kübit, p=2 (584 kapı), seed=42.
+
+| Format | Fidelity (p=2) | M eşiği (≥0,99) | H eşiği (≥0,999) |
+|---|---:|:---:|:---:|
+| Q1.11 | 0,714527 | ❌ | ❌ |
+| Q1.13 | 0,978861 | ❌ | ❌ |
+| Q1.15 | 0,998674 | ✅ | ❌ |
+| **Q1.17** | **0,999917** | ✅ | ✅ |
+| Q1.19 | 0,999995 | ✅ | ✅ |
+| float32 | 1,000000 | ✅ | ✅ |
+
+Derinlikle hata birikiyor: Q1.15 p=1'de 0,999660 → p=2'de 0,998674 (kapı sayısı 300→584,
+infidelity ~4 kat). Bu, daha derin devrelerde formatın daha da kritikleşeceği anlamına gelir.
+
+### Ortaya çıkan aday kombinasyonlar
+
+| Seçenek | BRAM | Fidelity | Bankalama zorluğu |
+|---|---:|---:|---|
+| **Q1.17 + yerinde** | **45,7%** | 0,999917 | Zor (ping-pong yok) — ama **%54 boş yer** kalıyor |
+| **Q1.17 + ping-pong** | 91,4% | 0,999917 | Kolay | 
+| float32 + yerinde | 91,4% | 1,000000 | Zor | 
+| float32 + ping-pong | 182,9% | — | 🔴 sığmıyor |
+
+**Q1.17 + ping-pong**, float32 + yerinde ile **aynı BRAM'i** kullanıyor ama bankalamayı
+kolaylaştırıyor ve H eşiğini geçiyor. Bu, §2'de "ya doğruluk ya bankalama kolaylığı" diye
+kurduğum ikilemi **çözüyor gibi görünüyor** — ama nihai karar `/speckit-plan`'ın onay kapısına ait.
+
+> ⚠️ **Bu hâlâ birinci-dereceden bir tahmindir.** `ARRAY_PARTITION` ile bankalama yapıldığında
+> dizi parçalara ayrılır ve blok sayısı **değişir** (genelde artar). Kesin sayı yalnızca
+> **sentez raporundan** okunur — [K-02](../specs/000-kapsam-takvim/cut-plan.md)'nin ölçütü odur.
+
 ## 4. Faz 2.1'e devredilenler
 
 Bu, S-3'ün *ucuz ve erken* versiyonu. Faz 2.1 (M) şunları eklemeli:

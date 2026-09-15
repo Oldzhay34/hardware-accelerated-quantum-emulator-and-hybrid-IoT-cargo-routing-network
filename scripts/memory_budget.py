@@ -48,6 +48,37 @@ def statevector_bytes(n_qubits: int, bytes_per_real: int, buffers: int) -> int:
     return (2**n_qubits) * 2 * bytes_per_real * buffers
 
 
+def blok_analizi() -> None:
+    """BRAM'i BAYT degil BLOK duzeyinde hesaplar — sentezde onemli olan budur.
+
+    BRAM36'nin azami kelime genisligi 36 bittir. Bir genlik (reel+sanal) 36 biti
+    asiyorsa yan yana BIRDEN FAZLA blok gerekir ve artan bitler israf olur.
+    Bayt düzeyindeki hesap bu granulariteyi gormez ve doluluğu OLDUGUNDAN AZ gosterir.
+    """
+    kelime = 36
+    blok_basina_kelime = BRAM36_BITS // kelime  # 1024
+    n = 2**16
+
+    print("\n=== BRAM BLOK duzeyinde (36-bit kelime granularitesi) ===")
+    print(f"{'format':>9} {'bit/genlik':>11} {'blok(yerinde)':>14} {'%':>7} "
+          f"{'ping-pong':>10} {'%':>7} {'israf bit':>10}")
+    for ad, bit in [("Q1.11", 24), ("Q1.13", 28), ("Q1.15", 32), ("Q1.17", 36),
+                    ("Q1.19", 40), ("Q1.23", 48), ("float32", 64)]:
+        paralel = -(-bit // kelime)                      # kac blok yan yana
+        blok = -(-n // blok_basina_kelime) * paralel
+        israf = paralel * kelime - bit
+        pp = blok * 2
+        print(f"{ad:>9} {bit:>11} {blok:>14} {100*blok/BRAM36_COUNT:>6.1f}% "
+              f"{pp:>10} {100*pp/BRAM36_COUNT:>6.1f}% {israf:>10}")
+
+    print("\nNOT: Q1.11-Q1.17 ayni blok sayisini kullanir (hepsi tek 36-bit kelimeye sigar).")
+    print("     Q1.17 israfsiz olan tek format; daha dar formatlar BRAM kazandirmaz.")
+    print("     Q1.19 ve ustu (float32 dahil) iki kelime ister -> blok sayisi ikiye katlanir.")
+    print("\nUYARI: Bu birinci-dereceden bir tahmindir. ARRAY_PARTITION ile bankalama")
+    print("       yapildiginda dizi parcalara ayrilir ve blok sayisi DEGISIR.")
+    print("       Kesin sayi yalnizca sentez raporundan okunur (Prensip II).")
+
+
 def main() -> None:
     budget = int(TOTAL_BRAM_BYTES * USABLE_FRACTION)
 
@@ -79,3 +110,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    blok_analizi()
