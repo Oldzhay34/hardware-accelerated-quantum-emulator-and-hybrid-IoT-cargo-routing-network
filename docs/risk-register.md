@@ -36,7 +36,7 @@
 | ID | Risk | Ol. | Etki | Erken uyarı işareti | Karar tarihi | Ölçüt | Tetiklenirse yapılacak | Sahibi | Durum |
 |---|---|---|---|---|---|---|---|---|---|
 | **SK-01** | Statevector BRAM'e sığmıyor · `K-02` | **Y** ⬆ | **Y** | ✅ **Erken uyarı ATEŞLENDİ (2026-09-13)**: S-3 aritmetiği 16 kübitte tasarım alanının çok dar olduğunu gösterdi — sığan tek seçenekler %81,3'te, granülarite kaybıyla %85'i aşabilirler | **H4** (11 Eki) | Sentez raporunda BRAM ≤ %85, statevector tamamen çip-içi | Düzeltilmiş merdiven: 16+float32-yerinde → 16+Q1.15-ping-pong → 14+float32 → şerit yarıya. Taban: 12 kübit + tek şerit ([K-02](../specs/000-kapsam-takvim/cut-plan.md)) | Olcay | 🟡 **İZLENİYOR** — olasılık O→Y'ye çıkarıldı; bkz. [memory-budget.md](memory-budget.md) |
-| **SK-02** | 🔴 Bankalama çözülemiyor (2^k çakışması) · `K-03` | **Y** | **Y** | İlk sentez raporunda II beklenenin 5 katından büyük **ve** bellek çakışma (memory dependency) uyarısı var | **H5** (18 Eki) | 3 denemeden en az biri tüm `k` için çakışmasız erişim gösteriyor | **4. deneme yapılmaz.** Tek banka + seri erişim + yüksek II'ye sabitlenir; iddia "bankalama kısıtının nicel karakterizasyonu"na döner | Olcay + ders hocası | AÇIK |
+| **SK-02** | 🔴 Bankalama çözülemiyor (2^k çakışması) · `K-03` | **Y** | **Y** | İlk sentez raporunda II beklenenin 5 katından büyük **ve** bellek çakışma (memory dependency) uyarısı var | **H5** (18 Eki) | 3 denemeden en az biri tüm `k` için çakışmasız erişim gösteriyor | **4. deneme yapılmaz.** Tek banka + seri erişim + yüksek II'ye sabitlenir; iddia "bankalama kısıtının nicel karakterizasyonu"na döner | Olcay + ders hocası | 🟡 **KÜÇÜLDÜ** — bkz. not (aş.) |
 | **SK-03** | II hedefi tutmuyor · `K-04` | O | O | İlk pipeline turunda HLS raporu "II violation" veriyor ve nedeni loop-carried dependency | **H6** (25 Eki) | II ≤ 4 | En iyi II olduğu gibi kabul edilir, optimizasyon durur. **2.4 (elle Verilog) açılmaz** | Olcay | AÇIK |
 | **SK-04** | Vitis HLS kurulum / lisans sorunu | O | **Y** | H1 sonunda kurulum bitmemiş **veya** örnek proje sentezlenemiyor | **H1** (20 Eyl) | Örnek HLS projesi uçtan uca sentezleniyor | Faz 2 hiç başlayamaz → kritik yol yeniden kurulur, acil çözüm (WebPACK sürümü / farklı makine) | Olcay | AÇIK |
 
@@ -133,7 +133,7 @@
 | **S-1** | DT-01 | ✅ **YAPILDI 2026-09-15** — kart bağlandı, COM3'ten canlı PYNQ Linux boot logu alındı. Arıza riski H1'in ilk günlerinde kapandı | ~0 (kart hazır geldi) | H1 | 2. SD kart denemesi için haftalar kaldı — gerek kalmadı |
 | **S-2** | SK-04 | **Vitis HLS'i kur ve örnek projeyi uçtan uca sentezle.** Gerçek tasarımı bekleme | 4 saat | **Bugün–yarın** | Araç zinciri sorununu Faz 2 başlamadan görürsün; en pahalı sürpriz budur |
 | **S-3** | SK-01 | ✅ **YAPILDI 2026-09-13** — [memory-budget.md](memory-budget.md). Bulgu: 16 kübit + double **imkânsız** (%162); sığan tek seçenekler float32-yerinde veya Q1.15-ping-pong, ikisi de %81,3 (sınırda). K-02 merdiveni düzeltildi | 20 dk | H1 | Sentezden **4 hafta önce** öğrenildi; ayrıca bankalama riskiyle bellek bütçesinin birbirine bağlı olduğu ortaya çıktı |
-| **S-4** | SK-02 | **k=0 ve k=15 için erişim desenini kağıtta çıkar** — hangi adresler aynı bankaya düşüyor, tabloya yaz | 4 saat | **H1–H2** | Projenin 1 numaralı riskini sentezden 4 hafta önce somutlaştırır; hocaya soracağın soruyu da netleştirir |
+| **S-4** ✅ | SK-02 | **k=0 ve k=15 için erişim desenini kağıtta çıkar** — hangi adresler aynı bankaya düşüyor, tabloya yaz | 4 saat | **H1–H2** | Projenin 1 numaralı riskini sentezden 4 hafta önce somutlaştırır; hocaya soracağın soruyu da netleştirir |
 | **S-5** | SK-03 | **Mock/küçük çekirdekle (4 kübit) csim→synth akışını uçtan uca koş.** Tasarım doğru olmasın, akış çalışsın | 4 saat | **H2** | Araç akışı ile tasarım problemini ayrıştırır; H4'te "sorun kodumda mı araçta mı" sorusunu sormazsın |
 | **S-6** | DG-01, DG-02 | **Doğrulama paketini en küçük durumdan kur**: 1 kübit, 1 kapı, elle hesaplanabilir sonuç. Sonra büyüt | 3 saat | **H2** | Format ve endian hatalarını 16 kübitlik gürültünün içinde değil, tek kapıda yakalarsın |
 | **S-7** | VR-02 | **OSM önbelleğini dosya tabanlı ve commit'lenen yap**; ölçüm yolunda canlı API çağrısı bırakma | 3 saat | **H1** | Tekrarlanamayan ölçüm, Prensip II ihlalidir — sonradan fark edilirse tüm kıyas çöper |
@@ -175,3 +175,32 @@
 | 2026-09-13 | H0 | Faz 0.6: Maliyet kategorisi eklendi (MC-01..MC-03, [cost.md](cost.md)). MC-03 aynı gün kapandı (hiçbir serviste kart bağlı değil). Bütçe tavanı kararı: 0 TL + son 1-2 ay Railway Hobby (~$5) istisnası ([ADR 0005](decisions/0005-butce-tavani.md)). Faz 0 alt dalları TAMAMLANDI (0.1-0.7). |
 | 2026-09-15 | **H1** | 🟢 **KART GELDİ VE BOOT ETTİ.** COM3'ten (FTDI FT2232H, seri no `1234-TULB`) canlı PYNQ Linux boot logu alındı. **DT-00 KAPALI**, **DT-01 büyük ölçüde kapalı** (Jupyter + overlay ölçütleri kaldı), **S-1 sigortası yapıldı**. Faz 1 de tamamlanmıştı — kritik yolun ilk iki halkası sağlam. Kalan tek büyük engel: **SK-04 (Vitis HLS kurulu değil)**, karar tarihi 20 Eylül. |
 | 2026-09-15 | **H1** | ✅ **DT-01 TAMAMEN KAPANDI.** PC↔kart doğrudan RJ45 bağlantısıyla üç ölçüt de geçti: boot, Jupyter (HTTP 200), overlay (`OVERLAY_OK`, PL programlandı). USB Wi-Fi dongle yolu **bilinçli olarak kesildi** (sürücü yok + güç resetleri) — bkz. [donanim-dogrulama.md](donanim-dogrulama.md). Yeni izlenecek yan konu: kartın ara ara resetlenmesi, Faz 5'te uzun koşumlar öncesi doğrulanmalı. |
+
+---
+
+## SK-02 güncellemesi — 2026-09-15 (araştırma sonrası)
+
+**Durum: 🔴 → 🟡.** Risk kapanmadı ama **ölçülebilir biçimde küçüldü**. Kanıt:
+[docs/banking-research.md](banking-research.md), üretici `scripts/banking_analysis.py`.
+
+Üç bağımsız bulgu riski aşağı çekiyor:
+
+1. **Sorun sanıldığından küçük (ÖLÇÜLEN).** RZZ yerleşik köşegen kapı olarak
+   uygulanınca eşlemeli (bankalama gerektiren) kapı sayısı p=2'de 384 → 32'ye
+   iniyor, **12× azalma**. Kapıların %86,2'si köşegen ve bankalama sorunu yaşamıyor.
+2. **Çift tamponlama sorunu aritmetik olarak çözüyor (HESAPLANAN).** Ping-pong,
+   banka başına yükü 4'ten 2'ye indirdiği için **her şema, her k için** teorik
+   tavana çıkıyor. XOR eşlemesi ve iki geçişli devrik gereksizleşiyor.
+3. **`k` derleme zamanı sabiti.** Karıştırıcı `for k in 0..15` döngüsüdür; HLS'in
+   partition'ı çözememe riski, çekirdek QAOA'ya özel tutulduğu sürece oluşmuyor.
+
+**Riskin kalan kısmı yer değiştirdi — artık çakışma değil, DOLULUK:**
+ping-pong BRAM'i ikiye katlıyor, Q1.17'de **%91,4**. Geriye AXI tamponu, faz
+tablosu ve kontrol için pay kalmıyor. Faz tablosu seçilirse (+64 blok) bütçe
+aşılır. Bu, **K-02** kesme ölçütünün alanıdır, K-03'ün değil.
+
+**Ölçüt değişmiyor**: kapanış hâlâ **sentez raporuna** bağlı (H5, 18 Eki).
+Yukarıdaki II sayılarının hiçbiri doğrulanmış değildir — Prensip II.
+
+**Yeni izlenecek**: sentez raporunda ilk bakılacak satır BRAM_18K kullanımıdır
+(bütçe 280, 140 değil). %91,4 tahmininden sapma varsa önce o araştırılır.
