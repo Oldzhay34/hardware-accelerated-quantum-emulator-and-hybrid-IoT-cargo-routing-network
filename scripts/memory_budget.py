@@ -9,11 +9,19 @@ Kullanım:
 """
 from __future__ import annotations
 
-# --- XC7Z020-1CLG400C (PYNQ-Z2 üzerindeki Zynq-7000) ---------------------------
-# 140 adet BRAM36 bloğu, her biri 36 Kbit.
-# NOT: Zynq-7000 ailesinde URAM (UltraRAM) YOKTUR — URAM UltraScale+ özelliğidir.
-# Anayasa Prensip III "BRAM/URAM" diyor; bu çipte tek seçenek BRAM.
+# --- XC7Z020 (PYNQ-Z2 üzerindeki Zynq-7000) -----------------------------------
+# Kaynak: DS190 "Zynq-7000 SoC Data Sheet: Overview", Z-7020 sutunu.
+#   Total Block RAM (# 36Kb Blocks): 4.9Mb (140)
+#   DSP Slices: 220 | LUTs: 53,200 | Flip-Flops: 106,400 | PL: Artix-7
+# 2026-09-15'te resmi veri sayfasindan dogrulandi.
+#
+# NOT 1: Zynq-7000 ailesinde URAM (UltraRAM) YOKTUR — URAM UltraScale+ ozelligidir.
+#        Anayasa Prensip III "BRAM/URAM" diyor; bu cipte tek secenek BRAM.
+# NOT 2: Vitis HLS kaynak tablosunda BRAM'i 18Kb birimiyle (BRAM_18K) raporlar.
+#        Butce o birimde 280'dir (140 x 2). Sentez raporunu okurken 140'a degil
+#        280'e bolmek gerekir — bkz. docs/memory-budget.md.
 BRAM36_COUNT = 140
+BRAM18K_COUNT = BRAM36_COUNT * 2  # HLS raporunun kullandigi birim
 BRAM36_BITS = 36 * 1024
 TOTAL_BRAM_BYTES = BRAM36_COUNT * BRAM36_BITS // 8  # 645_120 B ≈ 630 KB
 

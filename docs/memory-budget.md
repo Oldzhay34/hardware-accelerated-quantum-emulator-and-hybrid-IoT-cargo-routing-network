@@ -11,13 +11,35 @@
 
 ## 1. Donanım gerçekleri
 
-| | XC7Z020-1CLG400C (PYNQ-Z2) |
-|---|---|
-| Toplam BRAM | 140 × 36 Kb = **645.120 B (630 KB)** |
-| **URAM** | ❌ **YOK** |
-| DSP48E1 | 220 |
-| LUT / FF | 53.200 / 106.400 |
-| %85 tavanı ([K-02 ölçütü](../specs/000-kapsam-takvim/cut-plan.md)) | **548.352 B (536 KB)** |
+**Kaynak: [DS190 — Zynq-7000 SoC Data Sheet: Overview](https://docs.amd.com/v/u/en-US/ds190-Zynq-7000-Overview)**, AMD resmî veri sayfası, Z-7020 sütunu (2026-09-15'te indirilip okundu).
+
+| | XC7Z020 (PYNQ-Z2) | DS190'daki karşılığı |
+|---|---|---|
+| Toplam BRAM | 140 × 36 Kb = **645.120 B (630 KB)** | "Total Block RAM (# 36Kb Blocks): **4.9Mb (140)**" |
+| **URAM** | ❌ **YOK** | Tabloda böyle bir satır yok — URAM UltraScale+ özelliğidir |
+| DSP Slices (DSP48E1) | **220** | "DSP Slices: **220**" |
+| LUT | **53.200** | "Look-Up Tables (LUTs): **53,200**" |
+| Flip-Flop | **106.400** | "Flip-Flops: **106,400**" |
+| Logic Cells | 85K | "Logic Cells: **85K**" |
+| PL eşdeğeri | Artix-7 | "7 Series PL Equivalent: **Artix-7**" |
+| %85 tavanı ([K-02 ölçütü](../specs/000-kapsam-takvim/cut-plan.md)) | **548.352 B (536 KB)** | — |
+
+> Faz 0'da (S-3, 2026-09-13) bu sayılar hafızadan yazılmıştı. 2026-09-15'te resmî veri sayfasından
+> **birebir doğrulandı** — hiçbir düzeltme gerekmedi. Artık tahmin değil, kaynaklı.
+
+### ⚠️ Sentez raporunu okurken: BRAM_18K, BRAM_36K değil
+
+DS190 **36Kb blok** sayısını veriyor (140). Ama her 36Kb blok iki bağımsız 18Kb bloğa bölünebilir
+ve **Vitis HLS kaynak tablosunda `BRAM_18K` olarak raporlar**:
+
+| Sayım birimi | Bütçe |
+|---|---:|
+| BRAM36 (veri sayfası) | **140** |
+| **BRAM_18K (HLS raporu)** | **280** |
+
+Bunu karıştırmak pahalıdır: HLS raporunda "BRAM_18K: 240" görüp 140'a bölersen **%171** (panik),
+280'e bölersen **%86** (gerçek). [K-02](../specs/000-kapsam-takvim/cut-plan.md)'nin %85 ölçütü
+**280 üzerinden** okunmalıdır.
 
 ### ⚠️ Anayasa metninde bir düzeltme gerekiyor
 
