@@ -35,11 +35,11 @@
 
 | ID | Risk | Ol. | Etki | Erken uyarı işareti | Karar tarihi | Ölçüt | Tetiklenirse yapılacak | Sahibi | Durum |
 |---|---|---|---|---|---|---|---|---|---|
-| **SK-01** | Statevector BRAM'e sığmıyor · `K-02` | **Y** ⬆ | **Y** | ✅ **Erken uyarı ATEŞLENDİ (2026-09-13)**: S-3 aritmetiği 16 kübitte tasarım alanının çok dar olduğunu gösterdi — sığan tek seçenekler %81,3'te, granülarite kaybıyla %85'i aşabilirler | **H4** (11 Eki) | Sentez raporunda BRAM ≤ %85, statevector tamamen çip-içi | Düzeltilmiş merdiven: 16+float32-yerinde → 16+Q1.15-ping-pong → 14+float32 → şerit yarıya. Taban: 12 kübit + tek şerit ([K-02](../specs/000-kapsam-takvim/cut-plan.md)) | Olcay | 🟡 **İZLENİYOR** — olasılık O→Y'ye çıkarıldı; bkz. [memory-budget.md](memory-budget.md) |
-| **SK-02** | 🔴 Bankalama çözülemiyor (2^k çakışması) · `K-03` | **Y** | **Y** | İlk sentez raporunda II beklenenin 5 katından büyük **ve** bellek çakışma (memory dependency) uyarısı var | **H5** (18 Eki) | 3 denemeden en az biri tüm `k` için çakışmasız erişim gösteriyor | **4. deneme yapılmaz.** Tek banka + seri erişim + yüksek II'ye sabitlenir; iddia "bankalama kısıtının nicel karakterizasyonu"na döner | Olcay + ders hocası | 🟡 **KÜÇÜLDÜ** — bkz. not (aş.) |
-| **SK-03** | II hedefi tutmuyor · `K-04` | O | O | İlk pipeline turunda HLS raporu "II violation" veriyor ve nedeni loop-carried dependency | **H6** (25 Eki) | II ≤ 4 | En iyi II olduğu gibi kabul edilir, optimizasyon durur. **2.4 (elle Verilog) açılmaz** | Olcay | AÇIK |
-| **SK-04** | Vitis HLS kurulum / lisans sorunu | O | **Y** | H1 sonunda kurulum bitmemiş **veya** örnek proje sentezlenemiyor | **H1** (20 Eyl) | Örnek HLS projesi uçtan uca sentezleniyor | Faz 2 hiç başlayamaz → kritik yol yeniden kurulur, acil çözüm (WebPACK sürümü / farklı makine) | Olcay | AÇIK |
-| **SK-05** | 🆕 Windows Smart App Control imzasız derleme çıktısını engelliyor | **Y** (gerçekleşti) | O | Yeni üretilen her .exe "Uygulama Denetimi ilkesi bu dosyayı engelledi" ile açılmıyor | **H1** (20 Eyl) | Vitis HLS'in C-sim/cosim akışı kendi ürettiği ikiliyi koşabiliyor | C-sim WSL'de koşulur; yalnızca sentez Windows'ta yapılır | Olcay | 🟡 **GEÇİCİ ÇÖZÜM VAR** |
+| **SK-01** | Statevector BRAM'e sığmıyor · `K-02` | **Y** ⬆ | **Y** | ✅ **Erken uyarı ATEŞLENDİ (2026-09-13)**: S-3 aritmetiği 16 kübitte tasarım alanının çok dar olduğunu gösterdi — sığan tek seçenekler %81,3'te, granülarite kaybıyla %85'i aşabilirler | **H4** (11 Eki) | Sentez raporunda BRAM ≤ %85, statevector tamamen çip-içi | Düzeltilmiş merdiven: 16+float32-yerinde → 16+Q1.15-ping-pong → 14+float32 → şerit yarıya. Taban: 12 kübit + tek şerit ([K-02](../specs/000-kapsam-takvim/cut-plan.md)) | Olcay | ✅ **KAPALI (2026-09-16)** — ölçülen **BRAM %66** (187/280), statevector tamamen çip-içi, `m_axi` yok. Merdivenin hiçbir basamağı harcanmadı |
+| **SK-02** | 🔴 Bankalama çözülemiyor (2^k çakışması) · `K-03` | **Y** | **Y** | İlk sentez raporunda II beklenenin 5 katından büyük **ve** bellek çakışma (memory dependency) uyarısı var | **H5** (18 Eki) | 3 denemeden en az biri tüm `k` için çakışmasız erişim gösteriyor | **4. deneme yapılmaz.** Tek banka + seri erişim + yüksek II'ye sabitlenir; iddia "bankalama kısıtının nicel karakterizasyonu"na döner | Olcay + ders hocası | ✅ **KAPALI (2026-09-16)** — çakışma uyarısı hiç çıkmadı; 3 deneme bütçesinden **hiçbiri** harcanmadı. Tur 17 niceledi: sınır bankalama değil **port sayısı** |
+| **SK-03** | II hedefi tutmuyor · `K-04` | O | O | İlk pipeline turunda HLS raporu "II violation" veriyor ve nedeni loop-carried dependency | **H6** (25 Eki) | II ≤ 4 | En iyi II olduğu gibi kabul edilir, optimizasyon durur. **2.4 (elle Verilog) açılmaz** | Olcay | ✅ **KAPALI (2026-09-16)** — `cost_amp_loop` **II=1**, `rx_dyn_pair_loop` **II=2**; ikisi de SC-003'ün altında. Elle Verilog'a gerek kalmadı |
+| **SK-04** | Vitis HLS kurulum / lisans sorunu | O | **Y** | H1 sonunda kurulum bitmemiş **veya** örnek proje sentezlenemiyor | **H1** (20 Eyl) | Örnek HLS projesi uçtan uca sentezleniyor | Faz 2 hiç başlayamaz → kritik yol yeniden kurulur, acil çözüm (WebPACK sürümü / farklı makine) | Olcay | ✅ **KAPALI (2026-09-16)** — Vitis 2025.2 **WSL/Ubuntu**'da kurulu ve koşuyor; csim, csynth ve cosim uçtan uca çalıştı. Windows kurulumu SK-05 yüzünden terk edildi |
+| **SK-05** | 🆕 Windows Smart App Control imzasız derleme çıktısını engelliyor | **Y** (gerçekleşti) | O | Yeni üretilen her .exe "Uygulama Denetimi ilkesi bu dosyayı engelledi" ile açılmıyor | **H1** (20 Eyl) | Vitis HLS'in C-sim/cosim akışı kendi ürettiği ikiliyi koşabiliyor | ~~C-sim WSL'de koşulur; yalnızca sentez Windows'ta yapılır~~ → **Vitis'in tamamı WSL'e taşındı**; Windows yolu kullanılmıyor | Olcay | ✅ **ÇÖZÜLDÜ (2026-09-16)** — SAC kapatılmadı |
 
 ---
 
@@ -325,3 +325,88 @@ imzasız aracıydı.
 **Etki**: Faz 2'nin kalan işi (paralellik turu) sentez gerektiriyor. C-sim
 doğrulaması WSL'de çalışmaya devam ediyor, yani **SC-001 etkilenmiyor**;
 etkilenen SC-002/SC-003'ün yeniden ölçülmesi.
+
+---
+
+# Faz 2 sentez riskleri kapanışı — 2026-09-16 (T049)
+
+Bu bölüm yazılırken fark edilen şey: **gövde güncelleniyordu, tablo
+güncellenmiyordu.** SK-02 ve SK-04 için aşağıda "✅ KAPALI" bölümleri vardı ama
+yukarıdaki tablo hâlâ 🟡 ve AÇIK gösteriyordu. Tablo, dosyayı açan kişinin ilk
+okuduğu yer; gövdeyle çelişmesi kaydı güvenilmez yapar. Beş satır da
+düzeltildi.
+
+## Kapanan beş risk ve kapatan ölçüm
+
+| Risk | Kabul ölçütü | Ölçülen | |
+|---|---|---|:---:|
+| **SK-01** Statevector BRAM'e sığmıyor | BRAM ≤ %85, tamamen çip-içi | **%66** (187/280), `m_axi` yok | ✅ |
+| **SK-02** Bankalama çözülemiyor | 3 denemeden biri çakışmasız erişim | Çakışma uyarısı **hiç çıkmadı**; 3 deneme bütçesinden **sıfır** harcandı | ✅ |
+| **SK-03** II hedefi tutmuyor | II ≤ 4 | `cost_amp_loop` **1**, `rx_dyn_pair_loop` **2** | ✅ |
+| **SK-04** Vitis kurulum/lisans | Örnek proje uçtan uca sentezleniyor | Gerçek tasarım 20+ kez sentezlendi, cosim de geçti | ✅ |
+| **SK-06** Tasarım çipe sığmıyor | Dört kaynak da bütçede + zamanlama | aşağıdaki tablo | ✅ |
+
+## SK-06 ✅ **KAPALI — tasarım çipe sığdı**
+
+Açıldığında tasarım dört ayrı eksende başarısızdı. Kapanışta dördü de düzeldi:
+
+| | SK-06 açıldığında | **Şimdi** |
+|---|---:|---:|
+| LUT | %185 (98.627) | **%84** (45.164) |
+| DSP | %153 (337) | **%16** (36) |
+| BRAM | — | **%66** (187) |
+| FF | — | **%46** (49.839) |
+| Zamanlama | 25,039 ns (~40 MHz) | **7,195 ns** (100 MHz) |
+| Gecikme | 355M çevrim = 8,9 sn | **5.375.327** çevrim = **0,0538 sn** |
+
+**165×** hızlanma — ama *kendi başlangıcına göre*. Yol: [cipe-sigdirma.md](cipe-sigdirma.md)
+ve [faz2-sentez.md](measurements/faz2-sentez.md) §1–§14.
+
+⚠️ SK-06 kaydında *"bu risk kapanmadan hiçbir hızlanma iddiası yapılamaz"*
+yazıyordu. Risk kapandı ama **iddia hâlâ yapılamaz**, çünkü gerekçe değişti:
+0,0538 sn bir **HLS tahminidir** — implementasyon yapılmadı, donanımda
+koşulmadı. CPU tabanı (Aer, ölçülen ~58 ms) tahminin üstünde kalıyor ama bu
+karşılaştırma ancak Faz 5'teki kart ölçümüyle kurulabilir (Prensip II ve IV).
+
+## SK-02'nin ölçümü değişti — bankalama değil, PORT
+
+Kapanış notunda II k=15 için **3** yazıyordu. Tur 17 bunun sebebini buldu ve
+sayı **2**'ye indi:
+
+`RAM_2P` *basit* çift porttur (bir okuma + bir yazma). Yerinde kelebek çift
+başına 2 okuma + 2 yazma ister; HLS de II=3'e razı olmuştu. `RAM_T2P` *gerçek*
+çift porttur → 4 erişim / 2 port = **II=2**. Tek kelimelik değişiklik,
+gecikmede −%22,6, kaynakta sıfır bedel.
+
+Asıl öğretici olan, SK-02'nin varsayımının **ölçümle yanlışlanması**: risk
+"bankalama çözülemezse" diye yazılmıştı, çözüm de banka sayısını artırmakta
+aranıyordu. Ölçüldü — `cyclic` faktörünü 2 → 4 → 8 yapmak II'yi **hiç**
+değiştirmiyor, yalnızca LUT'u %84 → %86 → %90 çıkarıyor. Sebep: `k` çalışma
+zamanı değişkeni olduğu için HLS erişimin hangi bankaya düştüğünü
+**kanıtlayamıyor** ve kaç banka olursa olsun en kötü durumu varsayıyor.
+
+Yani SK-02'nin geri çekilme planındaki *"iddia bankalama kısıtının nicel
+karakterizasyonuna döner"* cümlesi, riski tetiklemeden gerçekleşti: kısıt
+karakterize edildi ve kaynağının bankalama **olmadığı** gösterildi.
+
+## SK-05 ✅ **ÇÖZÜLDÜ — Vitis WSL'de**
+
+Kayıttaki azaltma metni *"yalnızca sentez Windows'ta yapılır"* idi ve artık
+**yanlıştı**: Windows yolu tamamen terk edildi. Vitis 2025.2 WSL/Ubuntu'da
+`/opt/Xilinx` altında kurulu (49 GB); csim, csynth ve cosim uçtan uca çalışıyor.
+
+**Smart App Control kapatılmadı.** Geri alınamaz bir sistem güvenlik
+değişikliğidir ve bir derleme kolaylığı için yapılmaz.
+
+Taşınmanın ölçümü bozmadığı **kanıtlandı**: Windows'ta ölçülen Tur 15 kaynak
+durumu WSL'de yeniden üretildi, altı ölçütün altısı da birebir aynı çıktı
+([faz2-sentez.md](measurements/faz2-sentez.md) §12).
+
+## Kapanmayanlar
+
+- **SK-06'nın yerine geçen yeni kısıt yok**, ama **LUT %84 dar**. Bu bir *HLS
+  tahmini*; gerçek yerleştirme-yönlendirme sayısı `export.tcl` ile ölçülmedi.
+  Sığmazsa geri dönüş yolu ölçülü: Tur 16'yı geri almak LUT'u %63'e indirir,
+  bedeli 5.375.327 → 8.228.447 çevrim.
+- **n=16 cosim ölçülmedi.** RTL eşdeğerliği **n=8**'de doğrulandı (PASS).
+  n=16 koşusu 11,5 saat sürüyordu; gece koşusuna bırakıldı.

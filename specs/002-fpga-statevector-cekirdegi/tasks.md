@@ -7,7 +7,7 @@
 
 **Hedef (tek cümle)**: Faz 2'nin teknik işi **bitti** — zamanlama tutuyor, dört
 kaynak da bütçede, paralellik arama turu ölçümle kapandı; geriye faz sonu
-görevleri (T049–T054) kaldı.
+görevleri kaldı: **T053** ve **T054** (T049/T050/T051/T052 bitti, T030 konusuz).
 
 ### Son DOĞRULANMIŞ sentez (bundan geriye gidilmez)
 
@@ -59,7 +59,10 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 
 ### Sıradaki iş
 
-1. **Faz sonu: T049–T054** (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
+1. **T053** — [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) listesini uygula.
+2. **T054** — [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş. ⚠️ Bugün bu
+   belgeyi bozan çok şey oldu: Vitis'in yeri, `LC_ALL` zorunluluğu, `QIR_N`,
+   cosim betiklerinin düzelmesi.
    ⚠️ SC-005'in durumu değişti: cosim artık gerçekten koşuyor ve n=8'de geçiyor.
    Daha önce "doğrulandı" sayılıyordu ama betikler bozuktu ve hiç koşmamıştı.
 2. İsteğe bağlı: `export.tcl` ile bir kez Vivado implementasyonu koşup LUT
@@ -110,7 +113,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, Tur 17 + cosim ilk kez geçti (n=8)
+**Son güncelleme**: 2026-09-16, T049 bitti — altı sentez riski de kapandı
 
 ---
 
@@ -208,7 +211,7 @@ Fazın **M kapsamı burada tamamlanır**.
 - [ ] T027 [US2] Sentezi koş ve rapordan oku: **BRAM_18K**, DSP48E, LUT, FF, latency, Fmax. **Bütçe 280 BRAM_18K'dir, 140 değil**; %85 eşiği = **238**
 - [ ] T028 [US2] `docs/measurements/faz2-sentez.md` oluştur ve tabloyu yaz. Her satır **gerçek rapordan** gelmeli (FR-010, FR-011, Prensip II). Tahmin sütunu ayrı tutulur: beklenen **128 BRAM_18K = %45,7**
 - [ ] T029 [US2] Ölçülen BRAM'i tahminle karşılaştır. **Sapma varsa gizlenmez** (FR-012, SC-008): nedeni ve bir sonraki deneme yazılır
-- [ ] T030 [US2] BRAM > %85 ise **yeniden yazılmış K-02 merdivenini** uygula ([cut-plan.md](../000-kapsam-takvim/cut-plan.md), T048'de güncellenir — bu görevden **önce** yapılmalı). Eski merdivenin ilk iki basamağı **geçersizdir** — ikisi de %91,4
+- [X] ~~T030~~ **KONUSUZ 2026-09-16** — koşulu BRAM > %85 idi; ölçülen **%66**. Merdivenin hiçbir basamağı gerekmedi. (Asıl metin:  [US2] BRAM > %85 ise **yeniden yazılmış K-02 merdivenini** uygula ([cut-plan.md](../000-kapsam-takv…)
 - [ ] T031 [US2] NC-2 kararını ver: sentez raporundaki gerçek BRAM payına bakarak faz stratejisini seç — tam tablo (+64 blok, %91,4 ✗), açı tablosu (+32, %69,3 ✅) veya Gray-kod artımlı (0, %45,7 ✅). **H etiketli** ([R-5](research.md))
 
 **Checkpoint**: SC-002 karşılandı (veya karşılanmadığı açıkça yazıldı).
@@ -278,7 +281,7 @@ kayıtlılar ama kaynak belgeler hâlâ yanlış.
 - [X] T046 [P] `spec.md` §bellek tablosunu blok düzeyinde yeniden yaz: **"16 kübit float32 yerinde = %81,3 🟡 sınırda" YANLIŞ**, gerçek değer **%91,4** ve SC-002'yi aşıyor — "sınırda" değil **başarısız**
 - [X] T047 [P] `spec.md` §"ya doğruluk ya bankalama kolaylığı" gerilimini kaldır: **gerilim yok**, Q1.17 ikisini de veriyor (fidelity 0,999917 + %45,7 BRAM)
 - [X] T048 [P] [cut-plan.md](../000-kapsam-takvim/cut-plan.md) **K-02 merdivenini yeniden yaz**: eski sıra "16+float32-yerinde → 16+Q1.15-ping-pong → 14+float32 → şerit yarıya" idi; **ilk iki basamak geçersiz** (ikisi de %91,4, ikisi de SC-002'yi aşıyor). Yeni ilk basamak **16+Q1.17-yerinde (%45,7)** ve zaten hedefin altında. Ayrıca 14 kübitin problem karşılığı yok — tek-sıcak TSP'de bir sonraki geçerli adım **9 kübit (4 durak)**
-- [ ] 🟡 T049 [P] **KISMEN** (SK-05 eklendi; SK-02 sentez raporunu bekliyor) [docs/risk-register.md](../../docs/risk-register.md) SK-02 satırını sentez sonuçlarıyla güncelle; şu an 🟡, kapanışı **H5 (18 Eki)** sentez raporuna bağlı
+- [X] T049 [P] [docs/risk-register.md](../../docs/risk-register.md) — **BİTTİ 2026-09-16**. SK-01/02/03/04/06 ✅ KAPALI, SK-05 ✅ ÇÖZÜLDÜ; hepsi ölçümle. Asıl kusur şuydu: gövde güncelleniyor, **tablo güncellenmiyordu** — SK-02 ve SK-04 için gövdede "KAPALI" yazarken tablo 🟡/AÇIK gösteriyordu. Beş satır düzeltildi
 - [X] T050 [P] [docs/memory-budget.md](../../docs/memory-budget.md)'ye onaylanan konfigürasyonu (A1+B4) ve %45,7 rakamını işle
 - [X] T051 [CLAUDE.md](../../CLAUDE.md) "Şu anki faz" satırını güncelle
 - [X] T052 Bu dosyanın **SIRADAKİ** bloğunu güncelle ([siradaki-standardi.md](../../docs/siradaki-standardi.md)) — güncellenmeyen SIRADAKİ hiç olmamasından kötüdür
