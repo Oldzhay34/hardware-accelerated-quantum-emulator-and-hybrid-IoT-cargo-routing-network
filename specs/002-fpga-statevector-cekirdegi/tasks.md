@@ -5,56 +5,79 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Vitis HLS **WSL'e kuruluyor** (Windows kurulumu Device
-Guard tarafından engellendi); kurulum bitince `tablo_yuksek` pragma düzeltmesi
-ölçülecek, sonra paralellik turu.
+**Hedef (tek cümle)**: Vitis HLS artık **WSL'de kurulu ve çalışıyor**; bekleyen
+`tablo_yuksek` değişikliği ölçüldü (−%29 gecikme) ve sıra **paralellik
+kararında** — ama LUT payı %16'ya düştüğü için karar yeniden düşünülmeli.
 
 ### Son DOĞRULANMIŞ sentez (bundan geriye gidilmez)
+
+2026-09-16 · `01f643b` · Vitis HLS 2025.2 Build 6295257 · `xc7z020clg400-1` · WSL/Ubuntu
 
 | Ölçüt | Değer | Durum |
 |---|---:|:---:|
 | Zamanlama | **7,195 ns** (100 MHz) | ✅ ihlal yok |
 | BRAM_18K | 187 / 280 (%66) | ✅ SC-002 |
 | DSP | 36 / 220 (%16) | ✅ |
-| FF | 34.444 (%32) | ✅ |
-| LUT | 33.968 (%63) | ✅ |
-| Gecikme | **9.801.215 çevrim** = 0,098 sn | — |
+| FF | 49.839 / 106.400 (%46) | ✅ |
+| LUT | 45.164 / 53.200 (**%84**) | ⚠️ dar |
+| Gecikme | **6.948.095 çevrim** = 0,0695 sn | — |
 
 Fidelity (dört durum, değişmedi): n=8 → 0,999999871 · n=12 → 0,999998860 ·
 n=16 p=1 → 0,999989167 · n=16 p=2 → **0,999978179**
 
 **NC-4 KAPANDI**: 100 MHz artık varsayım değil, ölçülmüş.
-CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,7× hızlı** — hızlanma iddiası YOK.
+CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,2× hızlı** — hızlanma iddiası YOK.
 
-### Sıradaki üç iş
+### Sıradaki iki iş
 
-1. **ÖLÇÜLMEMİŞ DEĞİŞİKLİK BEKLİYOR** — `gates_diagonal.hpp` içinde
-   `tablo_yuksek`'in `k` ve `y` döngülerine `PIPELINE II=1` eklendi ama Device
-   Guard araya girdiği için **sentezlenemedi**. Vitis gelir gelmez ilk iş bu.
-   Beklenti: tablo gecikmesinden ~1,4M çevrim daha.
-2. **Paralellik** — kalan pay: LUT %37, DSP %84, FF %68. Gecikme dağılımı:
-   `apply_cost_layer` ~%32, `apply_rx_dyn` ~%32, `expectation_scaled` ~%4.
-   Çevrim başına birden fazla genlik işlemek artık kaynak açısından mümkün.
+1. **Paralellik — ama önce KARAR GEREKİYOR.** Bu iş "kalan LUT payını çevrim
+   başına birden fazla genliğe yatır" diye planlanmıştı. O pay artık yok:
+   Tur 16 LUT'u %63'ten **%84**'e çıkardı, kalan pay %37 değil **%16**.
+
+   Gecikme dağılımı (Tur 16 sonrası, p=2 max):
+   `apply_cost_layer` 598.288 · `apply_rx_dyn` 98.315 × 16 = 1.573.072 ·
+   `expectation_scaled` 368.465 · `init_loop` 65.538.
+   **`mixer_loop` artık en büyük kalem** — `apply_cost_layer` değil.
+
+   Üç seçenek, hiçbiri ölçülmedi:
+   - (a) `mixer_loop`'u paralelleştir — en büyük kalem ama paylaşılan
+     `apply_rx_dyn` birimi tam da LUT tasarrufu için seçilmişti (Tur 9:
+     45.114 → 2.409 LUT). Geri almak %84'ün üstüne çıkar.
+   - (b) Tur 16'yı **geri al**, LUT payını paralelliğe harca. 2,85M çevrim
+     verip daha fazlasını almak — ölçülmeden bilinmez.
+   - (c) Tur 16'yı tut, paralelliği bırak, Faz 3'e geç. 0,0695 sn yeterince
+     iyi mi? CPU 1,2× hızlı olduğuna göre hayır, ama hızlanma zaten hedef
+     değil (bkz. spec).
+
    ⚠️ Nereyi paralelleştireceğine **ölçümle** karar ver — bankalama
    araştırmasında işin %0,4'ünü optimize etme hatası tekrarlanmasın.
-3. Faz sonu: T049–T054 (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
+   ⚠️ HLS LUT tahmini kabadır; %84 Vivado implementasyonunda değişebilir.
+   Karar vermeden önce **bir kez `export.tcl` koşup gerçek yerleştirme
+   sonucunu görmek** en ucuz ölçüm olabilir.
+
+2. Faz sonu: T049–T054 (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
 
 ### Ortam — 2026-09-16'da köklü değişti
 
 - **Vitis Windows'ta ÇALIŞMIYOR.** `vitis-run.exe` imzasız ve Device Guard
   engelliyor (SK-05). 15 sentez turu koştuktan **sonra** engellendi — SAC
   itibar kararı zamanla değişiyor, "bir kez çalıştı" güvence değil.
-- **Vitis WSL/Ubuntu 24.04'e kuruluyor**: `/opt/Xilinx`, batch modda
-  (`xsetup -b Install -c /root/.Xilinx/install_config.txt`). Config: yalnızca
-  Zynq-7000, Model Composer ve DocNav kapalı.
+  SAC kapatılmadı; geri alınamaz bir sistem güvenlik değişikliğidir.
+- **Vitis WSL/Ubuntu 24.04'te KURULU**: `/opt/Xilinx/2025.2`, 49 GB.
+  `vitis-run --version` → `v2025.2`. Kurulum + sentez komutları ve bütün
+  tuzaklar: [runbook](../../docs/runbooks/vitis-hls-kurulum.md).
+- **Sentez çağrısında `LC_ALL=en_US.UTF-8` ŞART** — yoksa `vitis-run` core
+  dump eder (`locale::facet::_S_create_c_locale name not valid`).
+- **Taşınma ölçümü bozmadı, KANITLANDI**: Tur 15'in kaynak durumu WSL'de
+  yeniden üretildi, altı ölçütün altısı da birebir aynı çıktı
+  ([faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §12).
+- Tam sentez `/mnt/c` üzerinden **54 saniye** — ayrı bir çalışma kopyası gerekmiyor.
 - **WSL C:'den D:'ye taşındı** (`D:\WSL\Ubuntu`) — C:'de yer yoktu. Yedek:
   `D:\wsl-backup\ubuntu-20260916.tar`.
 - **`.wslconfig` değişti**: memory 10→**8 GB**, swap 4→**16 GB**. Sebep: ilk
   kurulum denemesi 10 GB'ı doldurup WSL'i çökertti
   (`Used memory: 9861 MB / Total memory: 9946 MB`, ardından `up 0 min`).
   Yedek: `%USERPROFILE%\.wslconfig.yedek`.
-- Kurulumu **`setsid nohup`** ile başlat; düz `nohup &` WSL oturumu kapanınca
-  ölüyor (ilk denemede böyle kaybedildi).
 - C-sim WSL'de sorunsuz: `wsl -d Ubuntu -e bash .../hls/build_and_run.sh`
 
 **Bilinen tuzaklar**:
@@ -67,8 +90,10 @@ CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,7× hızlı** — hızlanma iddi
   yoksa oku-değiştir-yaz zinciri tek kombinasyonel parçada kalıp 23 ns yapıyor.
 - `expectation_scaled` II=4'te kalmalı; II=1 akümülatörü kritik yola sokuyor.
 - Tcl dosyaları **ASCII ve BOM'suz** olmalı.
+- `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
+  kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, Vitis WSL kurulumu sürüyor (%42)
+**Son güncelleme**: 2026-09-16, Tur 16 ölçüldü; Vitis WSL'de çalışıyor
 
 ---
 

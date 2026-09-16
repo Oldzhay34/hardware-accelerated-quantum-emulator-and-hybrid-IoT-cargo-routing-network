@@ -421,3 +421,75 @@ Fidelity değişmedi: 0,999978179 / 0,999989167 / 0,999999871 / 0,999998860.
 yapılamaz.
 
 Kalan pay: LUT %37, DSP %84, FF %68, BRAM %34 — paralellik için yer var.
+
+---
+
+# 12. Tur 16 — bekleyen `tablo_yuksek` değişikliği ölçüldü + WSL doğrulaması (2026-09-16)
+
+**Ortam değişti**: bu, Vitis'in **WSL/Ubuntu** altında koştuğu ilk sentez.
+Windows'ta Device Guard aracı engellemişti ([SK-05](../risk-register.md)).
+Araç sürümü aynı: 2025.2, Build 6295257. Parça `xc7z020-clg400-1`.
+Kaynak: `01f643b` (temiz ağaç).
+
+## Önce: platform değişikliği ölçümü bozar mı?
+
+Yeni platformda ölçülen sayıları eski platformdakilerle karşılaştırmak, iki
+değişkeni aynı anda oynatmaktır. Bu yüzden önce **Tur 15 yeniden üretildi**:
+`tablo_yuksek`'in `k` ve `x/y` pragmaları çıkarılıp yalnızca `D` döngüsününki
+bırakıldı — yani Windows'ta ölçülen kaynak durumu.
+
+| | Windows (Tur 15) | WSL (yeniden üretim) |
+|---|---:|---:|
+| Zamanlama | 7,195 ns | **7,195 ns** |
+| Gecikme | 9.801.215 | **9.801.215** |
+| BRAM_18K | 187 | **187** |
+| DSP | 36 | **36** |
+| FF | 34.444 | **34.444** |
+| LUT | 33.968 | **33.968** |
+
+**Birebir aynı.** Tek bir çevrim, tek bir LUT farkı yok. WSL'e taşınma
+ölçüm açısından nötr; Tur 1–15 ile Tur 16+ aynı ölçekte karşılaştırılabilir.
+
+Yan ürün: Tur 15'in hangi pragma kümesiyle ölçüldüğü de böylece **kanıtlandı**
+(kayıt muğlaktı). Tur 15 = `tablo_dusuk`'un iki pragması + `tablo_yuksek`'in
+yalnızca `D` döngüsü. Bekleyen değişiklik = `k` ve `x/y` döngüleri.
+
+## Asıl ölçüm
+
+`tablo_yuksek`'in `k` ve `x/y` döngülerine `PIPELINE II = 1`.
+
+| Konfigürasyon | Zamanlama | Gecikme | BRAM | DSP | FF | LUT |
+|---|---:|---:|---:|---:|---:|---:|
+| `tablo_yuksek` pragmasız | 7,195 ns | 12.713.471 | %66 | %16 | %25 | %53 |
+| Tur 15 (yalnız `D`) | 7,195 ns | 9.801.215 | %66 | %16 | %32 | %63 |
+| **Tur 16 (hepsi)** | **7,195 ns** ✅ | **6.948.095** | %66 | %16 | **%46** | **%84** |
+
+**Kazanç**: 9.801.215 → 6.948.095 = **−2.853.120 çevrim (−%29,1)**.
+0,098 sn → **0,0695 sn**.
+
+Beklenti ~1,4M çevrimdi; gerçekleşen **2,85M — iki katı**. Tahmin düşük kalmıştı
+çünkü `D` döngüsü (8×256×8) yanında `x/y` döngüsünün (256×28) maliyeti
+küçümsenmişti.
+
+**Bedeli**: LUT %63 → **%84** (+11.196), FF %32 → **%46** (+15.395).
+BRAM ve DSP kılını kıpırdatmadı. Zamanlama değişmedi.
+
+`apply_cost_layer` gecikmesi: 1.379.344~2.520.080 → **295.184~598.288**.
+
+## Nerede duruyoruz
+
+| Ölçüt | Değer | Durum |
+|---|---:|:---:|
+| Zamanlama | 7,195 ns (**100 MHz**) | ✅ |
+| BRAM_18K | 187 / 280 (%66) | ✅ SC-002 |
+| DSP | 36 / 220 (%16) | ✅ |
+| FF | 49.839 / 106.400 (%46) | ✅ |
+| LUT | 45.164 / 53.200 (**%84**) | ⚠️ dar |
+| Gecikme | 6.948.095 çevrim = **0,0695 sn** | — |
+
+⚠️ CPU tabanı (Aer, ölçülen ~58 ms) **hâlâ 1,2 kat hızlı**. 1,7×'ten 1,2×'e
+indi ama **hızlanma iddiası hâlâ yapılamaz**.
+
+⚠️ **LUT payı %37'den %16'ya düştü.** Sıradaki iş olan paralellik, kalan LUT
+payına yatırım demekti; o pay artık büyük ölçüde harcandı. Paralellik kararı
+bu yeni kısıt altında yeniden düşünülmeli — bu bir ölçüm sonucu, tahmin değil.

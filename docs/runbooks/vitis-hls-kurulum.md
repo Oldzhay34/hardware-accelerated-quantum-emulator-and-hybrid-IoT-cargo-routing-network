@@ -308,12 +308,95 @@ kullanıcının terminalinde koşar.
 tr '\r' '\n' < /var/log/vitis-install.log | grep -E 'Downloading|Installing' | tail -2
 ```
 
-## Kurulum sonrası
+### ⚠️ Batch mod tek indirme hatasında TÜM kurulumu iptal eder
 
-`hls/run.ps1` zaten `vitis-run`/`vitis_hls` ikisini de arıyor ama arama listesi
-Windows yollarında. WSL için Tcl akışı doğrudan çağrılır:
+İlk deneme 13,38 / 17,08 GB'da öldü:
+
+```
+ERROR - There was an error downloading files.
+INFO  - There was an error downloading files and user did not want to retry.
+```
+
+Batch modda yükleyici "tekrar denensin mi?" diye soramadığı için kendiliğinden
+"hayır" sayıyor. İndirilenler `/opt/Xilinx/Downloads` altında **kalıyor** ve
+yeniden çalıştırınca kaldığı yerden devam ediyor — o yüzden çare dışarıdan
+yeniden denemek. `/root/vitis-retry.sh` bunu yapar (en fazla 15 deneme).
+
+⚠️ Başarıyı **log'dan değil ikilinin varlığından** anla. İlk sarmalda
 
 ```bash
-wsl -d Ubuntu -e bash -c "cd /mnt/c/Users/olcay/IdeaProjects/qir-engine && \
-  /opt/Xilinx/2025.2/Vitis/bin/vitis-run --mode hls --tcl hls/tcl/csynth.tcl"
+ls /opt/Xilinx/*/Vivado/bin/vivado /opt/Xilinx/Vivado/*/bin/vivado >/dev/null 2>&1
 ```
+
+yazılmıştı; `ls` argümanlardan **biri** yoksa başarısız döner, dolayısıyla
+kurulum bittiği hâlde "bitmedi" dedi ve gereksiz bir kurulum daha başlattı.
+Yolları ayrı ayrı test et.
+
+### ⚠️ Tek dosyada takılırsa bağlantıyı kopar
+
+Son 60 MB, tek bir yavaş bağlantıda **8 KB/sn**'ye düştü (30 saniye ölçüldü;
+yükleyicinin kendi ETA'sı "2 sa 27 dk" diyordu). Süreç öldürülüp sarmal yeniden
+başlatılınca yeni CDN düğümü geldi ve aynı dosya **7 MB/sn** ile bitti.
+Bedeli, yarım kalan dosyanın baştan inmesi (birkaç MB).
+
+Yükleyicinin ETA'sına güvenme: bu kurulumda beş kez ciddi biçimde yanıldı
+(19 dk → 1 sa 16 dk → 2 sa 46 dk → 5 sa → 11 dk). Gerçek ilerlemeyi ölç:
+
+```bash
+A=$(du -sb /opt/Xilinx/Downloads | cut -f1); sleep 30
+B=$(du -sb /opt/Xilinx/Downloads | cut -f1); echo $(( (B-A)/30/1024 )) KB/sn
+```
+
+### ⚠️ `pgrep -f` / `pkill -f` kendini eşleştirir
+
+Kurulumu izlemek için `pgrep -f 'xsetup'` kullanmak **işe yaramaz**: kontrol
+komutunun kendi komut satırında da "xsetup" geçer, pgrep kendini bulur ve süreç
+ölse bile sonsuza kadar "çalışıyor" der. Aynı tuzağa `pkill -f 'xilinx.*java'`
+ile ikinci kez düşüldü — kendi kabuğunu öldürdü.
+
+Çare: köşeli parantez hilesi (`pgrep -f '[x]setup'`) ya da daha iyisi bir **pid
+dosyası** (`/run/vitis-install.pid`). Pid dosyasının yan faydası: `/run` tmpfs
+olduğu için WSL çökerse dosya kaybolur, izleyici derhal haber verir.
+
+## Kurulum sonrası — İKİ ADIM ŞART
+
+Yükleyici bittikten sonra `vitis-run` **doğrudan çalışmaz**. İkisi de gerekli:
+
+```bash
+# 1) AMD'nin kendi log'unun istediği OS paketleri (libsecret, libgcrypt, ...)
+wsl -d Ubuntu -u root -e bash -c "cd /opt/Xilinx/2025.2/Vivado/scripts && ./installLibs.sh"
+
+# 2) Locale. Bu YAPILMAZSA vitis-run core dump eder:
+#    terminate called after throwing an instance of 'std::runtime_error'
+#      what():  locale::facet::_S_create_c_locale name not valid
+wsl -d Ubuntu -u root -e bash -c "apt-get install -y locales && locale-gen en_US.UTF-8"
+```
+
+Doğrulama:
+
+```bash
+wsl -d Ubuntu -e bash -c "export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8; source /opt/Xilinx/2025.2/Vitis/settings64.sh; vitis-run --version"
+# ****** vitis-run v2025.2 (64-bit)
+```
+
+Kurulum sonrası açılan **"AMD Information Center"** penceresi (XIC) kurulumun
+parçası değil; kapatılabilir.
+
+## Sentez çağrısı
+
+`hls/run.ps1` zaten `vitis-run`/`vitis_hls` ikisini de arıyor ama arama listesi
+Windows yollarında. WSL için Tcl akışı doğrudan çağrılır — `LC_ALL` şart:
+
+```bash
+wsl -d Ubuntu -e bash -c "export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8; source /opt/Xilinx/2025.2/Vitis/settings64.sh; cd /mnt/c/Users/olcay/IdeaProjects/qir-engine && vitis-run --mode hls --tcl hls/tcl/csynth.tcl"
+```
+
+`/mnt/c` üzerinden koşmak sorun çıkarmadı: tam sentez **54 saniye**.
+
+## Taşınma ölçümü bozdu mu? HAYIR — ölçüldü
+
+Platform değiştirmek, yeni sayıları eskilerle karşılaştırmayı şüpheli hâle
+getirir. Bu yüzden WSL'deki ilk iş, Windows'ta ölçülen Tur 15 kaynak durumunu
+yeniden üretmek oldu: zamanlama, gecikme, BRAM, DSP, FF, LUT — **altısı da
+birebir aynı** çıktı. Ayrıntı: [faz2-sentez.md](../measurements/faz2-sentez.md)
+§12.
