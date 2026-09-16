@@ -75,3 +75,100 @@ Ayrıca ikinci bir yanlış varsayım: `osrm-routed`'in **`/health` ucu yoktur**
 **Tekrar denenmeli mi**: Hayır — bu imaj için healthcheck kaldırıldı, hazır olma kontrolü `matrix`
 servisinin kendi `/health` ucuna (host'tan HTTP ile) bırakıldı. Genel ders: **minimal imajlarda
 healthcheck yazmadan önce imajda HTTP istemcisi olup olmadığını kontrol et.**
+
+### `template<int K>` ile 16 ayrı RX örneği — 2026-09-16, Faz 2
+
+**Neden denendi**: Tasarımın kendisiydi ([research.md](../../specs/002-fpga-statevector-cekirdegi/research.md) R-7). Gerekçe: HLS,
+`ARRAY_PARTITION`'lı bir diziye hangi parçadan erişildiğini derleme zamanında
+çözemezse bütün erişimleri seri hale getirir; `K` sabit olduğu sürece bu risk
+oluşmaz. Gerekçe mantıklıydı ama bir **hipotezdi ve hiç sınanmamıştı**.
+
+**Neden olmadı**: 16 örnek **45.114 LUT** tutuyor — kalan bütçenin %57'si.
+Paylaşılan tek birim (`k` çalışma zamanı parametresi) **2.409 LUT**. Ölçülen
+bedel yalnızca **+%4 gecikme**. Yani hipotezin korktuğu tam serileştirme
+olmadı; 42.000 LUT karşılığında hiçbir şey alınmıyordu.
+
+**Tekrar denenmeli mi**: Hayır. Tur 17 sebebini de gösterdi: `k` sabit olsa
+bile II tabanı bellek **portu** ile belirleniyor, bankalamayla değil. Şablon
+sürüm `gates_pairing.hpp`'de geri dönüş için duruyor ama gerekçesi çürük.
+
+### Bankalamayı artırarak II düşürmek (`cyclic factor` 4, 8, 16) — 2026-09-16, Faz 2
+
+**Neden denendi**: SK-02'nin tamamı bu varsayım üzerine kuruluydu — "2^k
+çakışması bankalama ile çözülür". Doğal çözüm daha çok banka.
+
+**Neden olmadı**: Ölçüldü, **hiçbir şey kazandırmıyor**. `rx_dyn_pair_loop`'un
+II'si faktör 2, 4 ve 8'de **aynı** kaldı; yalnızca LUT %84 → %86 → %90 çıktı.
+Sebep: `k` çalışma zamanı değişkeni olduğu için HLS erişimin hangi bankaya
+düştüğünü **kanıtlayamıyor** ve kaç banka olursa olsun en kötü durumu
+varsayıyor. Gerçek sınır port sayısıydı: `RAM_2P` (1 okuma + 1 yazma) →
+`RAM_T2P` (2 gerçek port) tek kelimeyle II'yi 3'ten 2'ye indirdi.
+
+**Tekrar denenmeli mi**: Hayır — `k` derleme zamanı sabiti yapılmadıkça değil,
+ki o da yukarıdaki elenen yol. Bkz. [faz2-sentez.md](../measurements/faz2-sentez.md) §13.
+
+### Ping-pong tamponu (ayrı okuma/yazma dizileri) — 2026-09-16, Faz 2
+
+**Neden denendi**: II=1'e ulaşmanın bilinen yolu; okuma A'dan, yazma B'ye
+giderse dizi başına 2 erişim kalır ve port sınırı kalkar.
+
+**Neden olmadı**: `sv`'nin BRAM'ini **144 → 288 blok**a çıkarıyor. Toplam bütçe
+280 ve tasarım zaten 187 kullanıyor. **%91,4** ile SC-002'yi aşıyor.
+
+**Tekrar denenmeli mi**: Hayır, 16 kübitte. Kübit sayısı 14'e inerse veya daha
+büyük bir parçaya (örn. XC7Z045) geçilirse yeniden hesaplanır. Bkz.
+[banking-research.md](../measurements/banking-research.md) §6.
+
+### Tablo kurma döngülerini boru hattına almak / açmak — 2026-09-16, Faz 2
+
+**Neden denendi**: Maliyet tabloları toplam gecikmenin **%23'ü** (1.598.208
+çevrim) ve `apply_cost_layer`'ın **%89'u**. Asıl genlik döngüsü yalnızca %11.
+Buradaki kazanç gerçek ve büyük görünüyordu.
+
+**Neden olmadı**: Dört varyant ölçüldü, dördü de bütçe dışı:
+
+| Varyant | Gecikme | LUT |
+|---|---:|---:|
+| Tüm tablolar dış döngü `PIPELINE II=4` | 3.780.845 | **%182** |
+| Yalnız `tablo_yuksek` dış döngü `II=4` | 4.333.700 | **%166** |
+| `tablo_yuksek` dış döngü `UNROLL factor=2` | 5.378.015 | **%123** |
+| Tablo iç döngüleri `UNROLL` | **10.212.635** (2× yavaş) | %53 |
+
+Sebep `gates_diagonal.hpp:62`'de zaten yazılıydı: 256 yinelemelik dış döngüyü
+boru hattına almak, iç döngüleri **açmaya zorluyor** (~100 toplayıcı). Son
+varyant ise ters tepti — `config_compile -pipeline_loops 0` altında `UNROLL`
+boru hattını tamamen kaldırıyor ve açılmış toplayıcı zinciri seri kalıyor.
+
+**Tekrar denenmeli mi**: Yalnızca LUT payı ciddi biçimde açılırsa (örn. Tur 16
+geri alınıp %63'e inilirse bile #6 hâlâ %161 olur — yetmez). Asıl çözüm
+donanım değil **algoritma** olur: tablo kurma maliyetini azaltmak.
+
+### Zamanlama için yuvarlama kipleri ve çarpıcı gecikmesi — 2026-09-16, Faz 2
+
+**Neden denendi**: Kritik yol 24,799 ns'ydi (hedef 10). İlk iki şüpheli:
+`AP_RND_CONV`/`AP_SAT` kiplerinin pahalı olması, ve çarpıcının boru hattına
+alınmamış olması.
+
+**Neden olmadı**: İkisi de asıl sebep değildi. `AP_TRN`+`AP_WRAP` 24,8 → 17,2 ns
+(yolun %31'i ama yetmez, üstelik doğruluğu bozar). `config_op mul -latency 3`
+24,8 → 24,3 ns — **neredeyse hiç**. Partition faktörünü 16 → 2 yapmak 24,3 →
+23,0. Asıl sebep raporda yazılıydı: `load`→`store` zinciri tek kombinasyonel
+parçadaydı ve çözüm `#pragma HLS DEPENDENCE`'tı (23,0 → **12,7 ns**).
+
+**Tekrar denenmeli mi**: Hayır. Ders: **rapordaki "Cannot meet target clock
+period from X to Y" satırını önce oku**; üç tur tahmin yürütmeden önce kritik
+yolu adıyla söylüyordu.
+
+### Windows'ta Vitis HLS — 2026-09-16, Faz 2
+
+**Neden denendi**: Doğal kurulum yolu; **15 sentez turu boyunca çalıştı**.
+
+**Neden olmadı**: Smart App Control bir gün aracı engelledi
+(`vitis-run.exe was blocked by your organization's Device Guard policy`).
+`vitis-run.exe` imzasız (`NotSigned`) ve SAC **itibar tabanlıdır, kararı
+zamanla değişir** — "bir kez çalıştı" güvence değildir.
+
+**Tekrar denenmeli mi**: Hayır. SAC'ı kapatmak geri alınamaz bir sistem
+güvenlik değişikliğidir ve bir derleme kolaylığı için yapılmaz. WSL/Ubuntu
+kurulumu çalışıyor ve **ölçümü bozmadığı kanıtlandı** (Tur 15 birebir yeniden
+üretildi). Bkz. [runbook](../runbooks/vitis-hls-kurulum.md).

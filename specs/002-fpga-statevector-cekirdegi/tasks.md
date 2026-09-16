@@ -59,8 +59,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 
 ### Sıradaki iş
 
-1. **T053** — [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) listesini uygula.
-2. **T054** — [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş. ⚠️ Bugün bu
+1. **T054** — [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş. ⚠️ Bugün bu
    belgeyi bozan çok şey oldu: Vitis'in yeri, `LC_ALL` zorunluluğu, `QIR_N`,
    cosim betiklerinin düzelmesi.
    ⚠️ SC-005'in durumu değişti: cosim artık gerçekten koşuyor ve n=8'de geçiyor.
@@ -113,7 +112,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, T049 bitti — altı sentez riski de kapandı
+**Son güncelleme**: 2026-09-16, T053 bitti — geriye yalnızca T054 kaldı
 
 ---
 
@@ -285,7 +284,7 @@ kayıtlılar ama kaynak belgeler hâlâ yanlış.
 - [X] T050 [P] [docs/memory-budget.md](../../docs/memory-budget.md)'ye onaylanan konfigürasyonu (A1+B4) ve %45,7 rakamını işle
 - [X] T051 [CLAUDE.md](../../CLAUDE.md) "Şu anki faz" satırını güncelle
 - [X] T052 Bu dosyanın **SIRADAKİ** bloğunu güncelle ([siradaki-standardi.md](../../docs/siradaki-standardi.md)) — güncellenmeyen SIRADAKİ hiç olmamasından kötüdür
-- [ ] T053 [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) listesini uygula: kararlar ADR'ye yazıldı mı, dead-ends güncel mi, ölçümler damgalı mı
+- [X] T053 [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) — **BİTTİ 2026-09-16**. Üç gerçek eksik çıktı: (1) `dead-ends.md`'de Faz 2'den **tek satır yoktu** → altı madde eklendi; (2) Vitis tcl akışı ölçümleri `--git-hash vitis` ile damgalıyordu, yani hiçbir commit'e bağlanamıyorlardı → gerçek hash'e çevrildi (`vitis-<hash>`); (3) paralellik kararı ADR'siz duruyordu → [ADR 0009](../../docs/decisions/0009-paralellik-turu-kapatildi.md). Kapsam denetimi temiz: Faz 2'nin **M** tanımı (C-sim doğrulaması + sentez raporu) karşılandı, sürünme yok
 - [ ] T054 [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş ve belgedeki beklenen çıktıların gerçekle uyuştuğunu doğrula
 
 ---

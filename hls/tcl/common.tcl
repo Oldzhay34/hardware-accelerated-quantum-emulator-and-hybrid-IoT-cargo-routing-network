@@ -127,4 +127,15 @@ config_op mul -impl dsp -latency 3
 config_schedule -effort high
 
 # Testbench argumanlari -- mutlak yol (csim alt dizinde kosuyor)
-set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash vitis --n $QIR_N"
+# Damga: tarih + GERCEK git hash + konfig (VR-03, CLAUDE.md kirmizi cizgi).
+# Onceden burada duz "vitis" yaziyordu; uretilen olcum dosyalari hicbir
+# commit e baglanamiyordu. build_and_run.sh (g++ yolu) bastan beri gercek
+# hash damgaliyordu -- iki yol ayni sekilde damgalamali.
+# "vitis-" oneki arac zincirini korur: ayni commit in g++ ve Vitis olcumleri
+# ayirt edilebilsin.
+if {[catch {exec git -C $REPO rev-parse --short HEAD} GIT_HASH]} {
+    set GIT_HASH unknown
+}
+set DAMGA "vitis-$GIT_HASH"
+
+set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash $DAMGA --n $QIR_N"
