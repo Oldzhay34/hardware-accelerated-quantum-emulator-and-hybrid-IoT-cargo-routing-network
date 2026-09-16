@@ -4,7 +4,7 @@ Kuantum-esinli rota optimizasyonu için statevector emülasyon çekirdeğini PYN
 donanımda hızlandıran, Qiskit altın referansına karşı doğrulayan ve CPU'ya karşı gecikme/enerji
 ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 
-**Şu anki faz**: Faz 2 — plan onaylandı (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)). Çekirdek yazıldı, C-sim ile doğrulandı (fidelity ≥0,99997, n=8/12/16) ve **sentezlendi**: 7,195 ns (100 MHz), BRAM %66, DSP %16, FF %46, **LUT %84**, gecikme **p=2 için 3.728.217 çevrim = 37,3 ms** (p=3 max: 5.375.324 = 53,8 ms). SC-002/SC-003 geçti, NC-4 kapandı. CPU tabanı (Aer p=2, medyan **77,6 / 92,7 ms** iki koşuda) HLS tahminine göre **1,6–2,5× geride** — ama bu sentez sonrası bir **tahmindir**, donanımda ölçülmedi ve CPU tarafı ±%60 oynuyor; **hızlanma iddiası Faz 5'ten önce yapılamaz** ([§15 düzeltmesi](docs/measurements/faz2-sentez.md)). Vitis 2025.2 **WSL/Ubuntu altında kurulu ve çalışıyor** — Windows'ta Device Guard engellemişti ([SK-05](docs/risk-register.md)), taşınmanın ölçümü bozmadığı Tur 15 yeniden üretilerek kanıtlandı. Kurulum ve sentez komutları: [runbook](docs/runbooks/vitis-hls-kurulum.md). Paralellik arama turu **ölçümle kapandı** ([ADR 0009](docs/decisions/0009-paralellik-turu-kapatildi.md)): satın alınabilir paralellik kalmadı, tek kazanç `RAM_T2P` port düzeltmesiydi; II tabanı bankalama değil **bellek portu** çıktı. Altı sentez riski de kapandı ([risk-register.md](docs/risk-register.md)). Durum ve sıradaki iş: [tasks.md SIRADAKİ](specs/002-fpga-statevector-cekirdegi/tasks.md).
+**Şu anki faz**: Faz 2 — plan onaylandı (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)). Çekirdek yazıldı, C-sim ile doğrulandı (fidelity ≥0,99997, n=8/12/16) ve **sentezlendi**: 7,195 ns (100 MHz), BRAM %66, DSP %16, FF %46, **LUT %84**, gecikme **p=2 için 3.728.217 çevrim = 37,3 ms**. **Vivado implementasyonu koşuldu**: LUT gerçekte **22.535 (%42)**, FF **19.466 (%18)**, DSP 33 (%15), BRAM 187 (%67), post-route **9,122 ns** — yani HLS tahmini LUT'u **2× fazla** saymış. SC-002/SC-003 geçti, NC-4 kapandı. CPU tabanı (Aer p=2, medyan **77,6 / 92,7 ms** iki koşuda) HLS tahminine göre **1,6–2,5× geride** — ama bu sentez sonrası bir **tahmindir**, donanımda ölçülmedi ve CPU tarafı ±%60 oynuyor; **hızlanma iddiası Faz 5'ten önce yapılamaz** ([§15 düzeltmesi](docs/measurements/faz2-sentez.md)). Vitis 2025.2 **WSL/Ubuntu altında kurulu ve çalışıyor** — Windows'ta Device Guard engellemişti ([SK-05](docs/risk-register.md)), taşınmanın ölçümü bozmadığı Tur 15 yeniden üretilerek kanıtlandı. Kurulum ve sentez komutları: [runbook](docs/runbooks/vitis-hls-kurulum.md). Paralellik arama turu **ölçümle kapandı** ([ADR 0009](docs/decisions/0009-paralellik-turu-kapatildi.md)): satın alınabilir paralellik kalmadı, tek kazanç `RAM_T2P` port düzeltmesiydi; II tabanı bankalama değil **bellek portu** çıktı. Altı sentez riski de kapandı ([risk-register.md](docs/risk-register.md)). Durum ve sıradaki iş: [tasks.md SIRADAKİ](specs/002-fpga-statevector-cekirdegi/tasks.md).
 
 ## Anayasa — altı ilke (tam metin: [.specify/memory/constitution.md](.specify/memory/constitution.md))
 
@@ -59,6 +59,8 @@ gcc --version
 ```
 
 Derleme/sentez/test komutları ilgili faz kurulduğunda buraya eklenecek (şu an `hls/`, `services/` boş).
+
+**Tez/makale yazarken tek referans**: [docs/olculen-degerler.md](docs/olculen-degerler.md) — bütün ölçülen değerler, deney koşulları, ne iddia edilebilir/edilemez, ve yanlışlanan hipotezler.
 
 ## Kalıcı hafıza dosyaları
 

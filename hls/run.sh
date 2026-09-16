@@ -35,8 +35,8 @@ if [ -z "${ADIMLAR[0]}" ]; then ADIMLAR=(csim csynth); fi
 
 for adim in "${ADIMLAR[@]}"; do
     case "$adim" in
-        csim|csynth|cosim|export) ;;
-        *) echo "HATA: bilinmeyen adim '$adim' (csim|csynth|cosim|export)" >&2; exit 2 ;;
+        csim|csynth|cosim|export|impl) ;;
+        *) echo "HATA: bilinmeyen adim '$adim' (csim|csynth|cosim|export|impl)" >&2; exit 2 ;;
     esac
     echo "=== $adim  (n=${QIR_N:-16})  $(date '+%H:%M:%S') ==="
     if ! vitis-run --mode hls --tcl "hls/tcl/$adim.tcl"; then

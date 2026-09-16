@@ -66,10 +66,14 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 
 **Faz 2'nin görev listesi BİTTİ.** Kalan iki isteğe bağlı iş:
 
-1. **Vivado implementasyonu** (`export.tcl`) — LUT %84 bir HLS *tahmini*.
-   Gerçek yerleştirme-yönlendirme sayısı tez için daha sağlam ve Faz 5'e girdi.
-   Sığmazsa geri dönüş ölçülü: Tur 16'yı geri al, LUT %63, bedeli
-   3.728.217 → 5.679.000 civarı çevrim (p=2).
+1. ~~Vivado implementasyonu~~ — **YAPILDI 2026-09-16**. `hls/tcl/impl.tcl`
+   (`export_design -flow impl`). Gerçek: LUT **22.535 (%42)**, FF 19.466 (%18),
+   DSP 33 (%15), BRAM 187 (%67), post-route **9,122 ns**, zamanlama tuttu.
+   HLS tahmini LUT'u **2× fazla** saymış. #6 ve #7 de implementasyona kadar
+   koşuldu; #6 sığıyor ve zamanlamayı tutturuyor (26,65 ms) ama marjı %8,8'den
+   **%1,2**'ye düşürdüğü için **reddedildi** — Faz 5'te PS entegrasyonu o marjı
+   tüketir. Ayrıntı: [§16](../../docs/measurements/faz2-sentez.md) ve
+   [ADR 0009 güncellemesi](../../docs/decisions/0009-paralellik-turu-kapatildi.md).
 2. **n=16 cosim** — gece koşusunda; n=8 zaten PASS.
    ⚠️ SC-005'in durumu değişti: cosim artık gerçekten koşuyor ve n=8'de geçiyor.
    Daha önce "doğrulandı" sayılıyordu ama betikler bozuktu ve hiç koşmamıştı.
@@ -121,7 +125,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, T054 bitti — Faz 2 görev listesi tamam
+**Son güncelleme**: 2026-09-16, Vivado implementasyonu ölçüldü — LUT gerçekte %42
 
 ---
 

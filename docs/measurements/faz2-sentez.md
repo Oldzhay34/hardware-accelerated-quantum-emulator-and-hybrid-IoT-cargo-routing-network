@@ -798,3 +798,84 @@ sapmışlardır (gerçek p=2: 3.728.217 çevrim). Betik "TAHMINDIR" diye uyarıy
 ama ekranda ölçülenin yanında durmaları yanıltıcı. Betiğin ölçülen değeri
 kullanacak şekilde güncellenmesi T054'ün kapsamı dışında bırakıldı — Faz 10
 (kıyas) işidir ve orada zaten kart ölçümüyle değişecek.
+
+---
+
+# 16. Vivado implementasyonu — HLS tahmini LUT'ta 2× yanılıyor (2026-09-16)
+
+İlk kez `export_design -flow impl` koşuldu: Vivado RTL sentezi + yerleştirme +
+yönlendirme. Buraya kadar bütün kaynak sayıları **HLS tahminiydi**.
+
+## Mevcut tasarım: tahmin vs gerçek
+
+| | HLS tahmini | **Vivado P&R** | oran |
+|---|---:|---:|---:|
+| LUT | 45.164 (%84,9) | **22.535 (%42,4)** | 0,50× |
+| FF | 49.839 (%46,8) | **19.466 (%18,3)** | 0,39× |
+| DSP | 36 (%16,4) | 33 (%15,0) | 0,92× |
+| BRAM_18K | 187 (%66,8) | **187 (%66,8)** | 1,00× |
+
+**Zamanlama tuttu**: post-synthesis 9,171 ns → post-route **9,122 ns**.
+
+BRAM'in birebir tutması beklenir — bellek blokları sayılabilir. LUT ve FF ise
+sentezcinin optimize ettiği kaynaklardır; HLS kaba bir üst sınır verir.
+
+⚠️ Bu, ADR 0009'un *"tablolar LUT'a sığmıyor"* gerekçesini geçersiz kıldı.
+O gerekçe HLS'in %182/%166 tahminine dayanıyordu.
+
+## #6 ve #7 implementasyona kadar koşuldu
+
+| | LUT | FF | DSP | BRAM | Gecikme p=2 | Post-route |
+|---|---:|---:|---:|---:|---:|---:|
+| **mevcut** | 22.535 (%42) | 19.466 (%18) | 33 (%15) | 187 (%67) | **37,28 ms** | **9,122 ns** ✅ |
+| **#6** (tüm tablolar II=4) | 37.983 (%71) | 56.561 (%53) | 137 (%62) | 187 (%67) | **26,65 ms** | **9,878 ns** ✅ |
+| #7 (yalnız `tablo_yuksek`) | 39.191 (%74) | 51.468 (%48) | 137 (%62) | 187 (%67) | 30,34 ms | **10,170 ns** ❌ |
+
+HLS→gerçek oranı **sabit değil**: LUT'ta 0,39× / 0,44× / 0,50×. "HLS'i ikiye
+böl" diye bir kural yok; her varyant ayrı ölçülmelidir.
+
+### #7 elendi — domine ediliyor
+
+#7, #6'nın alt kümesidir (yalnızca `tablo_yuksek` boru hattında). Sezgi daha
+kolay yerleşeceğini söyler; ölçüm tersini dedi. #6 her eksende daha iyi: daha
+az LUT, daha düşük gecikme, zamanlama tutuyor. Yerleştirme-yönlendirme
+**monoton değildir** — daha az talep eden netlist daha iyi yerleşmeyebilir.
+
+### #6 KABUL EDİLMEDİ — marj yetersiz
+
+Gecikme kazancı gerçek: 37,28 → **26,65 ms (−%28,5)**, dört kaynak da bütçede,
+zamanlama tutuyor. Yine de reddedildi. Ölçüt **sayı görülmeden önce** ilan
+edilmişti: *post-route 9,1–9,4 ns ise öner, 9,7+ ise önerme.*
+
+| | post-syn → post-route | Marj |
+|---|---|---:|
+| mevcut | 9,171 → 9,122 (**iyileşti** −0,049) | **+0,878 ns (%8,8)** |
+| #6 | 9,171 → 9,878 (**kötüleşti** +0,707) | **+0,122 ns (%1,2)** |
+
+Üç bağımsız işaret aynı yöne bakıyor:
+
+1. **Marj 7 kat daha az** — %8,8 → %1,2.
+2. **Yönlendirme zamanlamayı bozdu.** Mevcut tasarımda yönlendirme 0,049 ns
+   *iyileştirdi*; #6'da 0,707 ns *kötüleştirdi*. Bu tıkanıklık işaretidir:
+   yönlendirici zamanlamayı tutturmak için uzun yollara mecbur kalmış.
+3. **Koşum 3 kat uzun sürdü** — 13 dk → 37 dk. Vivado zorlandı.
+
+Buna Faz 5 eklenecek: PS entegrasyonu, AXI bağlantısı, olası DMA. Bunlar
+yonga içinde yer ve yol tüketir. 0,122 ns'lik marj o noktada tükenir ve
+tasarım **Faz 5'in ortasında** kırılır — geri dönmenin en pahalı olduğu yerde.
+
+Ayrıca #6 DSP'yi %15 → **%62**, FF'i %18 → **%53** çıkarıyor. Faz 5'in payı
+da azalıyor.
+
+**Karar: mevcut tasarımda kalınır.** Hızlanma iddiası zaten yapılamadığı için
+26,65 ms ile 37,28 ms arasındaki fark bugün hiçbir kabul ölçütünü değiştirmiyor;
+buna karşılık kaybedilen marj Faz 5'i doğrudan riske atıyor.
+
+### #6 ne zaman yeniden açılır
+
+- Faz 5 tamamlanıp **gerçek** PS entegrasyonu sonrası marj ölçülürse ve hâlâ
+  yer varsa,
+- veya saat hedefi 100 MHz'in altına çekilirse (o zaman 9,878 ns bol marj olur),
+- veya gecikme **gerçekten** bir kabul ölçütü hâline gelirse.
+
+Ölçüm burada duruyor; yeniden açan sıfırdan koşmak zorunda değil.

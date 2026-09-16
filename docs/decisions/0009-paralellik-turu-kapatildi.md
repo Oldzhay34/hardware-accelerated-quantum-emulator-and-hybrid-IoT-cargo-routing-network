@@ -67,7 +67,8 @@ BRAM sayısı artmıyor. −%22,6 gecikme, **dört kaynakta da sıfır bedel**.
   doğrudan yanlışlar: sınır bankalama değildi.
 - *II=1 BRAM'e sığmıyor.* Dizi başına 4 port gerekir; ping-pong `sv`'yi
   144 → 288 BRAM yapar, toplam 187/280 zaten dolu (%91,4, SC-002 ihlali).
-- *Tablolar LUT'a sığmıyor* (#6, #7, #8). 256'lık dış döngüyü boru hattına
+- ⚠️ **[2026-09-16'da YANLIŞLANDI — aşağıdaki güncellemeye bak]** *Tablolar
+  LUT'a sığmıyor* (#6, #7, #8). 256'lık dış döngüyü boru hattına
   almak iç döngüleri açmaya **zorluyor** (~100 toplayıcı). #6'nın vaat ettiği
   1,6M çevrim gerçek ama bedeli LUT %182.
 
@@ -106,3 +107,96 @@ Bkz. [faz2-sentez.md](../measurements/faz2-sentez.md) §15.
 **Yeniden açılmayacak olan**: banka sayısını artırmak. `k` derleme zamanı
 sabiti yapılmadıkça fayda vermediği ölçüldü, o yol da ayrıca elenmiş durumda
 ([dead-ends.md](dead-ends.md), `template<int K>` maddesi).
+
+---
+
+# Güncelleme — 2026-09-16 akşamı: implementasyon ölçüldü, GEREKÇENİN BİR AYAĞI ÇÖKTÜ
+
+Bu ADR'nin "Tekrar değerlendirilmeli mi?" bölümündeki **1. koşul tetiklendi**
+("Vivado implementasyonu LUT %84'ü doğrulamazsa"). Doğrulamadı — ama
+**beklenenin tersi yönde**.
+
+## HLS tahmini LUT'ta 2 kata kadar yanılıyor
+
+İlk kez `export_design -flow impl` koşuldu (Vivado sentez + yerleştirme +
+yönlendirme):
+
+| | HLS tahmini | **Vivado P&R** | oran |
+|---|---:|---:|---:|
+| LUT | 45.164 (%84,9) | **22.535 (%42,4)** | 0,50× |
+| FF | 49.839 (%46,8) | **19.466 (%18,3)** | 0,39× |
+| DSP | 36 (%16,4) | 33 (%15,0) | 0,92× |
+| BRAM_18K | 187 (%66,8) | **187 (%66,8)** | 1,00× |
+
+Zamanlama tuttu: post-route **9,122 ns**.
+
+## Bu ADR'nin bir gerekçesi YANLIŞTI
+
+Yukarıdaki **Gerekçe** bölümünde şöyle yazıyor:
+
+> *Tablolar LUT'a sığmıyor (#6, #7, #8) ... Ölçüldü: LUT %182 / %166 / %123.*
+
+Bu yüzdeler **HLS tahminiydi**. #6 ve #7 implementasyona kadar koşuldu:
+
+| | LUT | FF | DSP | Gecikme p=2 | Post-route |
+|---|---:|---:|---:|---:|---:|
+| mevcut | 22.535 (%42) | 19.466 (%18) | 33 (%15) | 37,28 ms | **9,122 ns** ✅ |
+| **#6** | 37.983 (**%71**) | 56.561 (%53) | 137 (%62) | **26,65 ms** | **9,878 ns** ✅ |
+| #7 | 39.191 (%74) | 51.468 (%48) | 137 (%62) | 30,34 ms | **10,170 ns** ❌ |
+
+**İkisi de sığıyor.** "Sığmıyor" gerekçesi geçersizdir ve öyle işaretlenmiştir.
+HLS→gerçek oranı sabit de değil (0,39× / 0,44× / 0,50×), yani "HLS'i ikiye böl"
+diye bir kural çıkarılamaz — her varyant ayrı ölçülmelidir.
+
+## KARAR DEĞİŞMEDİ — ama sebebi değişti
+
+#6 reddedildi. Artık "sığmıyor" diye değil, **zamanlama marjı yetersiz** diye.
+Ölçüt, sayı görülmeden önce ilan edildi: *post-route 9,1–9,4 ns ise öner,
+9,7+ ise önerme.*
+
+| | post-syn → post-route | Marj |
+|---|---|---:|
+| mevcut | 9,171 → 9,122 (**iyileşti**) | **+0,878 ns (%8,8)** |
+| #6 | 9,171 → 9,878 (**kötüleşti** +0,707) | **+0,122 ns (%1,2)** |
+
+Üç bağımsız işaret aynı yöne bakıyor:
+
+1. Marj **7 kat** daha az.
+2. **Yönlendirme zamanlamayı bozdu.** Mevcut tasarımda yönlendirme 0,049 ns
+   iyileştiriyor; #6'da 0,707 ns kötüleştiriyor — tıkanıklık işareti.
+3. Koşum **3 kat** uzun sürdü (13 → 37 dk); Vivado zorlandı.
+
+Faz 5 buna PS entegrasyonu, AXI ve olası DMA ekleyecek. 0,122 ns o noktada
+tükenir ve tasarım **Faz 5'in ortasında** kırılır — geri dönmenin en pahalı
+olduğu yerde. #6 ayrıca DSP'yi %15 → %62, FF'i %18 → %53 çıkarıyor.
+
+Belirleyici olan şu: **hızlanma iddiası zaten yapılamadığı için** 26,65 ms ile
+37,28 ms arasındaki fark bugün hiçbir kabul ölçütünü değiştirmiyor. Ölçülmüş
+bir kazancı, ölçülmüş bir riske tercih etmek için sebep yok.
+
+## #7 elendi — domine ediliyor
+
+#7, #6'nın alt kümesidir (yalnızca `tablo_yuksek` boru hattında) ama her
+eksende ondan kötü: daha çok LUT, daha yüksek gecikme, zamanlama tutmuyor.
+Yerleştirme-yönlendirme **monoton değildir**; daha az talep eden netlist daha
+iyi yerleşmeyebilir. Bu, HLS tahminiyle varyant elemenin neden güvenilmez
+olduğunun ikinci kanıtı.
+
+## Bu ADR'den çıkan kalıcı kural
+
+**Kaynak gerekçesiyle bir varyant elenecekse, gerekçe implementasyondan
+gelmelidir.** HLS tahmini bir varyantı elemeye yetmez; yalnızca hangi
+varyantların ölçülmeye değer olduğunu sıralamaya yarar.
+
+## Yeniden açma koşulları (güncellendi)
+
+1. ~~Vivado implementasyonu LUT %84'ü doğrulamazsa~~ — **tetiklendi ve
+   cevaplandı** (2026-09-16).
+2. Faz 5 tamamlanıp **gerçek** PS entegrasyonu sonrası marj ölçülürse ve hâlâ
+   yer varsa → #6 yeniden değerlendirilir.
+3. Saat hedefi 100 MHz'in altına çekilirse → 9,878 ns bol marj olur.
+4. Gecikme **gerçekten** bir kabul ölçütü hâline gelirse.
+5. Kübit sayısı düşerse veya daha büyük parçaya geçilirse → ping-pong (II=1).
+
+Bütün ölçümler [faz2-sentez.md](../measurements/faz2-sentez.md) §16'da; yeniden
+açan sıfırdan koşmak zorunda değil.

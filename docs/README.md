@@ -2,6 +2,7 @@
 
 | Alt dizin | İçerik | Hangi fazda büyür |
 |---|---|---|
+| **`olculen-degerler.md`** | **tez/makale için tek referans** — bütün ölçülen değerler, deney koşulları, iddia sınırları | Faz 2+ |
 | `decisions/` | ADR'ler (kesinleşmiş kararlar) + `dead-ends.md` (elenen yollar) | 0.7, sürekli |
 | `thesis/` | Tez metni, bölüm bölüm | 12.2 |
 | `figures/` | Ölçüm şekilleri, sentez raporu grafikleri | 12.1, sürekli birikir |
