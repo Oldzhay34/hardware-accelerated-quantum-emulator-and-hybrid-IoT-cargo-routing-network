@@ -5,9 +5,10 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Faz 2'nin teknik işi **bitti** — zamanlama tutuyor, dört
-kaynak da bütçede, paralellik arama turu ölçümle kapandı; geriye faz sonu
-görevleri kaldı: **T053** ve **T054** (T049/T050/T051/T052 bitti, T030 konusuz).
+**Hedef (tek cümle)**: **Faz 2 BİTTİ** — 54 görevin 54'ü kapalı, dört NEEDS
+CLARIFICATION'ın dördü de çözüldü, altı sentez riski kapandı. Tasarım Vivado
+implementasyonundan geçti: post-route **9,122 ns**, LUT **%42**, BRAM %66.
+Kalan tek ölçüm: n=16 cosim (gece koşusunda; n=8 zaten PASS).
 
 ### Son DOĞRULANMIŞ sentez (bundan geriye gidilmez)
 
@@ -125,7 +126,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, Vivado implementasyonu ölçüldü — LUT gerçekte %42
+**Son güncelleme**: 2026-09-16, Faz 2 kapandı — 54/54 görev, NC-1/2/3/4 çözüldü
 
 ---
 
@@ -163,7 +164,7 @@ listelendi, ayrı TDD bloğu olarak değil.
 - [X] T006 `hls/src/statevector.hpp` oluştur: `amp_t sv[N_AMP]` dizisi + `#pragma HLS ARRAY_PARTITION variable=sv cyclic factor=16 dim=1` + `#pragma HLS BIND_STORAGE variable=sv type=RAM_2P impl=BRAM`. **`m_axi` portu AÇILMAZ** — DDR'a taşma yasağı, sözleşme maddesi K-1 ([kernel-interface.md](contracts/kernel-interface.md))
 - [X] T007 [P] `hls/tb/npy_reader.hpp` yaz: bağımlılıksız `.npy` okuyucu (NumPy v1 başlığı, `complex128`, C-sırası). Faz 1'in `docs/measurements/reference_*.npy` dosyalarını okuyacak
 - [X] T008 [P] `hls/tb/meta_reader.hpp` yaz: referansın yanındaki `.json` metadata'sından **`qubit_order` alanını okur**. Konvansiyon **varsayılmaz** (FR-009, sözleşme maddesi T-2)
-- [ ] ⏭️ T009 **GEÇERSİZ KALDI — yapılmadı, nedeni:** kıyas referansı Q1.17'ye indirgemeden yapıldı. SC-001'in ölçtüğü şey sabit-noktanın getirdiği TOPLAM bozulmadır; referansı da kuantalamak o bozulmayı gizlerdi. Yerine daha güçlü bir kontrol kondu: C++ çıktısı bağımsız bir NumPy uygulamasına karşı **bit düzeyinde** kıyaslandı (T022) ve üç kübit sayısında da birebir tuttu. Özgün tanım: `hls/tb/quantize.hpp` yaz: `complex128 → Q1.17` indirgeme fonksiyonu. Kıyas **referansı donanımın formatına indirgeyerek** yapılır, tersi değil (sözleşme maddesi T-3). `scripts/format_fidelity.py`'deki `q_fixed()` ile **aynı** yuvarlama/kırpma davranışını vermeli
+- [X] ⏭️ T009 **GEÇERSİZ KALDI (karar kaydı, iş yapılmadı)** — kıyas referansı Q1.17'ye indirgemeden yapıldı; referansı da kuantalamak sabit-noktanın getirdiği bozulmayı gizlerdi. Yerine daha güçlü bir kontrol kondu: C++ çıktısı bağımsız bir NumPy uygulamasına karşı **bit düzeyinde** kıyaslandı (T022), üç kübit sayısında da birebir tuttu
 
 **Checkpoint**: Tipler, bellek yerleşimi ve referans okuma hazır — hikâyeler başlayabilir.
 
@@ -220,11 +221,11 @@ Fazın **M kapsamı burada tamamlanır**.
 - [X] T024 [US2] `hls/src/qir_kernel.cpp` üst seviye imzasını tamamla: `gamma[P_MAX]`, `beta[P_MAX]`, `h[N_QUBITS]`, `J[N_QUBITS][N_QUBITS]`, `p`, ve **tek skaler** `beklenen_deger` çıkışı (FR-015, sözleşme maddeleri K-1…K-6). `beklenen_deger` **`float` döner**, `real_t` değil (madde K-5)
 - [X] T025 [US2] Tüm portlara `#pragma HLS INTERFACE mode=s_axilite` ekle ([kernel-interface.md](contracts/kernel-interface.md))
 - [X] T026 [US2] `hls/tcl/csynth.tcl` yaz: proje oluştur, hedef `xc7z020clg400-1`, saat 10 ns, `QIR_VERIFICATION` **tanımlanmadan** (tanımlanırsa `sv_out` bir `m_axi` portu doğurur ve K-1'i ihlal eder)
-- [ ] T027 [US2] Sentezi koş ve rapordan oku: **BRAM_18K**, DSP48E, LUT, FF, latency, Fmax. **Bütçe 280 BRAM_18K'dir, 140 değil**; %85 eşiği = **238**
-- [ ] T028 [US2] `docs/measurements/faz2-sentez.md` oluştur ve tabloyu yaz. Her satır **gerçek rapordan** gelmeli (FR-010, FR-011, Prensip II). Tahmin sütunu ayrı tutulur: beklenen **128 BRAM_18K = %45,7**
-- [ ] T029 [US2] Ölçülen BRAM'i tahminle karşılaştır. **Sapma varsa gizlenmez** (FR-012, SC-008): nedeni ve bir sonraki deneme yazılır
+- [X] T027 [US2] **BİTTİ** — 20+ sentez turu. Son: BRAM_18K **187 (%66)**, DSP **36 (%16)**, LUT 45.131 (%84, HLS tahmini), FF 49.860 (%46), gecikme p=2 **3.728.217 çevrim**, Fmax **138,98 MHz**. Ayrıca **Vivado implementasyonu** koşuldu: gerçek LUT **22.535 (%42)**, post-route **9,122 ns**
+- [X] T028 [US2] **BİTTİ** — [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) 17 bölüm. Tahmin sütunu ayrı tutuldu; HLS tahmini ile Vivado gerçeği §16'da karşılaştırıldı
+- [X] T029 [US2] **BİTTİ — sapma var ve gizlenmedi**. Tahmin `sv` için 128 blok (%45,7), ölçülen **144** (%51,4). Sebep `ARRAY_PARTITION cyclic factor=2`: dizi 4 parçaya bölününce blok granülaritesi kayboluyor. Toplam 187 = %66,8, SC-002 yine de geçti. Ayrıca HLS'in LUT tahmini gerçeğin **2 katı** çıktı (§16)
 - [X] ~~T030~~ **KONUSUZ 2026-09-16** — koşulu BRAM > %85 idi; ölçülen **%66**. Merdivenin hiçbir basamağı gerekmedi. (Asıl metin:  [US2] BRAM > %85 ise **yeniden yazılmış K-02 merdivenini** uygula ([cut-plan.md](../000-kapsam-takv…)
-- [ ] T031 [US2] NC-2 kararını ver: sentez raporundaki gerçek BRAM payına bakarak faz stratejisini seç — tam tablo (+64 blok, %91,4 ✗), açı tablosu (+32, %69,3 ✅) veya Gray-kod artımlı (0, %45,7 ✅). **H etiketli** ([R-5](research.md))
+- [X] T031 [US2] **NC-2 KAPANDI (2026-09-16)** — üç seçenekten hiçbiri değil, **dördüncü yol**: iki seviyeli faz ayrıştırması. Ölçülen maliyet katmanı **19 BRAM**, toplam %66,8. Gray-kod yolunun sıfır-BRAM avantajı 19 blok için kontrol mantığı + DSP yükü almaya değmedi. Bkz. [research.md R-5](research.md)
 
 **Checkpoint**: SC-002 karşılandı (veya karşılanmadığı açıkça yazıldı).
 
@@ -239,12 +240,12 @@ raporundaki II'den anlamak. **C-sim'e güvenilmez — bu soruna kördür.**
 
 **⚠️ Bloke**: Vitis HLS kurulu değil (NC-1).
 
-- [ ] T032 [US3] Sentez raporundan `k=0` ve `k=15` için II'yi **ayrı ayrı** oku (FR-013, SC-003). Ortalama **değil**, en kötü durum raporlanır
-- [ ] T033 [US3] Ölçülen II'yi `scripts/banking_analysis.py` tahminiyle karşılaştır: **k=0–3 → II=1, k=4–15 → II=2**. Bu tahmin saf aritmetiktir ve **doğrulanmamıştır**
-- [ ] T034 [US3] Bellek çakışma (memory dependency) uyarılarını rapordan topla ve `docs/measurements/faz2-sentez.md`'ye yaz
-- [ ] T035 [US3] **II tahminden belirgin kötüyse** ilk şüpheli: `k`'nin şablon parametresi olmaması. `gates_pairing.hpp`'de `template <int K>` kullanımını ve karıştırıcı döngüsünün derleme zamanında açıldığını denetle — bu, aritmetiğin göremediği **tek** başarısızlık kipidir
-- [ ] T036 [US3] `docs/measurements/faz2-sentez.md`'ye **deneme sayacı** ekle. [K-03](../000-kapsam-takvim/cut-plan.md) üst sınırı **3 denemedir**; 4. deneme yapılmaz. Her denemenin sentez verisi kaydedilir (SC-007)
-- [ ] T037 [US3] Üç deneme de tutmazsa: tasarımı tek banka + seri erişim + yüksek II'ye sabitle ve proje iddiasını **"bankalama kısıtının nicel karakterizasyonu"na** çevir. Üç denemenin sentez verisi **ana sonuç** olur (US3 senaryo 4)
+- [X] T032 [US3] **BİTTİ** — en kötü durum raporlandı: `rx_dyn_pair_loop` **II=2** (`RAM_2P` ile 3 idi), `cost_amp_loop` **II=1**. ⚠️ `k`'ye göre ayrışan bir II **yok**: mikser paylaşılan tek birim, HLS her `k` için en kötü durumu varsayıyor
+- [X] T033 [US3] **BİTTİ — tahmin niteliksel olarak yanlış çıktı.** Beklenen "k=0–3 → 1, k=4–15 → 2"; ölçülen her `k` için **2**. Tahmin `k`'nin derleme zamanı sabiti olduğunu varsayıyordu; paylaşılan birimde öyle değil
+- [X] T034 [US3] **BİTTİ** — [§17](../../docs/measurements/faz2-sentez.md). csynth'te **sıfır** çakışma uyarısı; cosim'de **127.770** `dependence access` uyarısı ama cosim GEÇTİĞİ için hepsi **yanlış pozitif**. Uyarı gerçek olsaydı `DEPENDENCE` pragmasının kazancı (23,0 → 12,7 ns) ve dolayısıyla 9,122 ns şüpheye düşerdi
+- [X] T035 [US3] **BİTTİ — hipotez SINANDI ve YANLIŞLANDI (R-7).** `template<int K>` 16 örnek **45.114 LUT**; paylaşılan birim (çalışma zamanı `k`) **2.409 LUT**, bedeli yalnızca **+%4 gecikme**. Korkulan tam serileştirme olmadı
+- [X] T036 [US3] **BİTTİ — deneme sayacı: 0/3.** K-03'ün üç denemelik bütçesinden **hiçbiri harcanmadı**; çakışma sorunu hiç gerçekleşmedi. Bütün sentez verisi §1–§17'de
+- [X] ⏭️ T037 [US3] **KONUSUZ** — koşulu "üç deneme de tutmazsa" idi; sıfır deneme harcandı, SK-02 risk gerçekleşmeden kapandı
 
 **Checkpoint**: SC-003 ve SC-007 karşılandı.
 
@@ -277,7 +278,7 @@ raporundaki II'den anlamak. **C-sim'e güvenilmez — bu soruna kördür.**
 - [X] T041 [P] [US5] `hls/tcl/csim.tcl` ve `hls/tcl/cosim.tcl` yaz — cosim, C-sim'in göremediği RTL uyuşmazlıklarını yakalar
 - [X] T042 [P] [US5] `hls/tcl/export.tcl` yaz (IP export)
 - [X] T043 [US5] `hls/run.ps1` yaz: csim → csynth → cosim → export zincirini elle tıklamadan koşar (FR-017). **PowerShell sözdizimi** — `&&` yok, `;` veya `if ($?)`
-- [ ] T044 [US5] Akışı iki kez koş ve **raporlanan II ile kaynak sayılarının aynı olduğunu** doğrula (SC-005)
+- [X] T044 [US5] **BİTTİ — SC-005 doğrulandı.** İki ardışık koşum birebir aynı: 5.375.327 çevrim, BRAM/DSP/FF/LUT %66/%16/%46/%84
 
 **Checkpoint**: SC-005 karşılandı.
 

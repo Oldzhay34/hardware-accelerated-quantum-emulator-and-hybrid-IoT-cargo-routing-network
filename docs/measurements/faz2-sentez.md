@@ -879,3 +879,64 @@ buna karşılık kaybedilen marj Faz 5'i doğrudan riske atıyor.
 - veya gecikme **gerçekten** bir kabul ölçütü hâline gelirse.
 
 Ölçüm burada duruyor; yeniden açan sıfırdan koşmak zorunda değil.
+
+---
+
+# 17. Bellek çakışma uyarıları — T034 (2026-09-16)
+
+SK-02'nin erken uyarı işareti şuydu: *"İlk sentez raporunda II beklenenin 5
+katından büyük **ve** bellek çakışma (memory dependency) uyarısı var."*
+İki kaynaktan da toplandı ve sonuç **ilk bakışta çelişkili**.
+
+## Sentez (csynth): SIFIR çakışma uyarısı
+
+Yirmiden fazla sentez turunda `SCHED 204-68` / `dependence` sınıfı tek bir
+uyarı çıkmadı. `SYNCHK` her turda `0 error(s), 1 warning(s)` verdi ve o tek
+uyarı `qir_kernel.cpp:69-70`'teki **çift yazılmış** `PIPELINE off` pragmasıydı
+(HLS ikisini birleştiriyor, davranışa etkisi yok).
+
+II tarafı da eşiğin çok altında: beklenen 1–2, ölçülen `cost_amp_loop` **1**,
+`rx_dyn_pair_loop` **2**. "5 katı" eşiğine yaklaşılmadı.
+
+## Cosim (xsim): 127.770 uyarı — ve hepsi YANLIŞ POZİTİF
+
+RTL simülasyonu tam tersini bastı:
+
+```
+Critical WARNING: Due to pragma (hls/src/gates_pairing.hpp:137:1),
+dependence access (loop distance = 1) is detected in ...rx_dyn_pair_loop
+  From memory access "..._co_3_address0" = 0x677b @ "8235720000"
+  To   memory access "..._co_3_address0" = ... 0x677b @ "8235650000"
+If cosim fails, the WARNING should be checked.
+```
+
+n=16 koşusunda **127.770 blok** (log 87 MB), n=8'de benzer yoğunlukta.
+Satır 137, zamanlamayı tutturan pragmadır:
+
+```cpp
+#pragma HLS DEPENDENCE variable = sv type = inter dependent = false
+```
+
+**Cosim GEÇTİ** (n=8, `C/RTL co-simulation finished: PASS`, fidelity
+0,999999871). Uyarının kendi metni de ölçütü veriyordu: *"If cosim fails, the
+WARNING should be checked."* Kalmadı → uyarılar yanlış pozitif.
+
+**Sebebi**: kontrolcü, yerinde güncellemenin **aynı yineleme içindeki**
+oku-sonra-yaz çiftini yinelemeler arası bağımlılık sanıyor. Farklı `j`
+değerleri gerçekten farklı çiftlere dokunur:
+`i0 = (j >> k << (k+1)) | (j & (stride-1))`, `i1 = i0 | stride` — `j` birebir
+bir eşlemedir, iki yineleme aynı adrese dokunamaz.
+
+⚠️ **Bu, bedava bir sonuç değildi.** Uyarı gerçek olsaydı Tur 13'ün
+23,016 → 12,697 ns kazancı ve dolayısıyla 7,195 ns'nin tamamı — ve nihayetinde
+post-route 9,122 ns — şüpheye düşerdi. Pragmanın sağlamlığını **yalnızca**
+cosim kanıtlayabilirdi; C-sim bu soruyu hiç göremez.
+
+## SK-02 açısından sonuç
+
+Erken uyarı işaretinin iki koşulu da **gerçekleşmedi**: ne II eşiği aşıldı, ne
+sentezde çakışma uyarısı çıktı. K-03'ün üç denemelik bütçesinden **sıfır**
+harcandı. Bkz. [risk-register.md](../risk-register.md).
+
+Ancak SK-02'nin *varsayımı* ayrıca yanlışlandı: çakışma bankalama ile
+çözülmüyordu, çünkü sınır bankalama değil **bellek portuydu** (§13, ADR 0009).

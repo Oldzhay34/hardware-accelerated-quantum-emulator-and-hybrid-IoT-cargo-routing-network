@@ -121,12 +121,46 @@ olarak aritmetiği artırmaz).
 
 ---
 
-## R-5: Faz hesaplama stratejisi — AÇIK (NC-2, H etiketli)
+## R-5: Faz hesaplama stratejisi — ✅ KAPALI (NC-2, 2026-09-16)
 
-**Decision**: **Ertelendi.** Sentez raporundaki gerçek BRAM payı görülmeden seçilmeyecek.
+**Karar (2026-09-16, ölçümle)**: üç yoldan **hiçbiri** seçilmedi. Uygulama
+**dördüncü bir yol** izledi ve soruyu konusuz bıraktı: **iki seviyeli faz
+ayrıştırması**.
 
-**Rationale**: Füzyonlanmış köşegen katman, her `i` indeksi için toplam fazı gerektirir.
-Üç yol var ve aralarındaki fark tam olarak BRAM'dir:
+    acc(i) = FL[low8] + FH[high8] + Σ_{a∈L} s_a · D_a[high8]
+
+Çapraz terimler çarpanlarına ayrıldığı için 136 terim ~10'a düşer ve tablolar
+16 bitlik indeks yerine **256 girdilik** olur. Tablolar katman başına bir kez
+kurulur, genlik başına değil.
+
+**Ölçülen BRAM** (`qir_kernel_csynth.rpt`, 2026-09-16):
+
+| Bileşen | BRAM_18K |
+|---|---:|
+| `sv` statevector (4 dizi × 32.768 × 18 bit) | **144** |
+| `apply_cost_layer` (FL + FH + D + trig LUT) | **19** |
+| `expectation_scaled` (EL + EH) | 20 |
+| `control_s_axi` (AXI-Lite) | 4 |
+| **Toplam** | **187 / 280 = %66,8** ✅ SC-002 |
+
+Yani faz tablolarının gerçek bedeli **19 blok** — R-5'in "yalnızca açı tablosu"
+seçeneğine (+33) yakın ama ondan ucuz, "tam tablo"dan (+64) çok ucuz. Gray-kod
+yolunun sıfır BRAM avantajı, 19 blok için kontrol mantığı ve DSP yükü almaya
+değmedi.
+
+⚠️ **Aritmetik tahmin statevector'de de şaştı**: R-5 tablosu `sv` için 128 blok
+(%45,7) diyordu, ölçülen **144** (%51,4). Sebep `ARRAY_PARTITION cyclic
+factor=2`: dizi 4 parçaya bölününce (2 banka × re/im) blok granülaritesi
+kayboluyor. Tahmin, bankalamanın blok sayısını değiştirdiğini hesaba katmıyordu
+— `memory_budget.py` bunu zaten uyarıyordu (*"kesin sayı yalnızca sentez
+raporundan okunur"*).
+
+**NC-2 KAPANDI.** Ayrıntı: [olculen-degerler.md](../../docs/olculen-degerler.md) §3.
+
+<!-- Aşağısı kararın verildiği andaki özgün gerekçedir; tarihsel kayıttır. -->
+
+**Ertelenme gerekçesi (2026-09-14)**: Füzyonlanmış köşegen katman, her `i` indeksi için
+toplam fazı gerektirir. Üç yol var ve aralarındaki fark tam olarak BRAM'dir:
 
 | Yol | Ek BRAM | Toplam (statevector + bu) | SC-002 |
 |---|---:|---:|:---:|
@@ -219,7 +253,7 @@ Ayrıca iki **dürüstlük uyarısı** Faz 10 için kaydedildi:
 
 | # | Durum |
 |---|---|
-| NC-1 (Vitis HLS yok) | ⏳ **Açık** — araçla çözülür, tasarımla değil. Kod yazımını durdurmaz (Prensip V); SC-002/003/005'i doğrulanmamış bırakır |
-| NC-2 (faz stratejisi) | ⏳ **Bilinçli ertelendi** → R-5, H etiketli, sentez raporuna bağlı |
+| NC-1 (Vitis HLS yok) | ✅ **Çözüldü (2026-09-16)** — Vitis 2025.2 WSL/Ubuntu'da kurulu; csim, csynth, cosim ve implementasyon uçtan uca koştu. SC-002/003/005 doğrulandı |
+| NC-2 (faz stratejisi) | ✅ **Çözüldü (2026-09-16)** → R-5. Üç seçenekten hiçbiri değil: iki seviyeli ayrıştırma, ölçülen **19 BRAM**, toplam %66,8 |
 | NC-3 (genellik) | ✅ **Çözüldü** → R-7, QAOA'ya özel |
-| NC-4 (Fmax) | ⏳ **Açık** — 100 MHz bir **varsayımdır**; tüm süre tahminleri bu varsayıma bağlıdır ve sentez raporu gelince yeniden hesaplanacaktır |
+| NC-4 (Fmax) | ✅ **Çözüldü (2026-09-16)** — 100 MHz artık varsayım değil: Vivado **post-route 9,122 ns**, zamanlama tuttu (%8,8 marj) |
