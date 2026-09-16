@@ -58,7 +58,20 @@ gcc --version
 .specify\scripts\powershell\resolve-template.ps1 <template-name> -Json
 ```
 
-Derleme/sentez/test komutları ilgili faz kurulduğunda buraya eklenecek (şu an `hls/`, `services/` boş).
+```bash
+# C-sim doğrulaması — Vitis ve kart GEREKMEZ (Prensip V)
+wsl -d Ubuntu -e bash hls/build_and_run.sh
+
+# Sentez / implementasyon / cosim (Vitis, WSL)
+wsl -d Ubuntu -e bash hls/run.sh csynth
+wsl -d Ubuntu -e bash hls/run.sh impl
+QIR_N=8 wsl -d Ubuntu -e bash hls/run.sh cosim
+
+# Fidelity regresyon kapısı (CI'ın koştuğu kontrol)
+python scripts/ci_fidelity_gate.py "docs/measurements/csim-fidelity_*.json"
+```
+
+**Donanımsız CI** (`.github/workflows/csim-regression.yml`, kapsam **M**): her push'ta C-sim'i n=8/12/16 için koşar ve fidelity'yi [baseline-fidelity.json](docs/measurements/baseline-fidelity.json)'a karşı denetler. ⚠️ Testbench yalnızca **M eşiğinde** (0,99) başarısız olur; asıl regresyon kapısı `ci_fidelity_gate.py`'dir (tolerans 1e-7).
 
 **Tez/makale yazarken tek referans**: [docs/olculen-degerler.md](docs/olculen-degerler.md) — bütün ölçülen değerler, deney koşulları, ne iddia edilebilir/edilemez, ve yanlışlanan hipotezler.
 

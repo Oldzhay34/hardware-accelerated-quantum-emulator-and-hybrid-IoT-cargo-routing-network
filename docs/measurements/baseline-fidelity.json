@@ -1,0 +1,14 @@
+{
+  "_aciklama": "CI regresyon kapisi icin REFERANS DEGERLER. Bu dosya elle degil, olculmus sonuclardan doldurulur. Bir deger degisecekse once NEDEN degistigi aciklanmali (Prensip II).",
+  "_olculdu": "2026-09-16",
+  "_git_hash": "8450beb",
+  "_arac": "g++ (QIR_NO_VITIS mock ap_fixed) -- Vitis ile bit duzeyinde ayni oldugu T040'ta dogrulandi",
+  "_tolerans": 1e-7,
+  "_tolerans_gerekcesi": "Cekirdek sabit-nokta (tamsayi) aritmetigi kullanir, yani cikti platformdan bagimsiz olarak BIREBIR ayni olmalidir. Tolerans yalnizca fidelity hesabindaki double aritmetiginin son bitleri icindir. Gercek bir regresyon en az 1e-5 mertebesinde sapma yaratir.",
+  "durumlar": [
+    { "n": 16, "p": 2, "referans": "reference_*_p2_n5", "fidelity": 0.999978179 },
+    { "n": 16, "p": 1, "referans": "reference_*_p1_n5", "fidelity": 0.999989167 },
+    { "n": 12, "p": 2, "referans": "synthref_*_p2_n12", "fidelity": 0.999998860 },
+    { "n": 8,  "p": 2, "referans": "synthref_*_p2_n8",  "fidelity": 0.999999871 }
+  ]
+}

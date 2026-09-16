@@ -1,0 +1,76 @@
+# 11.5 — DONANIMSIZ CI (kapsam etiketi M)
+#
+# Anayasa Prensip V'i fiilen uygulayan tek mekanizma: kart da Vitis HLS de
+# GEREKMEZ. Cekirdek standart g++ ile derlenir (QIR_NO_VITIS -> mock ap_fixed)
+# ve Qiskit altin referansina karsi kosulur.
+#
+# NEDEN mock ap_fixed guvenilir: T040'ta gercek ap_fixed ile BIT DUZEYINDE
+# ayni sonucu verdigi dogrulandi. Yine de bu bir esdegerlik IDDIASIDIR ve
+# CI onu sinayamaz -- Vitis gerektirir. Vitis tarafi elle kosulur
+# (hls/run.sh csim).
+#
+# NEDEN AYRI BIR FIDELITY KAPISI: testbench `return gecti_M ? 0 : 1` yapar,
+# yani yalnizca M esiginde (0,99) basarisiz olur. Olculen degerler 0,99997
+# mertebesinde; fidelity 0,995'e cokse testbench "gecti" derdi ve regresyon
+# sessizce gecerdi. ci_fidelity_gate.py referans degerlerle karsilastirir.
+
+name: csim-regression
+
+on:
+  push:
+    paths:
+      - 'hls/**'
+      - 'scripts/ci_fidelity_gate.py'
+      - 'docs/measurements/baseline-fidelity.json'
+      - '.github/workflows/csim-regression.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  csim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derleyici surumu (kayit icin)
+        run: g++ --version
+
+      - name: Altin referanslarin varligini dogrula
+        run: |
+          set -e
+          for k in 'reference_*_p2_n5.npy' 'reference_*_p1_n5.npy' \
+                   'synthref_*_p2_n8.npy' 'synthref_*_p2_n12.npy'; do
+            if ! ls docs/measurements/$k >/dev/null 2>&1; then
+              echo "HATA: altin referans eksik: $k"
+              echo "Dogrulama referanssiz yapilamaz (Anayasa Prensip IV)."
+              exit 1
+            fi
+          done
+          echo "dort referans da yerinde"
+
+      - name: C-sim — n = 8, 12, 16
+        # TEMIZ dizine yazar: docs/measurements altinda commit edilmis eski
+        # olcum dosyalari var ve glob siralamasinda onlar kazanabilir --
+        # kapi o zaman TAZE sonuca degil eskisine bakar ve regresyonu kacirir.
+        env:
+          QIR_OUT_DIR: ci-olcumler
+        run: bash hls/build_and_run.sh
+
+      - name: Taze olcum sayisini dogrula
+        run: |
+          n=$(ls ci-olcumler/csim-fidelity_*.json 2>/dev/null | wc -l)
+          echo "taze olcum dosyasi: $n"
+          test "$n" -eq 4 || { echo "HATA: 4 olcum bekleniyordu, $n bulundu"; exit 1; }
+
+      - name: Fidelity regresyon kapisi
+        run: python3 scripts/ci_fidelity_gate.py "ci-olcumler/csim-fidelity_*.json"
+
+      - name: Olcum ciktilarini sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csim-olcumleri
+          path: |
+            ci-olcumler/csim-fidelity_*.json
+            hls/build/csim_*.npy
+          retention-days: 30

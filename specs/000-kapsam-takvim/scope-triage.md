@@ -100,7 +100,7 @@ Her iki cümle de savunulabilir. B, dürüst bir mühendislik sonucudur — "ba�
 | 8 | API Gateway, Güvenlik Katmanı ve React | **H** | Panelin ayakta durması için minimum gateway gerekir, gerisi İ. |
 | 9 | Mühendis Paneli: Süreç Şeffaflığı, IDE Köprüsü | **İ** | Tamamen anlatı/konfor katmanı; kesilmesi hiçbir ölçümü etkilemez. |
 | 10 | Karşılaştırma Paneli ve Klasik Referans Çözücü | **M** | Kıyas ekseninin ta kendisi; bu olmadan "hızlandırma" iddiası ölçülemez. |
-| 11 | Katmanlı Test Stratejisi ve CI/CD | **H** | Yalnızca 11.5 (donanımsız CI) M — Prensip V'i fiilen uygulayan tek mekanizma. |
+| 11 | Katmanlı Test Stratejisi ve CI/CD | **H** | Yalnızca 11.5 (donanımsız CI) M — Prensip V'i fiilen uygulayan tek mekanizma. ✅ **11.5 YAPILDI 2026-09-16** (`.github/workflows/csim-regression.yml` + `scripts/ci_fidelity_gate.py`); gerisi hâlâ H. |
 | 12 | Teslimatlar: Tez, Sunum, Poster, Video | **M** | Tez teslim edilmezse ortada bitirme projesi yoktur. |
 | 13 | Kenar Güvenliği: Tünel, WAF, Turnstile, CDN | **İ** | Akademik değerlendirmede sıfır ağırlık; operasyonel süs. |
 | 14 | Gözlemlenebilirlik: Prometheus, Grafana | **İ** | Ölçüm dürüstlüğü Faz 10.3 protokolüyle sağlanır, Grafana ile değil. |

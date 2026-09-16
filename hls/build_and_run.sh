@@ -18,6 +18,14 @@ BUILD="hls/build"
 mkdir -p "$BUILD"
 GIT_HASH="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
+# Cikti dizini QIR_OUT_DIR ile degistirilebilir.
+# NEDEN: CI regresyon kapisi TAZE olcumlere bakmak zorunda. Varsayilan
+# docs/measurements altinda commit edilmis ESKI olcum dosyalari da var ve
+# glob siralamasinda onlar kazanabiliyor -- kapi o zaman regresyonu
+# gormeden gecer. CI temiz bir dizine yazar ve yalnizca onu denetler.
+OUT_DIR="${QIR_OUT_DIR:-docs/measurements}"
+mkdir -p "$OUT_DIR"
+
 derle_ve_kos() {
     local n="$1" ref="$2" etiket="$3"
     local exe="$BUILD/tb_kernel_n$n"
@@ -26,7 +34,7 @@ derle_ve_kos() {
         -Ihls/src -Ihls/tb hls/tb/tb_kernel.cpp hls/tb/qir_kernel_debug.cpp \
         hls/src/qir_kernel.cpp -o "$exe"
     "$exe" --reference "$ref" --git-hash "$GIT_HASH" --n "$n" \
-           --dump "$BUILD/csim_n${n}.npy"
+           --out-dir "$OUT_DIR" --dump "$BUILD/csim_n${n}.npy"
     echo
 }
 
@@ -36,7 +44,7 @@ son() { ls -1t $1 2>/dev/null | head -1; }
 derle_ve_kos 16 "$(son 'docs/measurements/reference_*_p2_n5.npy')" "TSP, p=2"
 R1="$(son 'docs/measurements/reference_*_p1_n5.npy')"
 "$BUILD/tb_kernel_n16" --reference "$R1" --git-hash "$GIT_HASH" --n 16 \
-    --dump "$BUILD/csim_n16_p1.npy"
+    --out-dir "$OUT_DIR" --dump "$BUILD/csim_n16_p1.npy"
 echo
 
 # n=8, 12: sentetik referanslar — kübit sayısının parametrik olduğunu kanıtlar

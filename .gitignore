@@ -67,3 +67,4 @@ qir_hls_prj*/
 
 # Vitis HLS'in depo kokune biraktigi artik
 dfx_runtime.txt
+ci-olcumler/
