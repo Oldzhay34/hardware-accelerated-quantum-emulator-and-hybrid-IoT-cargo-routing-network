@@ -127,6 +127,14 @@ inline void apply_rx_dyn(amp_t sv[N_AMP], int k, real_t cos_half, real_t sin_hal
 rx_dyn_pair_loop:
     for (int j = 0; j < N_PAIR; ++j) {
 #pragma HLS PIPELINE II = 1
+        // Farkli j degerleri FARKLI ciftlere dokunur; yinelemeler arasinda
+        // gercek bir bagimlilik YOKTUR. HLS bunu kanitlayamadigi icin
+        // oku-degistir-yaz zincirini tek kombinasyonel parcada tutuyordu:
+        //   "Cannot meet target clock period from 'load' ... to 'store'
+        //    (combination delay: 24.0859 ns) to honor II or Latency constraint"
+        // Bu pragma bagimsizligi BILDIRIR, boylece HLS load ile store arasina
+        // kayit koyabilir.
+#pragma HLS DEPENDENCE variable = sv type = inter dependent = false
         const int dusuk = j & (stride - 1);
         const int yuksek = j >> k;
         const int i0 = (yuksek << (k + 1)) | dusuk;

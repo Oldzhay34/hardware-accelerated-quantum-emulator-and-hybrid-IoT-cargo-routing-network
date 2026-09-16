@@ -285,3 +285,43 @@ uygulanıp yeniden sentezlenmezse K-02 merdiveni devreye girer.
 
 ⚠️ **Bu risk kapanmadan hiçbir hızlanma iddiası yapılamaz.** Daha önce hesaplanan
 "~24× hızlanma" **geçersizdir**.
+
+---
+
+## SK-05 GERÇEKLEŞTİ — Vitis engellendi (2026-09-16)
+
+**Belirti**:
+```
+vitis-run.bat : 'D:\Xilinx\2025.2\Vitis\bin\unwrapped\win64.o\vitis-run.exe'
+was blocked by your organization's Device Guard policy.
+```
+
+**Doğrulanan üç şey**:
+- Engel tutarlı (art arda iki deneme, aynı sonuç)
+- Smart App Control hâlâ açık (`VerifiedAndReputablePolicyState = 1`)
+- `vitis-run.exe` **imzasız** (`Get-AuthenticodeSignature` → `NotSigned`) —
+  AMD bu ikiliyi imzalamamış
+
+**Zamanlama tuhaf ve öğretici**: aynı komut **15 sentez turu** boyunca sorunsuz
+koştu, sonra engellendi. SAC itibar tabanlı çalışır ve kararı zamanla değişir.
+Yani "bir kez çalıştı" güvence değildir.
+
+SK-05 kaydında *"Vitis'in kendi C-sim akışı da aynı duvara çarpabilir"* yazıyordu.
+Çarptı — ama `csim` adımında değil, **`vitis-run`'ın kendisinde**. Yani öngörü
+doğru, ayrıntı yanlıştı: sorun kullanıcı kodundan üretilen ikili değil, AMD'nin
+imzasız aracıydı.
+
+**Kaybedilmeyen**: son başarılı sentez sonucu kayıtlı (9.801.215 çevrim,
+7,195 ns, dört kaynak da bütçede). Engellenen yalnızca **yeni** sentez.
+
+**Seçenekler** (karar Olcay'ın, hiçbiri tek taraflı uygulanmadı):
+
+| | Yol | Artısı | Eksisi |
+|---|---|---|---|
+| 1 | Smart App Control'ü kapat | Anında çözer | **GERİ ALINAMAZ** — yeniden açmak Windows temiz kurulumu ister. Kalıcı güvenlik zayıflatması |
+| 2 | Vitis'i WSL/Ubuntu'ya kur | Hiçbir güvenlik ayarı değişmez; AMD Ubuntu'yu resmen destekler; C-sim zaten WSL'de | ~40 GB yeniden indirme/kurulum; WSL diski C:'de (46 GB boş, dar) — muhtemelen D:'ye taşımak gerekir |
+| 3 | Beklemek | Bedava | SAC itibarı geri dönebilir ama **garantisi yok** |
+
+**Etki**: Faz 2'nin kalan işi (paralellik turu) sentez gerektiriyor. C-sim
+doğrulaması WSL'de çalışmaya devam ediyor, yani **SC-001 etkilenmiyor**;
+etkilenen SC-002/SC-003'ün yeniden ölçülmesi.

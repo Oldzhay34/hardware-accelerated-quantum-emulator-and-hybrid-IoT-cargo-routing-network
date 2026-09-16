@@ -2,7 +2,7 @@
 
 **Amaç**: Faz 2'nin sentez ölçütlerini ([002 spec](../../specs/002-fpga-statevector-cekirdegi/spec.md) SC-002, SC-003, SC-005) doğrulanabilir hale getirmek.
 **İlgili risk**: [SK-04](../risk-register.md) — *"Vitis HLS kurulum/lisans sorunu"*, karar tarihi **H1 sonu (20 Eylül)**, etki **Yüksek**.
-**Durum**: 🔴 Kurulu değil. Bu runbook, kurulumu **kullanıcının** yapması için hazırlandı — indirme AMD hesabı gerektirdiğinden otomatikleştirilemez.
+**Durum**: 🟡 Windows kurulumu YAPILDI ama **Device Guard engelliyor** (SK-05); kurulum **WSL/Ubuntu'ya taşındı** — bkz. en alttaki *WSL kurulumu* bölümü. Aşağıdaki Windows bölümleri **tarihsel kayıt** olarak duruyor.
 
 ---
 
@@ -114,8 +114,10 @@ akışlarını **eşit etkilemez** — hangi adımın etkilendiği önemli:
 > ([faz2-csim.md](../measurements/faz2-csim.md)). Yalnızca `cosim`/SC-005 (US5,
 > P3 öncelikli) etkilenir.
 >
-> Bu yüzden **kurulum Windows'ta yapılır**; Linux'a taşıma gereksiz bir
-> karmaşıklık olurdu. SAC kapatılmaz — geri alınamaz bir güvenlik değişikliğidir.
+> ⚠️ **BU ÖNGÖRÜ TUTMADI (2026-09-16).** `csynth` gerçekten güvenliydi ve 15 tur
+> koştu — ama sonra SAC **`vitis-run.exe`'nin kendisini** engelledi. Sorun
+> kullanıcı kodundan üretilen ikili değil, AMD'nin imzasız aracıymış.
+> Kurulum WSL'e taşındı; SAC yine kapatılmadı.
 
 ---
 
@@ -212,3 +214,106 @@ koşulu **değildir** — o SK-05'in konusu.
 ## Temizlik
 
 İndirme bitince yükleyicinin geçici önbelleği (genelde `%TEMP%` veya `Downloads` altında, birkaç GB) silinebilir.
+
+---
+
+# WSL kurulumu — 2026-09-16 (Windows yolu ÖLDÜ)
+
+## Neden taşındı
+
+Windows kurulumu tamamlandı, **15 sentez turu sorunsuz koştu**, sonra:
+
+```
+vitis-run.bat : 'D:\Xilinx\2025.2\Vitis\bin\unwrapped\win64.o\vitis-run.exe'
+was blocked by your organization's Device Guard policy.
+```
+
+`vitis-run.exe` **imzasız** (`Get-AuthenticodeSignature` → `NotSigned`) ve Smart
+App Control açık. SAC itibar tabanlı çalışır ve kararı **zamanla değişir** —
+"bir kez çalıştı" güvence değildir. Bu, SK-05'in gerçekleşmesidir.
+
+SAC'ı kapatmak **geri alınamaz** (yeniden açmak Windows temiz kurulumu ister),
+bu yüzden bir derleme kolaylığı için yapılmadı. Linux tarafına geçildi.
+
+## Ortam hazırlığı (yapıldı)
+
+**1. WSL C:'den D:'ye taşındı** — C:'de yer yoktu (51,8 GB, kurulum ~60 GB ister).
+
+```powershell
+wsl --export Ubuntu D:\wsl-backup\ubuntu-20260916.tar   # 2,18 GB — ÖNCE DOĞRULA
+wsl --unregister Ubuntu
+wsl --import Ubuntu D:\WSL\Ubuntu D:\wsl-backup\ubuntu-20260916.tar --version 2
+wsl --set-default Ubuntu
+```
+
+⚠️ `unregister` yıkıcıdır; export'u **boyutuyla doğrulamadan** çalıştırma.
+⚠️ `unregister` sonrası varsayılan dağıtım `docker-desktop`'a kayıyor —
+`--set-default` şart, yoksa `bash` bulunamıyor diye hata alırsın.
+
+**2. `.wslconfig` düzeltildi** (yedek: `%USERPROFILE%\.wslconfig.yedek`):
+
+```ini
+[wsl2]
+memory=8GB      # 10 GB idi; 15,7 GB'lik makinede aşırı taahhüttü
+processors=6
+swap=16GB       # 4 GB idi
+```
+
+İlk kurulum denemesi 10 GB'ı doldurup **WSL'i çökertti**:
+`Used memory: 9861 MB. Total memory: 9946 MB` → ardından `uptime` = `up 0 min`.
+Not: `autoMemoryReclaim` bu WSL sürümünde (2.7.3) tanınmadı, kaldırıldı.
+
+**3. Paketler** (Ubuntu 24.04.3):
+
+```bash
+apt-get install -y build-essential unzip net-tools locales libtinfo6 libncurses6   libx11-6 libxext6 libxft2 libxrender1 libxtst6 libxi6 libxrandr2 libxcursor1   libxinerama1 libfreetype6 fontconfig libstdc++6 ocl-icd-libopencl1 python3   libnsl2 xvfb
+```
+
+24.04'te `libtinfo5`/`libncurses5` **yok**; 6 sürümleri kullanılır.
+
+## Kurulum — GUI DEĞİL, batch
+
+WSLg çalışıyor (`DISPLAY=:0`) **ama Java/Swing penceresi 1×1 piksel açılıyor**
+ve `xdotool`/`wmctrl` ile düzeltilemedi. GUI ile uğraşmak yerine batch modu
+kullanıldı.
+
+```bash
+# 1) Arşivi kalıcı yere çıkar (çalışan xsetup öldürülürse /tmp/selfgz* silinir)
+/opt/xinstall/FPGAs_..._Lin64.bin --noexec --keep --target /opt/xinstall/extracted
+
+# 2) Kimlik jetonu — KULLANICI çalıştırır, AMD parolası ister
+cd /opt/xinstall/extracted && ./xsetup -b AuthTokenGen
+
+# 3) Config şablonu — KULLANICI çalıştırır, menü TTY ister
+./xsetup -b ConfigGen          # Vivado -> Vivado ML Standard
+# -> /root/.Xilinx/install_config.txt
+
+# 4) Config düzenle: Destination=/opt/Xilinx,
+#    "Zynq-7000 All Programmable SoC:1", Model Composer ve DocNav :0
+
+# 5) Kur — setsid ŞART
+setsid nohup ./xsetup -a XilinxEULA,3rdPartyEULA -b Install \
+  -c /root/.Xilinx/install_config.txt > /var/log/vitis-install.log 2>&1 < /dev/null &
+```
+
+⚠️ **`setsid` olmadan** düz `nohup &` yetmiyor: WSL oturumu kapanınca süreç
+ölüyor. İlk deneme böyle kaybedildi.
+⚠️ Log'u `/tmp`'ye **yazma** — WSL yeniden başlarsa gider. `/var/log` kullan.
+⚠️ `ConfigGen` ve `AuthTokenGen` gerçek TTY ister; betikten çalıştırılamaz,
+kullanıcının terminalinde koşar.
+
+İlerleme (log devasa, yalnızca son satırı çek):
+
+```bash
+tr '\r' '\n' < /var/log/vitis-install.log | grep -E 'Downloading|Installing' | tail -2
+```
+
+## Kurulum sonrası
+
+`hls/run.ps1` zaten `vitis-run`/`vitis_hls` ikisini de arıyor ama arama listesi
+Windows yollarında. WSL için Tcl akışı doğrudan çağrılır:
+
+```bash
+wsl -d Ubuntu -e bash -c "cd /mnt/c/Users/olcay/IdeaProjects/qir-engine && \
+  /opt/Xilinx/2025.2/Vitis/bin/vitis-run --mode hls --tcl hls/tcl/csynth.tcl"
+```

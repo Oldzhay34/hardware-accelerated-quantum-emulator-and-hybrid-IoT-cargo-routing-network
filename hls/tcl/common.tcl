@@ -89,5 +89,19 @@ create_clock -period $CLOCK_NS -name default
 # gecerli olur.
 config_compile -pipeline_loops 0
 
+# --- Carpicilari boru hattina al -------------------------------------------
+# OLCULDU: kritik yol apply_rx_dyn'in carp-topla-yuvarla zincirinde, 24,799 ns
+# (hedef 10 ns). Yuvarlama+doyurma kiplerini en ucuza (AP_TRN/AP_WRAP)
+# cekmek 17,185 ns'ye indiriyor -- yani onlar yolun 7,6 ns'si, ama kalan 17,2 ns
+# hala hedefin ustunde. Geri kalan, boru hattina ALINMAMIS carpicidir:
+# HLS DSP'yi varsayilan olarak kombinasyonel kullaniyor.
+#
+# -latency 3: carpma 3 cevrime yayilir. Gecikme artar ama saat hizlanir; net
+# etki olculecek.
+config_op mul -impl dsp -latency 3
+
+# Zamanlama zorlaninca daha cok arama yap.
+config_schedule -effort high
+
 # Testbench argumanlari -- mutlak yol (csim alt dizinde kosuyor)
 set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash vitis"

@@ -73,11 +73,13 @@ tablo_dusuk:
 #pragma HLS PIPELINE off
         phase_t a(0);
         for (int k = 0; k < YARIM; ++k) {
+#pragma HLS PIPELINE II = 1
             if ((lo >> k) & 1) a -= (uint64_t)ph.h[k];
             else               a += (uint64_t)ph.h[k];
         }
         for (int x = 0; x < YARIM; ++x) {
             for (int y = x + 1; y < YARIM; ++y) {
+#pragma HLS PIPELINE II = 1
                 if (((lo >> x) ^ (lo >> y)) & 1) a -= (uint64_t)ph.J[x][y];
                 else                             a += (uint64_t)ph.J[x][y];
             }
@@ -90,11 +92,13 @@ tablo_yuksek:
 #pragma HLS PIPELINE off
         phase_t a(0);
         for (int k = 0; k < YARIM; ++k) {
+#pragma HLS PIPELINE II = 1
             if ((hi >> k) & 1) a -= (uint64_t)ph.h[YARIM + k];
             else               a += (uint64_t)ph.h[YARIM + k];
         }
         for (int x = 0; x < YARIM; ++x) {
             for (int y = x + 1; y < YARIM; ++y) {
+#pragma HLS PIPELINE II = 1
                 if (((hi >> x) ^ (hi >> y)) & 1) a -= (uint64_t)ph.J[YARIM + x][YARIM + y];
                 else                             a += (uint64_t)ph.J[YARIM + x][YARIM + y];
             }
@@ -105,6 +109,7 @@ tablo_yuksek:
         for (int aa = 0; aa < YARIM; ++aa) {
             phase_t d(0);
             for (int b = 0; b < YARIM; ++b) {
+#pragma HLS PIPELINE II = 1
                 if ((hi >> b) & 1) d -= (uint64_t)ph.J[aa][YARIM + b];
                 else               d += (uint64_t)ph.J[aa][YARIM + b];
             }
@@ -115,6 +120,14 @@ tablo_yuksek:
 cost_amp_loop:
     for (int i = 0; i < N_AMP; ++i) {
 #pragma HLS PIPELINE II = 1
+        // Farkli j degerleri FARKLI ciftlere dokunur; yinelemeler arasinda
+        // gercek bir bagimlilik YOKTUR. HLS bunu kanitlayamadigi icin
+        // oku-degistir-yaz zincirini tek kombinasyonel parcada tutuyordu:
+        //   "Cannot meet target clock period from 'load' ... to 'store'
+        //    (combination delay: 24.0859 ns) to honor II or Latency constraint"
+        // Bu pragma bagimsizligi BILDIRIR, boylece HLS load ile store arasina
+        // kayit koyabilir.
+#pragma HLS DEPENDENCE variable = sv type = inter dependent = false
         const int lo = i & (TABLO - 1);
         const int hi = i >> YARIM;
 

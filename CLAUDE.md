@@ -1,10 +1,10 @@
-﻿# qir-engine
+# qir-engine
 
 Kuantum-esinli rota optimizasyonu için statevector emülasyon çekirdeğini PYNQ-Z2 üzerinde HLS ile
 donanımda hızlandıran, Qiskit altın referansına karşı doğrulayan ve CPU'ya karşı gecikme/enerji
 ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 
-**Şu anki faz**: Faz 2 — plan **onaylandı** (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)), 54 görevden **MVP tamamlandı**: HLS çekirdeği yazıldı ve C-sim ile altın referansa karşı doğrulandı (fidelity ≥0,99998, n=8/12/16). Sentez ölçütleri (BRAM/II/Fmax) Vitis HLS kurulmadığı için **doğrulanmadı** ([SK-04](docs/risk-register.md)). Bkz. [specs/002-fpga-statevector-cekirdegi/](specs/002-fpga-statevector-cekirdegi/), [docs/measurements/faz2-csim.md](docs/measurements/faz2-csim.md).
+**Şu anki faz**: Faz 2 — plan onaylandı (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)). Çekirdek yazıldı, C-sim ile doğrulandı (fidelity ≥0,99997, n=8/12/16) ve **sentezlendi**: 7,195 ns (100 MHz), BRAM %66, LUT %63, DSP %16, FF %32 — dört kaynak da bütçede, SC-002/SC-003 geçti, NC-4 kapandı. Gecikme 9.801.215 çevrim = 0,098 sn; CPU (Aer ~58 ms) hâlâ 1,7× hızlı, **hızlanma iddiası yok**. ⚠️ Vitis Windows'ta Device Guard tarafından engellendi ([SK-05](docs/risk-register.md)), **WSL'e taşındı** — bkz. [runbook](docs/runbooks/vitis-hls-kurulum.md). Durum ve sıradaki iş: [tasks.md SIRADAKİ](specs/002-fpga-statevector-cekirdegi/tasks.md).
 
 ## Anayasa — altı ilke (tam metin: [.specify/memory/constitution.md](.specify/memory/constitution.md))
 

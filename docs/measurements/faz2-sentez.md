@@ -340,3 +340,84 @@ Sıradaki üç iş, öncelik sırasıyla:
 1. **Zamanlama** — 25 ns'nin kaynağını bul. Tek başına 2,5× kazanç.
 2. **Tablo döngüsü gecikmesi** — en içteki döngülere `PIPELINE II=1`, ~9M geri.
 3. **Paralellik** — kalan %58 LUT payını çevrim başına birden fazla genliğe yatır.
+
+---
+
+# 11. Turlar 10-14 — ZAMANLAMA TUTTURULDU, NC-4 KAPANDI (2026-09-16)
+
+| Tur | Değişiklik | Zamanlama | Gecikme | BRAM | DSP | FF | LUT |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 9 | (paylaşılan RX) | 24,799 ns | 15.363.498 | %61 | %16 | %12 | %42 |
+| 10 | *teşhis: AP_TRN+AP_WRAP* | *17,185 ns* | — | — | — | — | — |
+| 11 | `config_op mul -latency 3` | 24,323 ns | 15.363.500 | %61 | %16 | %12 | %42 |
+| 12 | partition faktörü 16→2 | 23,016 ns | 15.363.500 | %67 | %16 | %9 | %32 |
+| 13 | **`DEPENDENCE` (sv bağımsız)** | **12,697 ns** | 15.363.836 | %66 | %16 | %10 | %32 |
+| 14 | **`exp_amp_loop` II=4** | **7,195 ns** ✅ | 15.560.447 | %66 | %16 | %10 | %32 |
+| 15 | maliyet tablolarına `PIPELINE II=1` | **7,195 ns** ✅ | **9.801.215** | %66 | %16 | %32 | %63 |
+
+**Zamanlama hedefi tutturuldu: 7,195 ns < 7,30 ns efektif bütçe. İhlal uyarısı yok.**
+**100 MHz artık VARSAYIM DEĞİL, ÖLÇÜLMÜŞ — NC-4 kapandı.**
+
+## Kritik yol nasıl bulundu
+
+Üç hipotez ölçümle **elendi**:
+
+| Hipotez | Test | Sonuç |
+|---|---|---|
+| Yuvarlama/doyurma kipleri | `AP_TRN`+`AP_WRAP` | 24,799 → 17,185 ns — yolun %31'i, yetmez |
+| Boru hattına alınmamış çarpıcı | `config_op mul -latency 3` | 24,799 → 24,323 ns — **değil** |
+| Partition mux'ı | faktör 16 → 4 → 2 | 24,323 → 23,016 ns — **değil** |
+
+Sonra rapor doğrudan söyledi:
+
+> *"Cannot meet target clock period from **'load'** operation on array ... to
+> **'store'** operation ... (combination delay: **24,0859 ns**) to honor II or
+> Latency constraint"*
+
+Kritik yol `sv[i0]` **oku → çarp → topla → yuvarla → yaz** zinciriydi, tamamı
+tek kombinasyonel parçada. HLS bunu bölemiyordu çünkü farklı `j` yinelemelerinin
+farklı çiftlere dokunduğunu **kanıtlayamıyordu**.
+
+```cpp
+#pragma HLS DEPENDENCE variable = sv type = inter dependent = false
+```
+
+Bu pragma bağımsızlığı **bildiriyor**. Sonuç: **23,016 → 12,697 ns**, yineleme
+gecikmesi 4 → 11 (HLS load ile store arasına kayıt koyabildi). LUT da düştü.
+
+Kalan 12,697 ns `expectation_scaled`'in akümülatöründeydi ve bu **gerçek** bir
+döngü-taşımalı bağımlılık (`add 84 bit → select 48 bit`); `DEPENDENCE` çözemez.
+Ama `expectation_scaled` toplam gecikmenin %0,4'ü olduğu için II'sini gevşetmek
+bedava: **II=4 → 7,195 ns**.
+
+## Tablo döngüsü gecikmesi geri alındı
+
+Tur 8'de `config_compile -pipeline_loops 0` tabloları tamamen seri bırakmıştı
+(+9,8M çevrim). En **içteki** tablo döngülerine açık `PIPELINE II=1` konuldu —
+en içteki döngüyü boru hattına almak hiçbir şeyi açmaz.
+
+İlk deneme her iki tablo setini de kapsadı: gecikme 9,78M'e indi **ama zamanlama
+8,354 ns'ye çıkıp ihlal etti**. Suçlu `expectation_scaled` tablolarındaki 48-bit
+`sum_t` akümülatörüydü. Yalnızca **maliyet** tabloları boru hattında bırakıldı:
+zamanlama 7,195 ns'ye döndü, gecikme 9,80M'de kaldı.
+
+Bedeli: LUT %32 → %63, FF %10 → %32.
+
+## Nerede duruyoruz
+
+| Ölçüt | Değer | Durum |
+|---|---:|:---:|
+| Zamanlama | 7,195 ns (**100 MHz**) | ✅ |
+| BRAM_18K | 187 / 280 (%66) | ✅ SC-002 |
+| DSP | 36 / 220 (%16) | ✅ |
+| FF | 34.444 (%32) | ✅ |
+| LUT | 33.968 (%63) | ✅ |
+| Gecikme | 9.801.215 çevrim = **0,098 sn** | — |
+
+Fidelity değişmedi: 0,999978179 / 0,999989167 / 0,999999871 / 0,999998860.
+
+⚠️ CPU tabanı (Aer, ölçülen ~58 ms) **hâlâ 1,7 kat hızlı**. Başlangıçtaki
+8,9 saniyeden 0,098 saniyeye gelindi (**91×**) ama hızlanma iddiası hâlâ
+yapılamaz.
+
+Kalan pay: LUT %37, DSP %84, FF %68, BRAM %34 — paralellik için yer var.

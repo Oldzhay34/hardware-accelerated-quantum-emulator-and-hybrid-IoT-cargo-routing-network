@@ -96,7 +96,15 @@ exp_tablo_yuksek:
 
 exp_amp_loop:
     for (int i = 0; i < N_AMP; ++i) {
-#pragma HLS PIPELINE II = 1
+        // II BILINCLI OLARAK GEVSEK. Kritik yol burada bir DOGRU dongu-tasimali
+        // bagimlilik: "add 84 bit -> select 48 bit (11,1 ns)", yani `pay`
+        // akumulatoru. DEPENDENCE pragma'si bunu cozemez -- bagimlilik gercek.
+        //
+        // II=1 zorlamak HLS'i akumulator toplamasini tek kombinasyonel parcada
+        // tutmaya mecbur birakiyordu. Gevsetmek ona kayit koyma alani veriyor.
+        // Bedeli ihmal edilebilir: expectation_scaled toplam gecikmenin
+        // yalnizca %0,4'u (65.820 / 15.363.836 cevrim).
+#pragma HLS PIPELINE II = 4
         const real_t re = sv[i].re;
         const real_t im = sv[i].im;
         const acc_t olasilik = re * re + im * im;
@@ -143,7 +151,7 @@ void qir_kernel(const qir::cost_phases_t phases[qir::P_MAX],
 
     // Statevector: çip-içi, m_axi YOK (madde K-1, Anayasa Prensip III).
     static qir::amp_t sv[qir::N_AMP];
-#pragma HLS ARRAY_PARTITION variable = sv cyclic factor = 16 dim = 1
+#pragma HLS ARRAY_PARTITION variable = sv cyclic factor = 2 dim = 1
 #pragma HLS BIND_STORAGE variable = sv type = RAM_2P impl = BRAM
 
     // Madde K-4: çekirdek durumsuzdur — run_circuit her çağrıda init_uniform
@@ -151,6 +159,8 @@ void qir_kernel(const qir::cost_phases_t phases[qir::P_MAX],
     qir::run_circuit(sv, phases, cos_beta, sin_beta, p);
     beklenen_deger = qir::expectation_scaled(sv, cost);
 }
+
+
 
 
 

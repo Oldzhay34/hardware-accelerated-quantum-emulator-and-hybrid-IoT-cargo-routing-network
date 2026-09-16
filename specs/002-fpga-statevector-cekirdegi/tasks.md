@@ -5,38 +5,70 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Vitis HLS kuruluyor; biter bitmez `.\hls\run.ps1` ile
-sentez raporu alınıp SC-002 (BRAM) ve SC-003 (II) kapatılacak.
+**Hedef (tek cümle)**: Vitis HLS **WSL'e kuruluyor** (Windows kurulumu Device
+Guard tarafından engellendi); kurulum bitince `tablo_yuksek` pragma düzeltmesi
+ölçülecek, sonra paralellik turu.
 
-**Dokunulacak dosyalar**: `docs/measurements/faz2-sentez.md` (henüz yok),
-`hls/src/trig.hpp` (LUT/CORDIC borcu, sentez BRAM payını görünce)
+### Son DOĞRULANMIŞ sentez (bundan geriye gidilmez)
 
-**Hazır bekleyen**: Tcl akışı yazıldı ve sözdizimi doğrulandı —
-`hls/tcl/{common,csim,csynth,cosim,export}.tcl` + `hls/run.ps1`. Kurulum bitince
-tek komut: `.\hls\run.ps1` (cosim varsayılan olarak atlanır, bkz. SK-05).
+| Ölçüt | Değer | Durum |
+|---|---:|:---:|
+| Zamanlama | **7,195 ns** (100 MHz) | ✅ ihlal yok |
+| BRAM_18K | 187 / 280 (%66) | ✅ SC-002 |
+| DSP | 36 / 220 (%16) | ✅ |
+| FF | 34.444 (%32) | ✅ |
+| LUT | 33.968 (%63) | ✅ |
+| Gecikme | **9.801.215 çevrim** = 0,098 sn | — |
 
-**Ölçülen sonuç**: fidelity n=8 → 0,999999956 · n=12 → 0,999998968 ·
-n=16 p=1 → 0,999989159 · n=16 p=2 → **0,999978359**. Dördü de M ve H eşiğini
-geçti. C++ ile bağımsız NumPy uygulaması üç kübit sayısında da **bit-birebir**.
-Ayrıntı: [docs/measurements/faz2-csim.md](../../docs/measurements/faz2-csim.md)
+Fidelity (dört durum, değişmedi): n=8 → 0,999999871 · n=12 → 0,999998860 ·
+n=16 p=1 → 0,999989167 · n=16 p=2 → **0,999978179**
+
+**NC-4 KAPANDI**: 100 MHz artık varsayım değil, ölçülmüş.
+CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,7× hızlı** — hızlanma iddiası YOK.
+
+### Sıradaki üç iş
+
+1. **ÖLÇÜLMEMİŞ DEĞİŞİKLİK BEKLİYOR** — `gates_diagonal.hpp` içinde
+   `tablo_yuksek`'in `k` ve `y` döngülerine `PIPELINE II=1` eklendi ama Device
+   Guard araya girdiği için **sentezlenemedi**. Vitis gelir gelmez ilk iş bu.
+   Beklenti: tablo gecikmesinden ~1,4M çevrim daha.
+2. **Paralellik** — kalan pay: LUT %37, DSP %84, FF %68. Gecikme dağılımı:
+   `apply_cost_layer` ~%32, `apply_rx_dyn` ~%32, `expectation_scaled` ~%4.
+   Çevrim başına birden fazla genlik işlemek artık kaynak açısından mümkün.
+   ⚠️ Nereyi paralelleştireceğine **ölçümle** karar ver — bankalama
+   araştırmasında işin %0,4'ünü optimize etme hatası tekrarlanmasın.
+3. Faz sonu: T049–T054 (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
+
+### Ortam — 2026-09-16'da köklü değişti
+
+- **Vitis Windows'ta ÇALIŞMIYOR.** `vitis-run.exe` imzasız ve Device Guard
+  engelliyor (SK-05). 15 sentez turu koştuktan **sonra** engellendi — SAC
+  itibar kararı zamanla değişiyor, "bir kez çalıştı" güvence değil.
+- **Vitis WSL/Ubuntu 24.04'e kuruluyor**: `/opt/Xilinx`, batch modda
+  (`xsetup -b Install -c /root/.Xilinx/install_config.txt`). Config: yalnızca
+  Zynq-7000, Model Composer ve DocNav kapalı.
+- **WSL C:'den D:'ye taşındı** (`D:\WSL\Ubuntu`) — C:'de yer yoktu. Yedek:
+  `D:\wsl-backup\ubuntu-20260916.tar`.
+- **`.wslconfig` değişti**: memory 10→**8 GB**, swap 4→**16 GB**. Sebep: ilk
+  kurulum denemesi 10 GB'ı doldurup WSL'i çökertti
+  (`Used memory: 9861 MB / Total memory: 9946 MB`, ardından `up 0 min`).
+  Yedek: `%USERPROFILE%\.wslconfig.yedek`.
+- Kurulumu **`setsid nohup`** ile başlat; düz `nohup &` WSL oturumu kapanınca
+  ölüyor (ilk denemede böyle kaybedildi).
+- C-sim WSL'de sorunsuz: `wsl -d Ubuntu -e bash .../hls/build_and_run.sh`
 
 **Bilinen tuzaklar**:
-- **Vitis HLS hâlâ kurulu değil** ([SK-04](../../docs/risk-register.md), karar 20
-  Eylül). İndirme yarım: `.digests` indi, `.exe` inmedi. Phase 4/5/7 buna bağlı.
-- **Smart App Control derlemeyi engelliyor** ([SK-05](../../docs/risk-register.md)) —
-  yeni üretilen imzasız `.exe` çalışmıyor. C-sim WSL'e taşındı
-  (`hls/build_and_run.sh`). **Vitis'in kendi C-sim akışı da aynı duvara
-  çarpabilir**; kurulumdan sonra ilk denenecek şey `csim` koşusudur.
-- **T040 yapılmadı**: `ap_fixed` mock'u gerçeğine karşı doğrulanmadı. Bu yüzden
-  yukarıdaki fidelity sayılarının tamamı **KOŞULLUDUR** — mock sessizce farklı
-  davranırsa yanıltıcı olurlar.
-- **`trig.hpp` sentezlenebilir değil**: C-sim `std::cos/sin` kullanıyor. Donanım
-  LUT veya CORDIC ister ve bedeli NC-2 bütçe sorusunun parçası.
-- **`k` şablon parametresi kalmalı.** Çalışma zamanı değişkenine dönerse HLS
-  partition'ı çözemez ve plandaki II aritmetiğinin tamamı geçersiz olur.
+- Vitis 2025.2'de komut **`vitis-run`**, `vitis_hls` değil.
+- Vitis **mutlak** kaynak yollarını bir seviye eksik göreli yola çevirip dosyayı
+  SESSİZCE atlıyor. Proje depo kökünde (`qir_hls_prj`), yollar göreli.
+- `config_compile -pipeline_loops 0` zorunlu — yoksa HLS 64 turdan kısa
+  döngüleri kendiliğinden açıp LUT'u 10× şişiriyor.
+- `#pragma HLS DEPENDENCE variable=sv type=inter dependent=false` zorunlu —
+  yoksa oku-değiştir-yaz zinciri tek kombinasyonel parçada kalıp 23 ns yapıyor.
+- `expectation_scaled` II=4'te kalmalı; II=1 akümülatörü kritik yola sokuyor.
+- Tcl dosyaları **ASCII ve BOM'suz** olmalı.
 
-**Son güncelleme**: 2026-09-15, Faz 2 — MVP tamam (T001–T023, T038, T039), Vitis
-bekleniyor
+**Son güncelleme**: 2026-09-16, Vitis WSL kurulumu sürüyor (%42)
 
 ---
 
