@@ -20,6 +20,19 @@ if {![file exists $REPO/hls/src/qir_kernel.cpp]} {
     exit 1
 }
 
+# --- Kubit sayisi: varsayilan 16, QIR_N ortam degiskeniyle degistirilir ----
+#
+# NEDEN: cosim n=16 icin 5,4 milyon cevrim simule etmek zorunda. OLCULDU:
+# xsim 30 dakikada yalnizca %18 ilerledi ve hizi 14 kat dustu -- bagimlilik
+# uyarisi log u 87 MB a ulasmisti ve /mnt/c uzerinden yaziliyordu. Yapisal
+# dogrulama (RTL, C ile ayni sonucu veriyor mu) n den BAGIMSIZDIR: RAM_T2P
+# baglamasi, DEPENDENCE pragmasi ve boru hatti yapisi n=8 de de AYNIDIR,
+# yalnizca dizi boyu kucuktur. Bu yuzden cosim kucuk n ile kosulabilir.
+#
+#   QIR_N=8 vitis-run --mode hls --tcl hls/tcl/cosim.tcl
+set QIR_N 16
+if {[info exists ::env(QIR_N)]} { set QIR_N $::env(QIR_N) }
+
 # --- Hedef ----------------------------------------------------------------
 # PYNQ-Z2 = XC7Z020, clg400 paket, -1 hiz sinifi.
 set PART        {xc7z020clg400-1}
@@ -32,6 +45,8 @@ set CLOCK_NS    10
 # sonra bulamayip dosyayi SESSIZCE atliyor. Kokte hicbir ".." gerekmedigi
 # icin sorun olusmuyor.
 set PROJ        $REPO/qir_hls_prj
+# n != 16 AYRI proje dizini kullanir: n=16 sentez sonuclari ezilmesin.
+if {$QIR_N != 16} { set PROJ ${PROJ}_n$QIR_N }
 set SOLUTION    solution1
 set TOP         qir_kernel
 
@@ -39,12 +54,20 @@ set TOP         qir_kernel
 # QIR_NO_VITIS TANIMLANMAZ: burada gercek ap_fixed kullanilir. Mock yalnizca
 # Vitis'siz g++ yolu icindir ve bu iki yolun AYNI sonucu verip vermedigi
 # T040'in konusudur -- csim ciktisi WSL sonucuyla karsilastirilarak sinanir.
-set CFLAGS      "-std=c++17 -I$REPO/hls/src -I$REPO/hls/tb"
+set CFLAGS      "-std=c++17 -DQIR_N_QUBITS=$QIR_N -I$REPO/hls/src -I$REPO/hls/tb"
 
 # --- Altin referans (en yenisi) -------------------------------------------
-set _refs [lsort [glob -nocomplain $REPO/docs/measurements/reference_*_p2_n5.npy]]
+# n=16 icin gercek TSP referansi (Faz 1); digerleri icin sentetik referans
+# (scripts/make_synthetic_reference.py -- tek-sicak TSP de kubit sayisi
+# (N-1)^2 oldugu icin 8 ve 12 nin problem karsiligi YOKTUR).
+if {$QIR_N == 16} {
+    set _kalip $REPO/docs/measurements/reference_*_p2_n5.npy
+} else {
+    set _kalip $REPO/docs/measurements/synthref_*_p2_n$QIR_N.npy
+}
+set _refs [lsort [glob -nocomplain $_kalip]]
 if {[llength $_refs] == 0} {
-    puts "HATA: altin referans bulunamadi (docs/measurements/reference_*_p2_n5.npy)"
+    puts "HATA: altin referans bulunamadi ($_kalip)"
     exit 1
 }
 set REFERENCE [file rootname [lindex $_refs end]]
@@ -104,4 +127,4 @@ config_op mul -impl dsp -latency 3
 config_schedule -effort high
 
 # Testbench argumanlari -- mutlak yol (csim alt dizinde kosuyor)
-set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash vitis"
+set TB_ARGV "--reference $REFERENCE --out-dir $REPO/docs/measurements --git-hash vitis --n $QIR_N"

@@ -152,7 +152,7 @@ void qir_kernel(const qir::cost_phases_t phases[qir::P_MAX],
     // Statevector: çip-içi, m_axi YOK (madde K-1, Anayasa Prensip III).
     static qir::amp_t sv[qir::N_AMP];
 #pragma HLS ARRAY_PARTITION variable = sv cyclic factor = 2 dim = 1
-#pragma HLS BIND_STORAGE variable = sv type = RAM_2P impl = BRAM
+#pragma HLS BIND_STORAGE variable = sv type = RAM_T2P impl = BRAM
 
     // Madde K-4: çekirdek durumsuzdur — run_circuit her çağrıda init_uniform
     // ile başlar, önceki çağrının kalıntısı taşınmaz.

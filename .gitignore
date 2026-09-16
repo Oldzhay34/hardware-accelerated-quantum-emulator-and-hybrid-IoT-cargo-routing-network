@@ -63,7 +63,7 @@ vitis_hls.log
 # NOT: docs/measurements/ altındaki damgalı JSON/npy ölçüm çıktıları da
 #      commit edilir — Prensip II, ölçüm kanıtı repoda kalır.
 
-qir_hls_prj/
+qir_hls_prj*/
 
 # Vitis HLS'in depo kokune biraktigi artik
 dfx_runtime.txt

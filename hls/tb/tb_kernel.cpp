@@ -17,6 +17,7 @@
 
 #include "../src/qir_types.hpp"
 #include "../src/gates_diagonal.hpp"
+#include "../src/qir_kernel.hpp"
 #include "meta_reader.hpp"
 #include "npy_reader.hpp"
 
@@ -180,6 +181,27 @@ int main(int argc, char** argv) {
         static qir::amp_t sv[qir::N_AMP];
         qir_kernel_debug(phases, cos_beta, sin_beta, p, sv);
 
+        // --- SENTEZLENEN ust fonksiyon da cagrilir (COSIM icin ZORUNLU) ---
+        //
+        // Dogrulama `qir_kernel_debug` uzerinden yapilir cunku statevector'u
+        // disari veren yalnizca odur; ama o SENTEZLENMEZ (`add_files -tb`).
+        // cosim, sentezlenen ust fonksiyon testbench'te cagrilmazsa RTL'i hic
+        // kosturmaz:
+        //   ERROR: [COSIM 212-330] top function 'qir_kernel' is not invoked
+        //                          in the test bench
+        // Ikisi de `qir::run_circuit`'i cagirir (sozlesme maddesi T-1), yani
+        // ayni devredir; bu cagri fazladan bir dogrulama degil, cosim'in
+        // calisabilmesi icin gereken kancadir.
+        static qir::cost_scaled_t cost;
+        for (int k = 0; k < n; ++k)
+            cost.h[k] = qir::real_t(h_j[k].num);
+        for (int a = 0; a < n; ++a)
+            for (int b = a + 1; b < n; ++b)
+                cost.J[a][b] = qir::real_t(J_j[a].arr[b].num);
+
+        float beklenen_deger = 0.0f;
+        qir_kernel(phases, cos_beta, sin_beta, cost, p, beklenen_deger);
+
         std::vector<std::complex<double>> cikti(qir::N_AMP);
         for (int i = 0; i < qir::N_AMP; ++i)
             cikti[i] = {double(sv[i].re), double(sv[i].im)};
@@ -239,6 +261,8 @@ int main(int argc, char** argv) {
         std::printf("M (>=0,99)      : %s\n", gecti_M ? "GECTI" : "KALDI");
         std::printf("H (>=0,999)     : %s\n", gecti_H ? "GECTI" : "KALDI");
         std::printf("Teshis          : %s\n", teshis);
+        std::printf("Beklenen deger  : %.9f  (qir_kernel, sentezlenen ust)\n",
+                    beklenen_deger);
 
         // --- Damgalı çıktı (VR-03): tarih + git hash + konfig ---
         const std::string ad = cikti_dizin + "/csim-fidelity_" + bugun() + "_" +

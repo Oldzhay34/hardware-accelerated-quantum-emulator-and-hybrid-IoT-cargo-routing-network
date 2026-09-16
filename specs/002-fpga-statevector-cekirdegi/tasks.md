@@ -5,13 +5,13 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Vitis HLS artık **WSL'de kurulu ve çalışıyor**; bekleyen
-`tablo_yuksek` değişikliği ölçüldü (−%29 gecikme) ve sıra **paralellik
-kararında** — ama LUT payı %16'ya düştüğü için karar yeniden düşünülmeli.
+**Hedef (tek cümle)**: Faz 2'nin teknik işi **bitti** — zamanlama tutuyor, dört
+kaynak da bütçede, paralellik arama turu ölçümle kapandı; geriye faz sonu
+görevleri (T049–T054) kaldı.
 
 ### Son DOĞRULANMIŞ sentez (bundan geriye gidilmez)
 
-2026-09-16 · `01f643b` · Vitis HLS 2025.2 Build 6295257 · `xc7z020clg400-1` · WSL/Ubuntu
+2026-09-16 · Vitis HLS 2025.2 Build 6295257 · `xc7z020clg400-1` · WSL/Ubuntu
 
 | Ölçüt | Değer | Durum |
 |---|---:|:---:|
@@ -20,42 +20,53 @@ kararında** — ama LUT payı %16'ya düştüğü için karar yeniden düşün�
 | DSP | 36 / 220 (%16) | ✅ |
 | FF | 49.839 / 106.400 (%46) | ✅ |
 | LUT | 45.164 / 53.200 (**%84**) | ⚠️ dar |
-| Gecikme | **6.948.095 çevrim** = 0,0695 sn | — |
+| Gecikme | **5.375.327 çevrim** = 0,0538 sn | — |
 
-Fidelity (dört durum, değişmedi): n=8 → 0,999999871 · n=12 → 0,999998860 ·
-n=16 p=1 → 0,999989167 · n=16 p=2 → **0,999978179**
+Fidelity (C-sim, n=16 p=2): **0,999978179** — Tur 14'ten beri değişmedi.
+
+**Cosim ilk kez KOŞTU ve GEÇTİ** (n=8, 4 dk 31 sn): `C/RTL co-simulation
+finished: PASS`, fidelity 0,999999871. `RAM_T2P` bir depolama bağlama
+değişikliği olduğu için C-sim onu doğrulayamazdı; RTL doğruladı. Ayrıca
+`DEPENDENCE` pragmasına dair 127.770 Critical WARNING'in **yanlış pozitif**
+olduğu böylece kanıtlandı. ⚠️ n=16 RTL eşdeğerliği **ölçülmedi** (11,5 saat
+sürüyordu) — bkz. [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §14.
 
 **NC-4 KAPANDI**: 100 MHz artık varsayım değil, ölçülmüş.
-CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,2× hızlı** — hızlanma iddiası YOK.
 
-### Sıradaki iki iş
+⚠️ **53,8 ms, ölçülen CPU tabanının (~58 ms) ALTINDA.** Projede ilk kez.
+Ama bu sentez sonrası bir **HLS tahmini** — implementasyon yapılmadı, donanımda
+koşmadı. **Hızlanma iddiası Faz 5'teki kart ölçümünden önce yapılamaz**
+(Anayasa Prensip II ve IV). Tezde "CPU'yu geçtik" cümlesi bu satıra
+dayandırılamaz.
 
-1. **Paralellik — ama önce KARAR GEREKİYOR.** Bu iş "kalan LUT payını çevrim
-   başına birden fazla genliğe yatır" diye planlanmıştı. O pay artık yok:
-   Tur 16 LUT'u %63'ten **%84**'e çıkardı, kalan pay %37 değil **%16**.
+### Paralellik arama turu KAPANDI (Tur 17, dokuz ölçüm)
 
-   Gecikme dağılımı (Tur 16 sonrası, p=2 max):
-   `apply_cost_layer` 598.288 · `apply_rx_dyn` 98.315 × 16 = 1.573.072 ·
-   `expectation_scaled` 368.465 · `init_loop` 65.538.
-   **`mixer_loop` artık en büyük kalem** — `apply_cost_layer` değil.
+Karar verildi ve uygulandı: `qir_kernel.cpp:155` `RAM_2P` → **`RAM_T2P`**.
+Gecikme 6.948.095 → 5.375.327 (−%22,6), dört kaynak da **değişmedi**.
+Ayrıntı ve elenen sekiz yol: [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §13.
 
-   Üç seçenek, hiçbiri ölçülmedi:
-   - (a) `mixer_loop`'u paralelleştir — en büyük kalem ama paylaşılan
-     `apply_rx_dyn` birimi tam da LUT tasarrufu için seçilmişti (Tur 9:
-     45.114 → 2.409 LUT). Geri almak %84'ün üstüne çıkar.
-   - (b) Tur 16'yı **geri al**, LUT payını paralelliğe harca. 2,85M çevrim
-     verip daha fazlasını almak — ölçülmeden bilinmez.
-   - (c) Tur 16'yı tut, paralelliği bırak, Faz 3'e geç. 0,0695 sn yeterince
-     iyi mi? CPU 1,2× hızlı olduğuna göre hayır, ama hızlanma zaten hedef
-     değil (bkz. spec).
+Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu üç
+ölçülmüş sonucu oku:
 
-   ⚠️ Nereyi paralelleştireceğine **ölçümle** karar ver — bankalama
-   araştırmasında işin %0,4'ünü optimize etme hatası tekrarlanmasın.
-   ⚠️ HLS LUT tahmini kabadır; %84 Vivado implementasyonunda değişebilir.
-   Karar vermeden önce **bir kez `export.tcl` koşup gerçek yerleştirme
-   sonucunu görmek** en ucuz ölçüm olabilir.
+- **Banka sayısı işe yaramıyor.** `cyclic` 2→4→8: II kıpırdamadı, LUT
+  %84→%86→%90. `k` çalışma zamanı değişkeni olduğu için HLS hangi bankaya
+  düşüldüğünü kanıtlayamıyor, kaç banka olursa olsun en kötü durumu varsayıyor.
+- **II=1 BRAM'e sığmıyor.** Dizi başına 4 port ister; ping-pong `sv`'yi
+  144→288 BRAM yapar, toplam 187/280 zaten dolu.
+- **Tablolar LUT'a sığmıyor.** 256'lık dış döngüyü boru hattına almak iç
+  döngüleri açmaya zorluyor (`gates_diagonal.hpp:62`'deki tuzak). Ölçüldü:
+  LUT %182 / %166 / %123. Vaat edilen 1,6M çevrim gerçek ama satın alınamaz.
 
-2. Faz sonu: T049–T054 (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
+### Sıradaki iş
+
+1. **Faz sonu: T049–T054** (risk kaydı, CLAUDE.md, faz-sonu-kontrol, quickstart).
+   ⚠️ SC-005'in durumu değişti: cosim artık gerçekten koşuyor ve n=8'de geçiyor.
+   Daha önce "doğrulandı" sayılıyordu ama betikler bozuktu ve hiç koşmamıştı.
+2. İsteğe bağlı: `export.tcl` ile bir kez Vivado implementasyonu koşup LUT
+   %84'ün gerçekte ne çıktığını görmek. HLS tahmini kabadır; yerleştirme
+   sonrası sayı hem tez için daha sağlam hem de Faz 5 planı için girdi.
+   Sığmazsa geri dönüş yolu ölçülü: Tur 16'yı geri almak LUT'u %63'e indirir,
+   bedeli 5.375.327 → 8.228.447 çevrim.
 
 ### Ortam — 2026-09-16'da köklü değişti
 
@@ -90,10 +101,16 @@ CPU tabanı (Aer, ölçülen ~58 ms) hâlâ **1,2× hızlı** — hızlanma iddi
   yoksa oku-değiştir-yaz zinciri tek kombinasyonel parçada kalıp 23 ns yapıyor.
 - `expectation_scaled` II=4'te kalmalı; II=1 akümülatörü kritik yola sokuyor.
 - Tcl dosyaları **ASCII ve BOM'suz** olmalı.
+- Cosim `QIR_N` ile küçük n'de koşulur: `QIR_N=8 vitis-run --mode hls --tcl
+  hls/tcl/cosim.tcl`. n=16 cosim'i 11,5 saat sürüyor (darboğaz `/mnt/c`
+  üzerine yazılan 87 MB'lık bağımlılık uyarısı log'u, hesap değil).
+- `cosim.tcl` kendi başına çalışmaz: `common.tcl`'deki `open_solution -reset`
+  çözüm veritabanını siler, cosim de RTL bulamaz (`COSIM 212-40`). Bu yüzden
+  `cosim_design`'dan önce `csynth_design` çağrılır — düzeltildi.
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, Tur 16 ölçüldü; Vitis WSL'de çalışıyor
+**Son güncelleme**: 2026-09-16, Tur 17 + cosim ilk kez geçti (n=8)
 
 ---
 

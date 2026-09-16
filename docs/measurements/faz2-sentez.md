@@ -493,3 +493,218 @@ indi ama **hızlanma iddiası hâlâ yapılamaz**.
 ⚠️ **LUT payı %37'den %16'ya düştü.** Sıradaki iş olan paralellik, kalan LUT
 payına yatırım demekti; o pay artık büyük ölçüde harcandı. Paralellik kararı
 bu yeni kısıt altında yeniden düşünülmeli — bu bir ölçüm sonucu, tahmin değil.
+
+---
+
+# 13. Tur 17 — paralellik arama turu: DOKUZ ölçüm, bir kazanan (2026-09-16)
+
+Karar turu, uygulama turu değil. Dokuz konfigürasyon sentezlendi, kaynak ağacı
+her denemeden sonra `git checkout` ile geri alındı. Hiçbiri commit edilmedi.
+
+Hepsi: `01f643b` tabanlı · Vitis 2025.2 · `xc7z020clg400-1` · WSL · BRAM %66,
+zamanlama 7,195 ns (dokuzunda da **değişmedi**).
+
+## Önce: iş nerede harcanıyor (Tur 16, p=3)
+
+| Kalem | Çevrim | Pay |
+|---|---:|---:|
+| `mixer_loop` (3 katman × 16 kübit × 98.315) | 4.719.216 | **%67,9** |
+| maliyet tabloları (3 × 532.736) | 1.598.208 | %23,0 |
+| `expectation_scaled` | 368.465 | %5,3 |
+| `cost_amp_loop` (3 × 65.549) | 196.647 | %2,8 |
+| `init_loop` | 65.538 | %0,9 |
+
+`apply_cost_layer`'ın içinde **asıl genlik döngüsü yalnızca %11**; kalan %89
+tablo kurmak. Yani "maliyet katmanı" diye bilinen kalemin neredeyse tamamı
+hazırlık.
+
+Ölçülen II'ler: `rx_dyn_pair_loop` **II=3** (hedef 1), `cost_amp_loop` **II=1**.
+
+## Ölçümler
+
+| # | Konfigürasyon | Gecikme | DSP | FF | LUT | rx II | Sığar |
+|---|---|---:|---:|---:|---:|:---:|:---:|
+| 0 | Tur 16 (mevcut) | 6.948.095 | %16 | %46 | %84 | 3 | ✅ |
+| 1 | `cyclic factor 4` | 6.948.095 | %16 | %47 | %86 | 3 | kazanç **yok** |
+| 2 | `cyclic factor 8` | 6.948.240 | %16 | %49 | %90 | 3 | kazanç **yok** |
+| **3** | **`RAM_T2P`** | **5.375.327** | %16 | %46 | **%84** | **2** | ✅ |
+| 4 | `RAM_T2P` + `cyclic 4` | 5.375.327 | %16 | %47 | %86 | 2 | kazanç **yok** |
+| 5 | `RAM_T2P` + `cyclic 8` | 5.375.328 | %16 | %49 | %90 | 2 | kazanç **yok** |
+| 6 | `RAM_T2P` + tüm tablolar `II=4` | 3.780.845 | %74 | %122 | **%182** | 2 | ❌ |
+| 7 | `RAM_T2P` + yalnız `tablo_yuksek II=4` | 4.333.700 | %74 | %108 | **%166** | 2 | ❌ |
+| 8 | `RAM_T2P` + `tablo_yuksek UNROLL 2` | 5.378.015 | %16 | %71 | **%123** | 2 | ❌ |
+| 9 | `RAM_T2P` + tablo içleri `UNROLL` | 10.212.635 | %67 | %26 | %53 | 2 | ✅ ama **2× yavaş** |
+| 10 | `RAM_T2P` + Tur 16 geri alınmış | 8.228.447 | %16 | %32 | %63 | 2 | ✅ |
+
+## Kazanan: tek kelime, −%22,6, bedeli sıfır
+
+```diff
+-#pragma HLS BIND_STORAGE variable = sv type = RAM_2P  impl = BRAM
++#pragma HLS BIND_STORAGE variable = sv type = RAM_T2P impl = BRAM
+```
+
+6.948.095 → **5.375.327 çevrim** (−1.572.768, −%22,6). BRAM, DSP, FF, LUT ve
+zamanlama **dördü de değişmedi**.
+
+**Neden işe yarıyor**: `RAM_2P` *basit* çift porttur — bir okuma + bir yazma
+portu. Yerinde kelebek her çift için **2 okuma + 2 yazma** ister; 1R+1W ile bu
+en iyi ihtimalle II=2, HLS II=3'e razı olmuştu. `RAM_T2P` *gerçek* çift
+porttur: iki portun ikisi de okuyabilir veya yazabilir → 4 erişim / 2 port =
+**II=2**. 7-serisi BRAM bunu donanımda zaten destekliyor, o yüzden BRAM sayısı
+artmıyor. Bedava.
+
+⚠️ Bu bir **depolama bağlama** değişikliğidir; C-sim'de görünmez (C-sim BRAM
+portu modellemez). Doğrulaması **cosim**'dir — commit'ten önce koşmalı.
+
+## Elenen yollar (hepsi ölçümle)
+
+**Banka sayısı hiçbir şey kazandırmıyor** (#1, #2, #4, #5). `cyclic` faktörünü
+2 → 4 → 8 yapmak II'yi kıpırdatmadı, yalnızca LUT'u %84 → %86 → %90 çıkardı.
+Sebep: `k` çalışma zamanı değişkeni olduğu için HLS `i0` ile `i1`'in hangi
+bankaya düştüğünü **kanıtlayamıyor** ve kaç banka olursa olsun en kötü durumu
+varsayıyor. R-7'nin hipotezi yön olarak doğruymuş — ama bedeli tam
+serileştirme değil, bir **II tabanı**.
+
+**II=1 ulaşılamaz.** Dizi başına 4 port gerekir. Ping-pong (A'dan oku, B'ye
+yaz) bunu verir ama `sv`'nin BRAM'ini 144 → 288 ikiye katlar; toplam 187/280
+zaten dolu. [banking-research.md](banking-research.md) §6'daki duvarın aynısı.
+
+**Tablolar bütçeye sığmıyor** (#6, #7, #8). 256 yinelemelik dış döngüyü boru
+hattına almak, iç döngüleri açmaya **zorluyor** (~100 toplayıcı) — bu tuzak
+zaten `gates_diagonal.hpp:62`'de yazılı. Ölçüldü: LUT %182 / %166 / %123.
+Üçü de dışarıda. #6'nın vaat ettiği 1,6M çevrim gerçek ama **satın alınamaz**.
+
+**İç döngüleri açmak ters tepiyor** (#9). LUT %53'e düşüyor ama gecikme
+**iki katına** çıkıyor: `config_compile -pipeline_loops 0` altında `UNROLL`
+boru hattını tamamen kaldırıyor ve açılmış toplayıcı zinciri seri kalıyor.
+
+## Nerede duruyoruz (kazanan uygulanırsa)
+
+| Ölçüt | Tur 16 | + `RAM_T2P` |
+|---|---:|---:|
+| Zamanlama | 7,195 ns | 7,195 ns |
+| Gecikme | 6.948.095 | **5.375.327** |
+| Süre @100 MHz | 69,5 ms | **53,8 ms** |
+| BRAM / DSP / FF / LUT | %66/%16/%46/%84 | %66/%16/%46/%84 |
+
+⚠️ **53,8 ms, ölçülen CPU tabanının (~58 ms) ALTINDA.** Bu, projede ilk kez
+tahminin CPU'yu geçmesi demek — ama **hızlanma iddiası DEĞİLDİR**. 53,8 ms bir
+HLS tahminidir: sentez sonrası, implementasyon öncesi, donanımda koşmamış.
+Gerçek sayı Faz 5'te karttan okunacak (Prensip II ve IV).
+
+## Paralellik arama turu KAPANDI
+
+Dokuz ölçümden sonra geriye satın alınabilir paralellik kalmadı: banka artışı
+kazanç vermiyor, II=1 BRAM'e sığmıyor, tablolar LUT'a sığmıyor. Tek bulunan
+kazanç `RAM_T2P` ve o da paralellik değil, **port** düzeltmesi.
+
+## KARAR: #3 uygulandı (2026-09-16, onaylı)
+
+`qir_kernel.cpp:155` — `RAM_2P` → `RAM_T2P`. Doğrulandı:
+
+| | |
+|---|---|
+| Sentez | 7,195 ns · 5.375.327 çevrim · BRAM %66 · DSP %16 · FF %46 · LUT %84 |
+| C-sim | fidelity **0,999978179** (n=16, p=2) — değişmedi |
+| `rx_dyn_pair_loop` | II 3 → **2**, 98.311 → 65.545 çevrim |
+
+Reddedilenler kayıt için tabloda duruyor; birini geri getirmek isteyen önce
+oradaki ölçülmüş LUT rakamına baksın.
+
+---
+
+# 14. Cosim ilk kez KOŞTU ve GEÇTİ (2026-09-16)
+
+`RAM_T2P` bir **depolama bağlama** değişikliğidir; C-sim BRAM portlarını
+modellemez, dolayısıyla C-sim'in "geçti"si bu değişiklik hakkında **hiçbir şey
+kanıtlamaz**. Tek geçerli kanıt RTL simülasyonudur.
+
+## Cosim bu projede bugüne kadar hiç koşmamış
+
+Denendiğinde iki ayrı bozukluk çıktı. İkisi de Device Guard engeli yüzünden
+hiç denenemediği için gizli kalmıştı — SC-005 "doğrulandı" sayılıyordu ama
+doğrulanmamıştı.
+
+**1. `cosim.tcl` sentez yapmıyordu.** `common.tcl` içindeki
+`open_solution -reset` çözüm veritabanını siliyor; `cosim_design` ardından RTL
+bulamıyor:
+
+```
+ERROR: [COSIM 212-40] C/RTL co-simulation cannot be started,
+       possible causes: 1) Synthesis was not successful; ...
+```
+
+Çözüm: `cosim_design`'dan önce `csynth_design`.
+
+**2. Testbench sentezlenen üst fonksiyonu hiç çağırmıyordu.**
+
+```
+ERROR: [COSIM 212-330] top function 'qir_kernel' is not invoked in the test bench
+```
+
+Doğrulama `qir_kernel_debug` üzerinden yapılıyor çünkü statevector'ü dışarı
+veren tek yol o — ama o **sentezlenmez** (`add_files -tb`; sentezlenseydi
+`sv_out` bir `m_axi` portu doğurur ve sözleşme maddesi K-1'i ihlal ederdi).
+Cosim ise sentezlenen üst fonksiyonun çağrılmasını şart koşuyor. Testbench'e
+`qir_kernel` çağrısı eklendi; ikisi de `qir::run_circuit`'i çağırdığı için
+(madde T-1) aynı devreyi koşarlar.
+
+## n=16 pratikte koşulamadı — ÖLÇÜLDÜ
+
+| Zaman | Simüle edilen | xsim süresi | Hız |
+|---|---:|---:|---:|
+| 20:03 | 8,249 ms | 9 dk 19 sn | 0,885 ms/dk |
+| 20:25 | 9,603 ms | 30 dk 30 sn | **0,064 ms/dk** |
+
+**14 kat yavaşlama.** Hedef 53,75 ms; bu hızda kalan 44,1 ms **11,5 saat**
+ederdi ve hız hâlâ düşüyordu. Sebep hesap değil I/O: xsim'in CPU'su %42'den
+%3,9'a inmişti ve bağımlılık uyarısı log'u 87 MB'a ulaşmış, `/mnt/c` köprüsü
+üzerinden yazılıyordu (127.770 uyarı bloğu).
+
+Bu yüzden `common.tcl` **kübit sayısında parametrik** hâle getirildi:
+
+```bash
+QIR_N=8 vitis-run --mode hls --tcl hls/tcl/cosim.tcl
+```
+
+n≠16 ayrı proje dizini (`qir_hls_prj_n8`) kullanır ki n=16 sentez sonuçları
+ezilmesin, ve sentetik referansı seçer (`synthref_*_p2_n8`).
+
+## Sonuç: n=8 cosim GEÇTİ
+
+```
+*** C/RTL co-simulation finished: PASS ***
+Fidelity        : 0.999999871
+Beklenen deger  : 0.090485483  (qir_kernel, sentezlenen ust)
+```
+
+Süre: **4 dk 31 sn** (n=16'nın 11,5 saatine karşı). Fidelity, kayıtlı n=8
+değeriyle birebir aynı.
+
+## Bağımlılık uyarıları YANLIŞ POZİTİFMİŞ
+
+xsim, n=16'da 127.770, n=8'de benzer sayıda *Critical WARNING* bastı:
+
+```
+Critical WARNING: Due to pragma (hls/src/gates_pairing.hpp:137:1),
+dependence access (loop distance = 1) is detected in ...rx_dyn_pair_loop
+If cosim fails, the WARNING should be checked.
+```
+
+Satır 137, zamanlamayı tutturan pragmadır:
+`#pragma HLS DEPENDENCE variable = sv type = inter dependent = false`.
+Uyarı gerçek olsaydı Tur 13'ün 23,0 → 12,7 ns kazancı ve dolayısıyla 7,195 ns
+şüpheye düşerdi.
+
+**Cosim GEÇTİ**, yani uyarılar yanlış pozitif. Kontrolcü, yerinde
+güncellemenin aynı yineleme içindeki oku-sonra-yaz çiftini yinelemeler arası
+bağımlılık sanıyor. Farklı `j` değerleri gerçekten farklı çiftlere dokunuyor;
+pragma sağlam.
+
+## Kapsam sınırı — açıkça
+
+Bu doğrulama **n=8'de** yapıldı, n=16'da değil. `RAM_T2P` bağlaması,
+`DEPENDENCE` pragması, boru hattı yapısı ve kapı sırası n'den bağımsızdır;
+değişen yalnızca dizi boyudur. Yine de n=16 RTL eşdeğerliği **ölçülmedi** ve
+öyle yazılmamalı. İstenirse gece boyu koşturulabilir — tercihen proje WSL'in
+yerel diskine kopyalanarak, çünkü darboğaz `/mnt/c` üzerindeki log yazımıydı.
