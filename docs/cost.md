@@ -17,8 +17,8 @@ Bugünkü gerçek durum: **hiçbir dış servis henüz kurulu değil.** `git rem
 
 | Servis | Durum | Ücretsiz katman limiti | Mevcut kullanım | Aşınca ne olur | Aylık tahmini maliyet |
 |---|---|---|---|---|---|
-| **GitHub Actions (CI)** | 🟡 Tanımlı ama pasif — remote yok, hiç koşmadı | Private repo: 2.000 dk/ay (Linux). **ARM64/macOS işleri 10x çarpanla sayılır.** | 0 dk | Dakika biter, iş kuyruğa girmez / kart istenir | 0 TL (public repo yapılırsa limit sınırsız) |
-| **Railway** | ⚪ Henüz hesap yok | Hobby öncesi ücretsiz deneme: $5 kredi / tek seferlik, sonra kart ister | — | Kredi biterse servis **durur** (silinmez, ama çalışmaz) | **0 TL**, son 1-2 ay **~$5** (kullanıcı onayı) |
+| **GitHub Actions (CI)** | 🟢 **AKTİF (2026-09-16)** — `secrets-scan` + `csim-regression`, ikisi de yeşil | Private repo: 2.000 dk/ay (Linux). **ARM64/macOS işleri 10x çarpanla sayılır.** | **~1,2 dk/push** (csim 1 dk + gitleaks 8 sn) | Dakika biter, iş kuyruğa girmez / kart istenir | 0 TL. ~1.600 push/ay'a kadar bedava — gerçekçi kullanımın çok altında |
+| **Railway** | 🟡 **Hobby planı var, ~12 Eki 2026'da bitiyor** (H5) | Hobby ~$5/ay | **Hiçbir şey dağıtılmadı** — dağıtılacak uygulama henüz yok | Kredi biterse servis **durur** (silinmez, ama çalışmaz) | **0 TL** şimdilik; H10'da (~16 Kas) yeniden alınacak — panel işi o hafta başlıyor |
 | **Cloudflare (Tunnel + WAF + Turnstile)** | ⚪ Henüz hesap yok | Tunnel: ücretsiz sınırsız. WAF: 5 kural (ücretsiz plan). Turnstile: sınırsız doğrulama, ücretsiz. CDN: sınırsız bant genişliği (ücretsiz plan, "makul kullanım" şartı var) | — | Kural sayısı aşılırsa **yeni kural eklenemez** (var olanlar çalışmaya devam eder) | 0 TL — Faz 13 zaten taban planda **İ** ([scope-triage.md](../specs/000-kapsam-takvim/scope-triage.md)), muhtemelen hiç kurulmayacak |
 | **Yönetilen veritabanı** | ⚪ Henüz yok | Railway içinde PostgreSQL eklentisi Railway'in kendi kotasına dahil, ayrı ücretsiz katmanı yok | — | Railway kotasına dahil olduğu için ayrı aşım yok | Railway'e dahil |
 | **Nesne depo** | ⚪ Planlanmıyor | — | — | — | Taban planda yok; büyük ikili dosyalar OneDrive+G: SSD'de ([backup.md](backup.md)) |
@@ -102,3 +102,33 @@ Bu satır [backup.md §6](backup.md)'daki `DEMO_MODE` kontrolüyle **aynı anda*
 | Railway kullanım API'sinden otomatik gösterge/alarm | Faz 14 (gerçekleşirse — taban planda İ) |
 | "Kotalar kontrol edildi" + `DEMO_MODE` ortak savunma-öncesi kontrol listesi | Faz 12.4 |
 | Railway Hobby planına geçiş kararı (H12-H14 civarı) | Kullanıcı — o dönem geldiğinde hatırlatılacak (haftalık ritüel) |
+
+
+---
+
+## Railway zamanlaması — 2026-09-16 kararı
+
+Mevcut Hobby planı **~12 Ekim**'de (H5) bitiyor. Panelin dağıtılacağı iş
+(**6.3** mühendis konsolu + **8.1** gateway) takvimde **H10**'da, yani
+**16 Kasım**. Aradaki boşluk **35 gün**.
+
+**Karar: mevcut plan dağıtım için kullanılmayacak, bitmesine izin verilecek.**
+
+Gerekçe:
+
+1. **Dağıtılacak bir şey yok.** Faz 3 (backend) başlamadı, panel yazılmadı.
+2. Şimdi harcanırsa **ona ihtiyaç duyulan işten bir ay önce** biter ve zaten
+   yeniden alınması gerekir.
+3. Deneme amaçlı bir dağıtımın Kasım'daki gerçek dağıtım hakkında öğreteceği
+   şey sınırlı.
+4. Geri dönüş yolu zaten planlı ve bedava — [K-08](../specs/000-kapsam-takvim/cut-plan.md):
+   panel Railway'den yerele taşınır, `docker compose up`, jüri demosu yerelde.
+
+**Domain**: satın alınmasına gerek yok. Kullanıcının elinde zaten bir alan adı
+var (başka bir uygulama çalışıyor); sırası gelince **alt alan adı**
+(`qir.<mevcut-domain>`) yeterli — mevcut uygulamaya hiç dokunmadan, tek DNS
+kaydıyla. Railway ve Cloudflare Tunnel ayrıca ücretsiz alt alan adı da veriyor.
+
+⚠️ Ölçüm eksenlerinin **hiçbiri** tünelden veya dağıtımdan geçmiyor
+([cut-plan.md](../specs/000-kapsam-takvim/cut-plan.md) K-07). Domain ve Railway
+bir **sunum** meselesidir, tez iddialarının koşulu değildir.
