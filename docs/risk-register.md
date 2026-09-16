@@ -364,9 +364,11 @@ ve [faz2-sentez.md](measurements/faz2-sentez.md) §1–§14.
 
 ⚠️ SK-06 kaydında *"bu risk kapanmadan hiçbir hızlanma iddiası yapılamaz"*
 yazıyordu. Risk kapandı ama **iddia hâlâ yapılamaz**, çünkü gerekçe değişti:
-0,0538 sn bir **HLS tahminidir** — implementasyon yapılmadı, donanımda
-koşulmadı. CPU tabanı (Aer, ölçülen ~58 ms) tahminin üstünde kalıyor ama bu
-karşılaştırma ancak Faz 5'teki kart ölçümüyle kurulabilir (Prensip II ve IV).
+p=2 için 37,3 ms bir **HLS tahminidir** — implementasyon yapılmadı, donanımda
+koşulmadı. Ayrıca CPU tabanının kendisi iki koşuda **±%60 oynadı** (58–123 ms),
+yani tek koşum taban olamaz. Karşılaştırma ancak Faz 5'teki kart ölçümüyle ve
+çoklu koşumla kurulabilir (Prensip II ve IV). Bkz.
+[faz2-sentez.md](measurements/faz2-sentez.md) §15.
 
 ## SK-02'nin ölçümü değişti — bankalama değil, PORT
 

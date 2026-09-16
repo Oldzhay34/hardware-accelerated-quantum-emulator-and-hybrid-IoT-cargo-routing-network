@@ -1,5 +1,11 @@
 # Faz 2 — İlk sentez raporu (ÖLÇÜLEN)
 
+> ⚠️ **CPU karşılaştırmaları için §15'i okumadan bu dosyadaki hiçbir
+> "CPU'dan N kat yavaş/hızlı" ifadesine güvenme.** Bunlar kronolojik kayıttır
+> ve §15'e kadar **iki sistematik hata** taşırlar: FPGA tarafı p=3, CPU tarafı
+> p=2 idi; ve CPU tabanı olarak medyan değil tek koşunun **en iyi** değeri
+> alınmıştı. Doğru sayılar §15'te.
+
 **Tarih**: 2026-09-15 · **Araç**: Vitis HLS 2025.2 · **Hedef**: xc7z020clg400-1
 **Saat hedefi**: 10 ns (100 MHz) · **Rapor**: `qir_hls_prj/solution1/syn/report/qir_kernel_csynth.rpt`
 
@@ -708,3 +714,87 @@ Bu doğrulama **n=8'de** yapıldı, n=16'da değil. `RAM_T2P` bağlaması,
 değişen yalnızca dizi boyudur. Yine de n=16 RTL eşdeğerliği **ölçülmedi** ve
 öyle yazılmamalı. İstenirse gece boyu koşturulabilir — tercihen proje WSL'in
 yerel diskine kopyalanarak, çünkü darboğaz `/mnt/c` üzerindeki log yazımıydı.
+
+---
+
+# 15. DÜZELTME — CPU karşılaştırması iki yerden birden yanlıştı (2026-09-16, T054)
+
+`quickstart.md` baştan sona koşulunca (T054) ortaya çıktı. Bu bölümden önceki
+bütün CPU karşılaştırmaları **hatalıdır**; aşağıdaki sayılar geçerlidir.
+
+## Hata 1 — FPGA tarafı p=3, CPU tarafı p=2 idi
+
+Sentez raporundaki `max` gecikme `P_MAX = 3` içindir. Fidelity testleri ve CPU
+referansı ise **p=2** koşar. Yani 53,8 ms ile ~58 ms karşılaştırılırken **farklı
+devreler** karşılaştırılıyordu.
+
+Doğru ayrıştırma (`init` 65.538 + p × katman 1.647.107 + `expectation` 368.465):
+
+| p | Çevrim | @100 MHz |
+|---|---:|---:|
+| 1 | 2.081.110 | 20,81 ms |
+| **2** | **3.728.217** | **37,28 ms** |
+| 3 | 5.375.324 | 53,75 ms |
+
+## Hata 2 — "~58 ms" CPU tabanı bir MEDYAN değil, bir EN İYİ DURUM
+
+`cpu_reference_time.py` iki kez koştu ve p=2 için şunları ölçtü:
+
+| Koşu | min | **medyan** | max |
+|---|---:|---:|---:|
+| 2026-09-15 | **58,07** | 77,57 | 120,99 |
+| 2026-09-16 | 78,95 | 92,66 | 111,42 |
+
+Proje boyunca kullanılan "~58 ms", 15 Eylül koşusunun **en iyi** değeriydi.
+Aynı koşunun medyanı 77,6 ms; bugünkü koşu o en iyi değere **hiç ulaşmadı**
+(en iyisi 78,95). `quickstart.md` Adım 0 zaten uyarıyordu:
+*"Yayılım geniştir — tek koşuma güvenme."* Uyarı okunmuş ama uygulanmamış.
+
+## Doğru karşılaştırma (p=2, aynı devre)
+
+| | Değer |
+|---|---:|
+| FPGA, HLS tahmini | **37,28 ms** |
+| CPU Aer, medyan (15 Eyl / 16 Eyl) | 77,57 / 92,66 ms |
+| CPU Aer, en iyi durum (15 Eyl) | 58,07 ms |
+
+Oran **1,6× – 2,5×** aralığında, hangi CPU değerinin alındığına göre.
+
+## Neden fark edilmedi
+
+İki hata **ters yönlüydü ve birbirini kısmen götürdü**. FPGA sayısı olduğundan
+büyük (p=3), CPU sayısı olduğundan küçük (en iyi durum) alınınca sonuç
+"CPU 1,2× önde" gibi makul göründü. Gerçekte FPGA tahmini p=2'de **önde**.
+
+Bu, yanlışın en tehlikeli türü: iki hatanın birbirini maskelemesi. Tek bir
+sayıya bakarak yakalanamazdı — `quickstart.md`'yi uçtan uca koşmak yakaladı.
+T054'ün varlık sebebi tam olarak budur.
+
+## Değişmeyen: HÂLÂ HIZLANMA İDDİASI YAPILAMAZ
+
+Yön değişti (CPU önde değil, FPGA tahmini önde) ama yasak aynı gerekçeyle
+duruyor ve şimdi **daha da önemli**:
+
+- 37,28 ms sentez sonrası bir **HLS tahminidir** — implementasyon yapılmadı,
+  bitstream üretilmedi, kartta koşulmadı.
+- CPU tarafı **±%60 oynuyor** (58–123 ms). Tek koşum taban olamaz; teze
+  girecek sayı çoklu koşumun medyanı ve yayılımıyla birlikte verilmelidir.
+- Enerji ekseni hiç ölçülmedi.
+
+Karşılaştırma Faz 5/Faz 10'da, kartta, aynı `p` ile ve CPU tarafı çoklu koşumla
+yapılacak (Prensip II ve IV).
+
+## Ayrıca: `cpu_reference_time.py` eski tahminleri basıyor
+
+Betik çıktısının sonunda hâlâ şunlar var:
+
+```
+yerinde (Q1.17)     237568 cevrim = 2.38 ms  ->  33.2x
+ping-pong (Q1.17)    69632 cevrim = 0.70 ms  -> 113.4x
+```
+
+Bu sayılar **sentez öncesi aritmetik tahminlerdir** ve ölçülenden 16–54 kat
+sapmışlardır (gerçek p=2: 3.728.217 çevrim). Betik "TAHMINDIR" diye uyarıyor
+ama ekranda ölçülenin yanında durmaları yanıltıcı. Betiğin ölçülen değeri
+kullanacak şekilde güncellenmesi T054'ün kapsamı dışında bırakıldı — Faz 10
+(kıyas) işidir ve orada zaten kart ölçümüyle değişecek.

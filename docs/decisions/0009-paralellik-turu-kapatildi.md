@@ -76,16 +76,19 @@ BRAM sayısı artmıyor. −%22,6 gecikme, **dört kaynakta da sıfır bedel**.
 ## Sonuç
 
 - `hls/src/qir_kernel.cpp:155` — tek kelime değişti.
-- Gecikme **5.375.327 çevrim = 0,0538 sn** @100 MHz. Kaynaklar: BRAM %66,
-  DSP %16, FF %46, LUT %84. Zamanlama 7,195 ns.
+- Gecikme: **p=2 için 3.728.217 çevrim = 37,3 ms** @100 MHz (p=3 max
+  5.375.324 = 53,8 ms). Kaynaklar: BRAM %66, DSP %16, FF %46, LUT %84.
+  Zamanlama 7,195 ns.
 - SK-02 ve SK-03 kapandı ([risk-register.md](../risk-register.md)).
 - Elenen yollar [dead-ends.md](dead-ends.md)'e yazıldı.
 - Faz 2'nin optimizasyon işi bitti; kalan iş faz sonu görevleri.
 
-⚠️ **Hızlanma iddiası doğurmaz.** 0,0538 sn, ölçülen CPU tabanının (~58 ms)
-altında ve bu projede ilk kez oluyor — ama sentez sonrası bir **HLS
-tahminidir**: implementasyon yapılmadı, donanımda koşulmadı. Karşılaştırma
-ancak Faz 5'teki kart ölçümüyle kurulabilir (Prensip II ve IV).
+⚠️ **Hızlanma iddiası doğurmaz.** 37,3 ms, CPU tabanının (Aer p=2, medyan
+77,6–92,7 ms) altında — ama sentez sonrası bir **HLS tahminidir**:
+implementasyon yapılmadı, donanımda koşulmadı. Üstelik CPU tarafı iki koşuda
+**±%60 oynadı** (58–123 ms), yani tek koşum taban olamaz. Karşılaştırma ancak
+Faz 5'teki kart ölçümüyle ve çoklu koşumla kurulabilir (Prensip II ve IV).
+Bkz. [faz2-sentez.md](../measurements/faz2-sentez.md) §15.
 
 ## Tekrar değerlendirilmeli mi?
 

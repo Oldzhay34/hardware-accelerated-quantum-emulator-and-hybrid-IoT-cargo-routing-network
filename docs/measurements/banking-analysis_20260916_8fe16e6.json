@@ -1,0 +1,702 @@
+{
+  "stamped_at": "2026-09-16T17:56:12.262081+00:00",
+  "git_hash": "8fe16e6",
+  "git_dirty": false,
+  "config": {
+    "n_qubits": 16,
+    "banks": 16,
+    "lanes": 8,
+    "port_per_bank": 2
+  },
+  "verim": {
+    "naif (dusuk bitler) | yerinde": {
+      "per_k": [
+        8,
+        8,
+        8,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "en_dusuk": 0,
+      "en_yuksek": 8,
+      "darbogaz_k": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "naif (dusuk bitler) | ping-pong": {
+      "per_k": [
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      "en_dusuk": 16,
+      "en_yuksek": 16,
+      "darbogaz_k": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "XOR (2 parca) | yerinde": {
+      "per_k": [
+        8,
+        8,
+        8,
+        8,
+        1,
+        2,
+        4,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "en_dusuk": 0,
+      "en_yuksek": 8,
+      "darbogaz_k": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "XOR (2 parca) | ping-pong": {
+      "per_k": [
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      "en_dusuk": 16,
+      "en_yuksek": 16,
+      "darbogaz_k": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "XOR (tam katlama) | yerinde": {
+      "per_k": [
+        8,
+        8,
+        8,
+        8,
+        1,
+        2,
+        4,
+        8,
+        1,
+        2,
+        4,
+        8,
+        1,
+        2,
+        4,
+        8
+      ],
+      "en_dusuk": 1,
+      "en_yuksek": 8,
+      "darbogaz_k": [
+        4,
+        8,
+        12
+      ]
+    },
+    "XOR (tam katlama) | ping-pong": {
+      "per_k": [
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      "en_dusuk": 16,
+      "en_yuksek": 16,
+      "darbogaz_k": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  },
+  "parcalanma": {
+    "1": {
+      "kelime_per_parca": 65536,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "2": {
+      "kelime_per_parca": 32768,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "4": {
+      "kelime_per_parca": 16384,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "8": {
+      "kelime_per_parca": 8192,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "16": {
+      "kelime_per_parca": 4096,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "32": {
+      "kelime_per_parca": 2048,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "64": {
+      "kelime_per_parca": 1024,
+      "blok_toplam": 64,
+      "pingpong_blok": 128,
+      "israf_blok": 0
+    },
+    "128": {
+      "kelime_per_parca": 512,
+      "blok_toplam": 128,
+      "pingpong_blok": 256,
+      "israf_blok": 64
+    },
+    "256": {
+      "kelime_per_parca": 256,
+      "blok_toplam": 256,
+      "pingpong_blok": 512,
+      "israf_blok": 192
+    }
+  },
+  "devre_profili": {
+    "n_kubit": 16,
+    "pauli_agirlik": {
+      "1": 16,
+      "2": 84
+    },
+    "p=1": {
+      "ayristirilmis_kapi": 300,
+      "ayristirilmis_eslemeli": 200,
+      "yerlesik_kapi": 116,
+      "yerlesik_kosegen": 100,
+      "yerlesik_eslemeli": 16,
+      "eslemeli_azalma_kat": 12.5
+    },
+    "p=2": {
+      "ayristirilmis_kapi": 584,
+      "ayristirilmis_eslemeli": 384,
+      "yerlesik_kapi": 232,
+      "yerlesik_kosegen": 200,
+      "yerlesik_eslemeli": 32,
+      "eslemeli_azalma_kat": 12.0
+    },
+    "p=3": {
+      "ayristirilmis_kapi": 868,
+      "ayristirilmis_eslemeli": 568,
+      "yerlesik_kapi": 348,
+      "yerlesik_kosegen": 300,
+      "yerlesik_eslemeli": 48,
+      "eslemeli_azalma_kat": 11.8
+    }
+  },
+  "verim_cift_cevrim": {
+    "naif (dusuk bitler) | yerinde": {
+      "en_kotu": 4.0,
+      "en_iyi": 8.0,
+      "tavan": 8,
+      "per_k": [
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    "naif (dusuk bitler) | ping-pong": {
+      "en_kotu": 16.0,
+      "en_iyi": 16.0,
+      "tavan": 16,
+      "per_k": [
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ]
+    },
+    "XOR (2 parca) | yerinde": {
+      "en_kotu": 4.0,
+      "en_iyi": 8.0,
+      "tavan": 8,
+      "per_k": [
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    "XOR (2 parca) | ping-pong": {
+      "en_kotu": 16.0,
+      "en_iyi": 16.0,
+      "tavan": 16,
+      "per_k": [
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ]
+    },
+    "XOR (tam katlama) | yerinde": {
+      "en_kotu": 4.0,
+      "en_iyi": 8.0,
+      "tavan": 8,
+      "per_k": [
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        8.0,
+        4.0,
+        4.0,
+        4.0,
+        8.0
+      ]
+    },
+    "XOR (tam katlama) | ping-pong": {
+      "en_kotu": 16.0,
+      "en_iyi": 16.0,
+      "tavan": 16,
+      "per_k": [
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ]
+    }
+  },
+  "sonuclar": {
+    "naif (dusuk bitler)": {
+      "per_k": {
+        "0": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "1": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "2": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "3": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "4": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "5": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "6": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "7": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "8": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "9": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "10": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "11": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "12": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "13": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "14": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "15": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        }
+      },
+      "en_kotu_cevrim": 2,
+      "en_kotu_k": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "XOR (2 parca)": {
+      "per_k": {
+        "0": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "1": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "2": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "3": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "4": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "5": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "6": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "7": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "8": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "9": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "10": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "11": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "12": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "13": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "14": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "15": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        }
+      },
+      "en_kotu_cevrim": 2,
+      "en_kotu_k": [
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "XOR (tam katlama)": {
+      "per_k": {
+        "0": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "1": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "2": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "3": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "4": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "5": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "6": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "7": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "8": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "9": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "10": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "11": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        },
+        "12": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "13": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "14": {
+          "tepe_yuk": 4,
+          "cevrim": 2
+        },
+        "15": {
+          "tepe_yuk": 2,
+          "cevrim": 1
+        }
+      },
+      "en_kotu_cevrim": 2,
+      "en_kotu_k": [
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        12,
+        13,
+        14
+      ]
+    }
+  }
+}

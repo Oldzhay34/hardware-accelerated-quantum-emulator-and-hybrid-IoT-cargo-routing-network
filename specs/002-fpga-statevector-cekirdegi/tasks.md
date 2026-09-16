@@ -20,7 +20,8 @@ görevleri kaldı: **T053** ve **T054** (T049/T050/T051/T052 bitti, T030 konusuz
 | DSP | 36 / 220 (%16) | ✅ |
 | FF | 49.839 / 106.400 (%46) | ✅ |
 | LUT | 45.164 / 53.200 (**%84**) | ⚠️ dar |
-| Gecikme | **5.375.327 çevrim** = 0,0538 sn | — |
+| Gecikme (p=2) | **3.728.217 çevrim** = 37,3 ms | — |
+| Gecikme (p=3 max) | 5.375.324 çevrim = 53,8 ms | — |
 
 Fidelity (C-sim, n=16 p=2): **0,999978179** — Tur 14'ten beri değişmedi.
 
@@ -33,11 +34,15 @@ sürüyordu) — bkz. [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) �
 
 **NC-4 KAPANDI**: 100 MHz artık varsayım değil, ölçülmüş.
 
-⚠️ **53,8 ms, ölçülen CPU tabanının (~58 ms) ALTINDA.** Projede ilk kez.
-Ama bu sentez sonrası bir **HLS tahmini** — implementasyon yapılmadı, donanımda
-koşmadı. **Hızlanma iddiası Faz 5'teki kart ölçümünden önce yapılamaz**
-(Anayasa Prensip II ve IV). Tezde "CPU'yu geçtik" cümlesi bu satıra
-dayandırılamaz.
+⚠️ **CPU karşılaştırması 16 Eylül'de DÜZELTİLDİ** — önceki "53,8 ms vs ~58 ms,
+CPU 1,2× önde" ifadesi **iki yerden birden yanlıştı**: FPGA tarafı p=3, CPU
+tarafı p=2 idi; ve "~58 ms" bir medyan değil tek koşunun **en iyi** değeriydi.
+Doğrusu (p=2, aynı devre): FPGA tahmini **37,3 ms**, CPU Aer medyanı **77,6 /
+92,7 ms** (iki koşu). Ayrıntı: [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §15.
+
+**Hızlanma iddiası yine de yapılamaz**: 37,3 ms sentez sonrası bir tahmin,
+donanımda koşmadı; ayrıca CPU tarafı ±%60 oynuyor (58–123 ms), tek koşum taban
+olamaz. Tezde "CPU'yu geçtik" cümlesi bu satıra dayandırılamaz.
 
 ### Paralellik arama turu KAPANDI (Tur 17, dokuz ölçüm)
 
@@ -59,9 +64,13 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 
 ### Sıradaki iş
 
-1. **T054** — [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş. ⚠️ Bugün bu
-   belgeyi bozan çok şey oldu: Vitis'in yeri, `LC_ALL` zorunluluğu, `QIR_N`,
-   cosim betiklerinin düzelmesi.
+**Faz 2'nin görev listesi BİTTİ.** Kalan iki isteğe bağlı iş:
+
+1. **Vivado implementasyonu** (`export.tcl`) — LUT %84 bir HLS *tahmini*.
+   Gerçek yerleştirme-yönlendirme sayısı tez için daha sağlam ve Faz 5'e girdi.
+   Sığmazsa geri dönüş ölçülü: Tur 16'yı geri al, LUT %63, bedeli
+   3.728.217 → 5.679.000 civarı çevrim (p=2).
+2. **n=16 cosim** — gece koşusunda; n=8 zaten PASS.
    ⚠️ SC-005'in durumu değişti: cosim artık gerçekten koşuyor ve n=8'de geçiyor.
    Daha önce "doğrulandı" sayılıyordu ama betikler bozuktu ve hiç koşmamıştı.
 2. İsteğe bağlı: `export.tcl` ile bir kez Vivado implementasyonu koşup LUT
@@ -112,7 +121,7 @@ Geriye satın alınabilir paralellik **kalmadı**; bir daha aramadan önce şu �
 - `pgrep -f 'xsetup'` gibi kalıplar **kendini eşleştirir** (kontrol komutunun
   kendi komut satırında da geçer). `[x]setup` yaz ya da pid dosyası kullan.
 
-**Son güncelleme**: 2026-09-16, T053 bitti — geriye yalnızca T054 kaldı
+**Son güncelleme**: 2026-09-16, T054 bitti — Faz 2 görev listesi tamam
 
 ---
 
@@ -285,7 +294,7 @@ kayıtlılar ama kaynak belgeler hâlâ yanlış.
 - [X] T051 [CLAUDE.md](../../CLAUDE.md) "Şu anki faz" satırını güncelle
 - [X] T052 Bu dosyanın **SIRADAKİ** bloğunu güncelle ([siradaki-standardi.md](../../docs/siradaki-standardi.md)) — güncellenmeyen SIRADAKİ hiç olmamasından kötüdür
 - [X] T053 [faz-sonu-kontrol.md](../../docs/faz-sonu-kontrol.md) — **BİTTİ 2026-09-16**. Üç gerçek eksik çıktı: (1) `dead-ends.md`'de Faz 2'den **tek satır yoktu** → altı madde eklendi; (2) Vitis tcl akışı ölçümleri `--git-hash vitis` ile damgalıyordu, yani hiçbir commit'e bağlanamıyorlardı → gerçek hash'e çevrildi (`vitis-<hash>`); (3) paralellik kararı ADR'siz duruyordu → [ADR 0009](../../docs/decisions/0009-paralellik-turu-kapatildi.md). Kapsam denetimi temiz: Faz 2'nin **M** tanımı (C-sim doğrulaması + sentez raporu) karşılandı, sürünme yok
-- [ ] T054 [quickstart.md](quickstart.md) Adım 0–6'yı baştan sona koş ve belgedeki beklenen çıktıların gerçekle uyuştuğunu doğrula
+- [X] T054 [quickstart.md](quickstart.md) — **BİTTİ 2026-09-16**, yedi adımın yedisi de koşuldu. Dört bozukluk: (1) **CPU karşılaştırması iki yerden yanlıştı** (FPGA p=3 / CPU p=2; ve "~58 ms" medyan değil en iyi durum) → [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §15; (2) Adım 2'nin `g++` komutu **derlenmiyordu** (`-DQIR_NO_VITIS` ve iki kaynak dosya eksik) + `foreach n in 8,12,16` imkânsız, `n` derleme zamanı parametresi; (3) Adım 6'nın `run.ps1`'i **çalışmıyordu** (Windows `vitis-run` arıyor, o kurulum kaldırıldı) → `hls/run.sh` yazıldı; (4) Adım 3'ün II beklentisi niteliksel olarak yanlıştı. Belge ölçülen değerlerle yeniden yazıldı. SC-005 doğrulandı: iki ardışık koşum birebir aynı
 
 ---
 

@@ -1,0 +1,107 @@
+{
+  "stamped_at": "2026-09-16T17:58:00.857666+00:00",
+  "git_hash": "8fe16e6",
+  "git_dirty": true,
+  "config": {
+    "problem": "5-durak-16-kubit",
+    "seed": 42
+  },
+  "sonuclar": {
+    "p=1": {
+      "kapi_sayisi": 300,
+      "formatlar": {
+        "float32 (complex64)": {
+          "fidelity": 0.9999999999999352,
+          "sure_sn": 2.9
+        },
+        "Q1.15": {
+          "fidelity": 0.9996595731908433,
+          "sure_sn": 4.3
+        },
+        "Q1.23": {
+          "fidelity": 0.9999999948167253,
+          "sure_sn": 4.0
+        }
+      }
+    },
+    "p=2": {
+      "kapi_sayisi": 584,
+      "formatlar": {
+        "float32 (complex64)": {
+          "fidelity": 0.9999999999998699,
+          "sure_sn": 4.5
+        },
+        "Q1.15": {
+          "fidelity": 0.9986741195420719,
+          "sure_sn": 7.1
+        },
+        "Q1.23": {
+          "fidelity": 0.9999999798041131,
+          "sure_sn": 8.2
+        }
+      }
+    },
+    "bit_taramasi_p2": {
+      "Q1.11": {
+        "toplam_bit": 12,
+        "fidelity": 0.7145271661230264,
+        "M_gecti": false,
+        "H_gecti": false,
+        "bayt_per_genlik": 3.0,
+        "statevector_KB": 192.0
+      },
+      "Q1.13": {
+        "toplam_bit": 14,
+        "fidelity": 0.9788610911071252,
+        "M_gecti": false,
+        "H_gecti": false,
+        "bayt_per_genlik": 3.5,
+        "statevector_KB": 224.0
+      },
+      "Q1.15": {
+        "toplam_bit": 16,
+        "fidelity": 0.9986741195420719,
+        "M_gecti": true,
+        "H_gecti": false,
+        "bayt_per_genlik": 4.0,
+        "statevector_KB": 256.0
+      },
+      "Q1.17": {
+        "toplam_bit": 18,
+        "fidelity": 0.9999170320942757,
+        "M_gecti": true,
+        "H_gecti": true,
+        "bayt_per_genlik": 4.5,
+        "statevector_KB": 288.0
+      },
+      "Q1.19": {
+        "toplam_bit": 20,
+        "fidelity": 0.9999948138316604,
+        "M_gecti": true,
+        "H_gecti": true,
+        "bayt_per_genlik": 5.0,
+        "statevector_KB": 320.0
+      },
+      "Q1.21": {
+        "toplam_bit": 22,
+        "fidelity": 0.9999996777103519,
+        "M_gecti": true,
+        "H_gecti": true,
+        "bayt_per_genlik": 5.5,
+        "statevector_KB": 352.0
+      },
+      "Q1.23": {
+        "toplam_bit": 24,
+        "fidelity": 0.9999999798041131,
+        "M_gecti": true,
+        "H_gecti": true,
+        "bayt_per_genlik": 6.0,
+        "statevector_KB": 384.0
+      }
+    }
+  },
+  "esikler": {
+    "M": 0.99,
+    "H": 0.999
+  }
+}

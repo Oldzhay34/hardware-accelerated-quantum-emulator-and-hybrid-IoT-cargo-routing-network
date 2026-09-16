@@ -1,0 +1,52 @@
+{
+  "stamped_at": "2026-09-16T17:59:22.752196+00:00",
+  "git_hash": "8fe16e6",
+  "git_dirty": true,
+  "config": {
+    "problem": "5-durak-16-kubit",
+    "frekans_mhz": 100,
+    "not_": "CPU OLCULEN; FPGA cevrimleri HESAPLANAN"
+  },
+  "sonuclar": {
+    "p=1": {
+      "kapi": 300,
+      "qiskit_python": {
+        "medyan_ms": 1086.33,
+        "min_ms": 870.05,
+        "max_ms": 1328.16,
+        "tekrar": 15
+      },
+      "aer_cpp": {
+        "medyan_ms": 42.34,
+        "min_ms": 32.45,
+        "max_ms": 64.44,
+        "tekrar": 15
+      }
+    },
+    "p=2": {
+      "kapi": 584,
+      "qiskit_python": {
+        "medyan_ms": 2773.92,
+        "min_ms": 1982.1,
+        "max_ms": 4560.73,
+        "tekrar": 15
+      },
+      "aer_cpp": {
+        "medyan_ms": 92.66,
+        "min_ms": 78.95,
+        "max_ms": 111.42,
+        "tekrar": 15
+      }
+    },
+    "fpga_yerinde (Q1.17)": {
+      "cevrim": 237568,
+      "ms": 2.376,
+      "hizlanma_vs_adil_taban": 33.2
+    },
+    "fpga_ping-pong (Q1.17)": {
+      "cevrim": 69632,
+      "ms": 0.696,
+      "hizlanma_vs_adil_taban": 113.4
+    }
+  }
+}
