@@ -1,6 +1,6 @@
 # qir-engine — Kuantum-Esinli Rota Optimizasyon Motoru
 
-Bir bitirme projesi: PYNQ-Z2 (Xilinx Zynq-7000) üzerinde çalışan bir statevector emülasyon çekirdeğini
+Amaç: PYNQ-Z2 (Xilinx Zynq-7000) üzerinde çalışan bir statevector emülasyon çekirdeğini
 Vitis HLS ile donanımda hızlandırmak; sonucu Qiskit altın referansına karşı doğrulamak; ve CPU referansına
 karşı gecikme ile enerji eksenlerinde **gerçek ölçümle** karşılaştırmak. Bkz. [Anayasa](.specify/memory/constitution.md).
 
