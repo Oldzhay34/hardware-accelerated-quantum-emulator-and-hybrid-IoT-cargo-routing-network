@@ -2,13 +2,16 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Faz 5 planı üretildi ve üç mimari karar onaylandı;
-sıradaki tek iş `/speckit-tasks` çalıştırıp görev listesini üretmek — **ilk
-görev PYNQ 2.5 ile Vivado 2025.2 arasındaki `.hwh` uyumluluk denemesi (G0).**
+**Hedef (tek cümle)**: Faz 5 planı ve 63 görev üretildi, üç mimari karar
+onaylandı; sıradaki tek iş **T001–T007 (G0)** — PYNQ 2.5'in Vivado 2025.2
+`.hwh`'sini ayrıştırıp ayrıştıramadığını öğrenmek.
 
-**Dokunulacak dosyalar**: [plan.md](plan.md), [research.md](research.md),
-[data-model.md](data-model.md), [quickstart.md](quickstart.md),
-[contracts/](contracts/) — hepsi hazır.
+**Dokunulacak dosyalar**: [tasks.md](tasks.md) (63 görev),
+`fpga/bd/probe_hwh.tcl`, `fpga/bd/probe_hwh.sh`, `fpga/bd/probe_test.py`
+
+⛔ **Kart şu an KAPALI.** Açılınca DHCP adresi değişmiş olabilir —
+`192.168.1.2` bir varsayımdır. Seri konsoldan (COM3, 115200 8N1) `hostname -I`
+ile doğrulanmadan hiçbir `ssh`/`scp` koşulmaz. JP4=SD, JP5=REG, adaptör.
 
 **Planın bulduğu iki sert gerçek** (spec bunları varsaymıştı, tutmadı):
 
@@ -23,7 +26,7 @@ kırılmış olarak belgelenmiş. Yedek yol sağlam: çekirdek yalnız `s_axilit
 kullandığı için `Bitstream` + `MMIO` tam işlevsellik veriyor, DMA gerekmiyor.
 Yine de **G0 ilk görev** — bir saatte cevaplanır, altıncı haftaya bırakılamaz.
 
-**Son güncelleme**: 2026-09-19, Faz 5.1 (plan üretildi)
+**Son güncelleme**: 2026-09-19, Faz 5.2 (görevler üretildi)
 
 ---
 
@@ -46,13 +49,13 @@ klasöre çıkarsa komut listesinden düşer (2026-09-19'da bu oldu).
 Eğik çizgi **mesajın en başında** olacak:
 
 ```
-/speckit-tasks Faz 5 planı hazır (specs/003-zynq-ps-kartta-kosum/plan.md),
-görev listesine geç. Önce SIRADAKI.md'yi oku. Üç karar onaylandı: K1 çoklu
-izdüşüm (≥20 cost vektörü, yeniden sentez yok), K2 EMIO I2C ilk bitstream'e
-dahil, K3 yeni fpga/ üst dizini. İlk görev G0 olmalı — PYNQ 2.5'in Vivado
-2025.2 .hwh'sini ayrıştırıp ayrıştıramadığı, PS-only kukla BD ile bir saatte
-test edilir. Kart 192.168.1.2'de, adaptörle besleniyor (JP5=REG, sabit
-kalacak). INA219 elde ama US3 için.
+/speckit-implement Faz 5 görevleri hazır (specs/003-zynq-ps-kartta-kosum/tasks.md,
+63 görev). Önce SIRADAKI.md'yi oku. T001-T007 (G0) ile başla: PYNQ 2.5'in Vivado
+2025.2 .hwh'sini ayrıştırıp ayrıştıramadığını öğren. Kukla BD PS + GERÇEK
+qir_kernel IP içermeli, PS-only olursa test anlamsız olur; probe boş ip_dict'i
+başarı saymamalı. Kart KAPALI — açıp seri konsoldan (COM3, 115200) hostname -I
+ile IP'yi doğrula, besleme düzenine (adaptör, JP5=REG) dokunma. Öbek 1 (belgeler)
+ve öbek 3 (konak kodlayıcı) donanım beklemeden paralel ilerleyebilir.
 ```
 
 ---

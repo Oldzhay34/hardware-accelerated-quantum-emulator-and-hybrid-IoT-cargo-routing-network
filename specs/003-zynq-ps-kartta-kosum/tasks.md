@@ -1,0 +1,331 @@
+---
+description: "Faz 5 görev listesi — Zynq PS + Kartta Koşum"
+---
+
+# Tasks: Faz 5 — Zynq PS + Kartta Koşum
+
+**Input**: `specs/003-zynq-ps-kartta-kosum/` altındaki tasarım belgeleri
+
+**Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md),
+[data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md)
+
+## SIRADAKİ
+
+**Hedef (tek cümle)**: 63 görev üretildi; sıradaki tek iş **T001–T007 (G0)** —
+PYNQ 2.5'in Vivado 2025.2 `.hwh`'sini ayrıştırıp ayrıştıramadığını öğrenmek.
+
+**Dokunulacak dosyalar**: `fpga/bd/probe_hwh.tcl`, `fpga/bd/probe_hwh.sh`,
+`fpga/bd/probe_test.py`, `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip`
+
+**Bilinen tuzak**: ⛔ Kukla BD **PS-only olmamalı** — PS-only bir `.hwh`'de özel
+IP yoktur, `ip_dict` boş döner ve bilinen ayrıştırma hatalarının hiçbiri (hepsi
+IP tarafındadır) tetiklenmez. Probe "geçer", bütün konak kodu A yoluna göre
+yazılır, gerçek bitstream gelince `.hwh` ayrıştırılamaz — G0'ın önlemek için var
+olduğu senaryonun ta kendisi. **Kart şu an kapalı**; açılınca DHCP adresi
+değişebilir, seri konsoldan (COM3, 115200) `hostname -I` ile doğrula.
+
+**Son güncelleme**: 2026-09-19, Faz 5.2 (görevler üretildi)
+
+Donanım durumu, ölçülmüş değerler ve onaylanan K1/K2/K3 kararları:
+[SIRADAKI.md](SIRADAKI.md)
+
+---
+
+**Testler**: Yalnız konak kodlayıcı için test görevi var (madde H-5 şart koşuyor —
+kartsız doğrulama kapısı). Kart tarafı "test" değil **ölçüm**dür.
+
+**Organizasyon**: Görevler plan.md'deki **8 iş öbeğinin sırasını korur**.
+Öbek 0 → Faz 1, öbek 1–3 → Faz 2 (temel), öbek 4–7 → Faz 3–6 (US1–US4).
+
+## Format: `[ID] [P?] [Story] Açıklama`
+
+- **[P]**: Paralel koşabilir (farklı dosya, tamamlanmamış göreve bağımlı değil)
+- **[Story]**: US1/US2/US3/US4 — yalnız kullanıcı hikâyesi fazlarında
+
+## Yol kuralları
+
+- Donanım **kaynağı**: `fpga/` (yeni üst dizin, karar K3)
+- Servis tarafı: `agent/`
+- Yapıtlar: `artifacts/bitstream/` — git'e girmez
+- Ölçümler: `docs/measurements/` — damgalı JSON
+
+---
+
+## ⚠️ Her kart görevinden önce
+
+**Kart şu an kapalı.** Açıldığında DHCP adresi değişebilir — `192.168.1.2`
+bir varsayımdır, sabit değil. Seri konsoldan (COM3, 115200 8N1) `hostname -I`
+ile doğrulanmadan hiçbir `ssh`/`scp` komutu koşulmaz.
+
+⛔ **Besleme düzenine dokunulmaz**: adaptör + **JP5 = REG**, boot kaynağı
+**JP4 = SD**. Enerji ölçümlerinin karşılaştırılabilirliği buna bağlı.
+
+---
+
+## Phase 1: G0 — `.hwh` uyumluluk denemesi (öbek 0) ⚠️ İLK, BLOKLAYICI
+
+**Amaç**: PYNQ 2.5'in Vivado 2025.2 `.hwh`'sini ayrıştırıp ayrıştıramadığını
+öğrenmek — yani öbek 4'ün konak kodunun **A yoluna mı B yoluna mı** göre
+yazılacağını.
+
+**Neden ilk**: Cevap sonradan öğrenilirse yazılan konak kodu çöpe gider.
+Sentez beklemeye gerek yok — `.hwh`, BD çıktı ürünleri üretilirken yazılır.
+
+- [ ] T001 [P] IP paketini Vivado IP deposuna aç: `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip` → `artifacts/ip/repo/qir_kernel_v0_1/`; BD betikleri buraya `set_property ip_repo_paths` ile bakacak
+- [ ] T002 [P] `fpga/bd/probe_hwh.tcl` yaz — kukla blok tasarım: `processing_system7` (PS preset **elle**, board files yok) + **gerçek `qir_kernel` IP** + `axi_smartconnect` + `proc_sys_reset`. `validate_bd_design` ve `generate_target all` ile `.hwh` üretilir; `launch_runs`/sentez/implementasyon **KOŞULMAZ**
+- [ ] T003 [P] `fpga/bd/probe_test.py` yaz — boş `ip_dict`'i **başarı saymaz**: `assert len(h.ip_dict) > 0` ve `assert any('qir' in k.lower() for k in h.ip_dict)`; ayrıca her IP'nin `phys_addr` ve `registers` sayısını yazdırır (register haritası da okunabiliyorsa A yolu **gerçekten** açık)
+- [ ] T004 [P] Kartı aç; JP4=SD ve JP5=REG doğrula, adaptörle besle. Seri konsoldan (COM3, 115200 8N1) `hostname -I` ile **gerçek IP'yi öğren** ve `specs/003-zynq-ps-kartta-kosum/SIRADAKI.md` donanım tablosuna yaz. DONE LED sönükse önce microSD yuvasına bak (bilinen arıza)
+- [ ] T005 `fpga/bd/probe_hwh.sh` yaz ve koş (`wsl -d Ubuntu -e bash fpga/bd/probe_hwh.sh`) — `LC_ALL=en_US.UTF-8` şart, `/opt/Xilinx/2025.2/Vivado` kullanılır; çıktı `artifacts/bitstream/probe.hwh`
+- [ ] T006 `probe.hwh` ve `probe_test.py` dosyalarını karta kopyala (T004'teki doğrulanmış IP ile) ve `probe_test.py`'yi koş. `pynq.pl_server.hwh_parser` içe aktarma yolu PYNQ 2.5'te **doğrulanmalı** — farklıysa `python3 -c "import pynq, os; print(os.path.dirname(pynq.__file__))"` ile modül aranır
+- [ ] T007 Sonucu [research.md](research.md) §R1'e **tarih damgasıyla** işle: A yolu (ip_dict + register'lar okundu), **kısmi başarı** (ip_dict dolu, register'lar boş → taban adres `.hwh`'den, erişim `MMIO` ile) veya B yolu (ayrıştırıcı hata verdi). `plan.md` öbek 0 satırını da güncelle
+
+**Checkpoint**: A mı B mi belli. Bu bilgi olmadan T025 yazılamaz.
+
+---
+
+## Phase 2: Temel (öbek 1, 2, 3) — tüm kullanıcı hikâyelerini bloke eder
+
+**⚠️ KRİTİK**: Bu faz bitmeden hiçbir kullanıcı hikâyesi başlayamaz.
+
+Öbek 1 ve 3 **donanım gerektirmez** (Prensip V) ve G0 beklerken ilerleyebilir.
+
+### Öbek 1 — `fpga/` dizini ve belge güncellemeleri (karar K3)
+
+Yeni üst dizin açmanın bedeli **aynı değişikliğe dahildir**.
+
+- [ ] T008 [P] `fpga/README.md` yaz — dizinin kapsamı ve `hls/` ile sınırı: HLS `artifacts/ip/`'te biter, Vivado orada başlar
+- [ ] T009 [P] `docs/repo-conventions.md` §2 dizin listesine `fpga/` satırı ekle — "Vivado blok tasarım, kısıtlar, elle yazılan RTL (Faz 5)"
+- [ ] T010 [P] `CLAUDE.md` Depo haritası tablosuna `fpga/` satırı ekle (§2 ile aynı ifade)
+- [ ] T011 [P] `fpga/rtl/.gitkeep` oluştur — elle yazılacak Verilog için dizin **şimdiden ayrılır**; RTL `hls/` altına konamaz
+- [ ] T012 [P] `.gitignore`'a Vivado ara çıktılarını ekle: `fpga/bd/*.log`, `fpga/bd/*.jou`, `fpga/bd/vivado_prj/`. `artifacts/bitstream/*` zaten yok sayılıyor (satır 46) — `fpga/` kaynak dizini olarak **commit edilir**
+
+### Öbek 2 — Blok tasarım ve bitstream (EMIO I2C dahil, karar K2)
+
+- [ ] T013 `fpga/bd/qir_bd.tcl` yaz — gerçek BD: `processing_system7` **elle preset** (DDR `MT41J256M16 RE-125`, PS ref saat 33,333 MHz, **FCLK0 = 100 MHz**), `qir_kernel` IP, `axi_smartconnect`, `proc_sys_reset`. AXI-Lite taban adresi **`0x43C0_0000` olarak sabitlenir** (B yolunun tek doğruluk kaynağı)
+- [ ] T014 `fpga/bd/qir_bd.tcl` içine **PS I2C0'ı EMIO ile** dışarı ver (karar K2) — US3 için; şimdi ~10 dk, sonra bir sentez turu artı US1/US2 ölçümlerinin tekrarı demek
+- [ ] T015 `fpga/bd/qir_constraints.xdc` yaz — EMIO I2C hatlarını PYNQ-Z2 PMOD pinlerine bağla (`PACKAGE_PIN` + `IOSTANDARD LVCMOS33`)
+- [ ] T016 `fpga/bd/build.sh` yaz — BD → sentez → implementasyon → `write_bitstream` → `.bit`/`.hwh` dosyalarını `artifacts/bitstream/qir_<tarih>_<git-hash>.{bit,hwh}` olarak kopyalar; WNS değerini stdout'a basar
+- [ ] T017 `wsl -d Ubuntu -e bash fpga/bd/build.sh` koş ve **WNS ≥ 0 doğrula**. ⛔ Zamanlama tutmazsa **FCLK DÜŞÜRÜLMEZ** — faz durur ve neden araştırılır (100 MHz, Faz 2'nin tüm ölçümlerinin dayanağı)
+- [ ] T018 `artifacts/bitstream/README.md` yaz — `artifacts/ip/README.md` kalıbıyla: SHA-256, üretim komutu, araç sürümü (`Vivado 2025.2`), kaynak git hash, kullanılan IP paketi adı ve **AXI taban adresi**. FR-016 / SC-010 böyle karşılanır
+
+### Öbek 3 — Konak kodlayıcı (**kart olmadan** doğrulanır, Prensip V)
+
+Sözleşme: [contracts/host-encoder.md](contracts/host-encoder.md)
+
+- [ ] T019 [P] `agent/encoder.py` — sabit-nokta paketleme: `real_t` Q1.17 (`round(x * 2**17)`, `[-2**17, 2**17-1]` aralığına kırp, `& 0x3FFFF` ile maskele, **işaret genişletmesi yok**); `phase_t` ap_uint<18> TUR cinsinden (`round((açı/(2π)) mod 1 * 2**18) mod 2**18`)
+- [ ] T020 [P] `agent/encoder.py` — ölçekleme protokolü (madde H-1, H-2, H-6): `S = 1.001 * max(|h|, |J|)` (kenar payı — `AP_SAT` tam `1,0`'ı kırpar), `h' = h/S`, `J' = J/S`, `beklenen_deger = beklenen_deger_ham * S`. `S` her koşumla **kaydedilir**; ham ve ölçekli değerler **ayrı** saklanır
+- [ ] T021 [P] `agent/encoder.py` — madde H-3: aralık dışı katsayıda **istisna fırlat**, sessizce doyurma. Sessiz kırpma bu fazın en olası gizli hatasıdır
+- [ ] T022 [P] `agent/encoder.py` — dizi düzeni ([contracts/axi-register-map.md](contracts/axi-register-map.md)): `cost[0..15] = h[k]`, `cost[16..271] = J[a][b]` (`16 + 16*a + b`); `phases[r*272 + 0..15] = phases[r].h[k]`, `phases[r*272 + 16..271] = phases[r].J[a][b]`, `r = 0..2`. `J`'nin yalnız `a < b` üçgeni okunur ama **256 word'ün tamamı yazılır**, kullanılmayanlar sıfırlanır
+- [ ] T023 [P] `agent/cost_vectors.py` — madde H-7: **sabit tohumlu** RNG ile ≥20 bağımsız `cost` vektörü üret, `[-1, 1)` içinde, `J`'nin yalnız `a < b` üçgeni doldurulur. Hepsi sıfır olan veya birbirinin katı olan vektörler **elenir** — bağımlı vektörler bağımsız kısıt üretmez
+- [ ] T024 [P] `agent/tests/test_encoder.py` — paketleme (Q1.17 ve TUR sınır değerleri), ölçekleme geri dönüşü, madde H-3 istisnası, dizi düzeni (816 ve 272 word sayıları), `cost` vektörü bağımsızlığı
+- [ ] T025 G2 kapısı: `python -m pytest agent/tests/test_encoder.py -v` geçsin, ardından C-sim eşdeğerlik kapısı — aynı girdi kodlayıcıdan ve altın referanstan geçirilir, beklenen değerler Faz 2 fidelity bütçesi içinde uyuşur. **Kart hiç gerekmez**
+
+**Checkpoint**: G1 ve G2 geçti. Artık kartta çıkacak her uyuşmazlık
+**donanıma izole** — "donanım mı, kodlayıcı mı" belirsizliği yok.
+
+---
+
+## Phase 3: User Story 1 — Çekirdek kartta koşuyor ve çıktısı doğru (P1) 🎯 MVP
+
+**Goal**: Sentezlenmiş çekirdek PYNQ-Z2'de koşuyor ve çıktısı altın referansa
+karşı doğrulanmış durumda. Tek başına savunulabilir bir sonuç: *"16 kübitlik
+statevector emülatörü FPGA'da çalışıyor ve doğrulandı."*
+
+**Independent Test**: Kart bağlanır, bitstream yüklenir, n=16 p=2 devresi
+≥20 `cost` izdüşümüyle koşulur, hepsi C-sim ile birebir tutar. Gecikme veya
+enerji ölçümü gerekmez.
+
+**Bağımlılık**: Phase 1 (T007 — A/B yolu kararı) + Phase 2 tamamı.
+
+- [ ] T026 [US1] `agent/board.py` — register haritası sabitleri (`xqir_kernel_hw.h`'den birebir): `AP_CTRL 0x0000`, `P 0x0048`, `BEKLENEN_DEGER 0x0050`, `BEKLENEN_DEGER_CTRL 0x0054`, `COS_BETA 0x0020` (3), `SIN_BETA 0x0030` (3), `PHASES 0x1000` (816), `COST 0x2000` (272); MMIO uzunluğu `0x10000`. Eleman adresi: `taban_ofset + 4*n`
+- [ ] T027 [US1] `agent/board.py` — iki erişim yolu: A (`Overlay`) ve B (`Bitstream(...).download()` + `MMIO(taban, 0x10000)`). **Varsayılan T007'nin sonucuna göre seçilir**, diğeri yedek olarak kalır. Taban adres `artifacts/bitstream/README.md`'den okunur
+- [ ] T028 [US1] `agent/board.py` — çağrı sırası (maddeler A-1…A-6): `ap_idle` (bit2) **doğrulanır** → `cost`+`phases`+`cos_beta`+`sin_beta`+`p` yazılır (**1.095 yazma**) → `ap_start` (bit0) ← 1 → `ap_done` (bit1) yoklanır (**5 sn zaman aşımı**) → `0x0050` ham 32-bit okunur ve `struct.unpack('<f', ...)` ile yorumlanır (kesme/cast **yok**, bit deseni korunur)
+- [ ] T029 [US1] `agent/board.py` — zaman aşımı davranışı (madde A-4): `ap_done` 5 sn içinde gelmezse koşum `gecerli=false` işaretlenir ve **hiçbir seride sayılmaz**; kısmî sonuç ölçüm sayılmaz
+- [ ] T030 [US1] `agent/board.py` — izdüşüm kısa yolu: yalnız `cost` (272 word) yeniden yazılır, `phases`/`cos_beta`/`sin_beta`/`p` yerinde kalır. ⚠️ **Bu kısa yol gecikme ölçümünde KULLANILMAZ** — karıştırılırsa `T_yazma` olduğundan küçük raporlanır
+- [ ] T031 [US1] `agent/run_board.py` — `--n 16 --p 2 --izdusum 20 --tohum 42`; `cost_vectors.py`'den vektörleri alır, her biri için koşar, C-sim çıktılarıyla karşılaştırır, `IzdusumSerisi` üretir
+- [ ] T032 [US1] Bitstream'i karta yükle ve **yüklemenin başarılı olduğunu doğrula** (FR-001) — `ap_idle` okunabiliyor ve 1 dönüyor mu. "Yükledim, koşuyordur" varsayımı yetmez
+- [ ] T033 [US1] G3 koş (p=2): **20 izdüşümün hepsi** kart ↔ C-sim **birebir** tutmalı (SC-003). Biri bile saparsa kapı kapalı — hangi `cost` vektörlerinde saptığı hatayı `h` yoluna mı `J` yoluna mı daralttığını gösterir
+- [ ] T034 [US1] Belirlenimcilik (SC-002, madde A-5): aynı girdiyle iki ardışık koşum **bit düzeyinde aynı** çıktı vermeli
+- [ ] T035 [US1] Durumsuzluk (FR-005, madde K-4): kart yeniden başlatılıp çekirdek yeniden yüklendiğinde aynı sonuç alınmalı; önceki koşumun kalıntısı taşınmamalı
+- [ ] T036 [US1] Sınır davranışı (madde A-3): `p=0` ve `p=4` → çekirdek koşmaz ve `0x0050` **değişmez**. Bu bir hata değil, test edilecek bir davranıştır
+- [ ] T037 [US1] Aynı doğrulamayı **p=1** için tekrarla — SC-001 hem p=1 hem p=2 için ayrı ayrı doğrulama istiyor
+- [ ] T038 [US1] `docs/measurements/kart-dogrulama_<tarih>_<git-hash>_n16_p{1,2}.json` yaz — `IzdusumSerisi` alanları: `devre` özeti (tüm izdüşümlerde aynı olmalı), `tohum`, `izdusum_sayisi` (**≥20**), `kosumlar`, `csim_degerleri`, `sapan_izdusumler` (**boş olmalı**), `bitstream_sha256`
+
+**Checkpoint**: US1 tamam ve bağımsız savunulabilir. Ölçüm fazları başlayabilir.
+
+> ⚠️ **Uyuşmazlık hâlinde**: Bu bir tasarım krizi değil **doğrulama krizidir**.
+> Hangisinin doğru olduğu altın referansla belirlenir; fark kapanmadan
+> **hiçbir hız/enerji rakamı raporlanmaz**. Sapma deseni yine de neden
+> vermezse — ve yalnız o zaman — genlik penceresi varyantı (kapsam **İ**)
+> devreye alınır ([research.md](research.md) §R3).
+
+---
+
+## Phase 4: User Story 2 — Gecikme kartta ölçülüyor (P2)
+
+**Goal**: Faz 2'nin 37,28 ms'lik HLS **tahmini**, kartta alınmış gerçek bir
+ölçüme dönüşsün.
+
+**Independent Test**: Kartta koşum süresi ≥10 tekrarla ölçülür; medyan ve
+yayılım raporlanır. Enerji düzeneği gerekmez.
+
+**Bağımlılık**: US1 (T033 geçmiş olmalı).
+
+- [ ] T039 [US2] `docs/measurements/kart-olcum-protokolu.md` yaz ve **dondur** — ⚠️ İLK ÖLÇÜMDEN **ÖNCE** (FR-011, SC-009): koşum sayısı, ısınma turu sayısı, üç kapsamın tanımı, termal plato ölçütü, dışlama kuralları. Sonuca bakıp protokol ayarlanamaz
+- [ ] T040 [US2] `agent/measure_latency.py` — **üç kapsam ayrı ayrı** (FR-007): `T_cekirdek` (`ap_start` yazımı → `ap_done` görülmesi), `T_yazma` (1.095 register yazımı), `T_uctan_uca` (kodlama + yazma + koşum + okuma). `time.perf_counter()` kullanılır; ayrı zamanlayıcı IP'si yok
+- [ ] T041 [US2] `agent/measure_latency.py` — `ap_done` yoklama periyodunu ölç ve **kaydet**: yoklama `T_cekirdek`'e üst taraftan hata ekler ve bu hata raporlanmalı
+- [ ] T042 [US2] `agent/measure_latency.py` — **termal plato doğrulaması** (CPU tarafındaki turbo/plato ayrımının kart karşılığı): ilk N koşum ile son N koşum **ayrı** raporlanır, platonun oturduğu gösterilir, koşum sırası kaydedilir. Isınma/kısılma ardışık koşumları yavaşlatabilir
+- [ ] T043 [US2] `agent/measure_latency.py` — seri istatistiği: **medyan ve yayılım (IQR) birlikte**; `min`/`max` de saklanır. ⛔ `kosum_sayisi < 10` olan seri **serileştirilmesin, hata versin** (SC-004'ün kod düzeyindeki karşılığı). Tek koşum rakamı hiçbir yere yazılmaz
+- [ ] T044 [US2] Ölçümleri koş (n=16, p=2 ve p=1, **≥30 tekrar**) → `docs/measurements/kart-gecikme_<tarih>_<git-hash>_n16_p{1,2}.json`; her kapsam için ayrı `OlcumSerisi`
+- [ ] T045 [US2] HLS tahminiyle karşılaştır (p=2 için **37,28 ms**) ve sapmayı **gizlemeden** kaydet; nedeni araştır, bulunamazsa **bulunamadığı yazılır** (FR-014). `T_yazma`'nın CPU tarafında **karşılığı olmadığı** ayrıca not edilir
+
+**Checkpoint**: Gecikme ekseni ölçüldü; US3 olmadan da yayımlanabilir.
+
+---
+
+## Phase 5: User Story 3 — Enerji kartta ölçülüyor (P3)
+
+**Goal**: Bir devre koşumunun joule maliyeti ölçülsün. **Fazın asıl beklenen
+sonucu bu eksende** — gecikmede başabaş bekleniyor.
+
+**Independent Test**: Düzenek kalibre edilir, boştaki ve yük altındaki güç
+ayrı okunur, koşum başına joule hesaplanır.
+
+**Bağımlılık**: US1 + INA219 (elde) + EMIO I2C (T014'te blok tasarıma girdi).
+
+- [ ] T046 [US3] INA219'u kartın **12 V hattına seri** bağla (standart 0,1 Ω şönt doğru: PYNQ ~0,3 A çeker, ~1,2 mW çözünürlük verir). ⚠️ Adaptörün orijinal kablosu **KESİLMEZ** — namlu jak uzatma kablosu araya alınır, ölçüm bitince çıkarılır. ⛔ JP5=REG ve adaptör beslemesi **değiştirilmez**
+- [ ] T047 [US3] EMIO I2C yolunu kartta doğrula: özel bitstream yüklüyken I2C veri yolu görünüyor mu (`i2cdetect`), INA219 adresi (varsayılan `0x40`) okunuyor mu. Base overlay'in Pmod IOP'si bizim bitstream'imizde **yok** — bu yüzden EMIO gerekiyordu
+- [ ] T048 [US3] `agent/calibrate_ina219.py` — bilinen bir yükte kalibrasyon; sapma **< %5** olmalı (SC-005). `Kalibrasyon` alanları (`bilinen_yuk_w`, `okunan_w`, `sapma_yuzde`, `zaman_damgasi`) kaydedilir. ⛔ Sapma ≥ %5 ise o aletle alınan **hiçbir** enerji ölçümü geçerli sayılmaz
+- [ ] T049 [US3] `agent/measure_energy.py` — delta yöntemi (FR-009c, FR-009d): boş güç ve yük altındaki güç **ayrı ayrı** okunur; iş yükü **≥60 sn** döngüye alınır (tek koşum ~37 ms, hiçbir güç ölçerde görünmez); `enerji_j_kosum = (yuk_guc_w - bos_guc_w) * sure_s / kosum_sayisi`
+- [ ] T050 [US3] Ölçümü koş → `docs/measurements/kart-enerji_<tarih>_<git-hash>.json`; kapsam **"tüm kart"** olarak yazılır (yalnız PL değil). CPU tarafının kapsamı "tüm dizüstü" — asimetri değil, **aynı yöntem** (delta), rapora böyle geçer
+
+**Checkpoint**: İki eksen de ölçüldü; kıyas matrisi yazılabilir.
+
+> **Modül gelmez / yanarsa**: Enerji ekseni düşer. Gecikme ekseni tek başına
+> raporlanır ve enerjinin **neden** ölçülemediği yazılır (FR-014, SC-008).
+> Tahminle doldurulmaz.
+
+---
+
+## Phase 6: User Story 4 — Kıyas matrisi ve nihai rapor (P3)
+
+**Goal**: FPGA ve CPU sonuçlarını aynı problem ve aynı parametreler üzerinde
+yan yana koyan, her hücresi izlenebilir bir tablo.
+
+**Independent Test**: Toplanmış ölçümlerden tablo üretilir; her hücrenin
+kaynağı (tarih, koşum sayısı, konfigürasyon) izlenebilir.
+
+**Bağımlılık**: US2 + US3.
+
+- [ ] T051 [US4] `scripts/build_comparison_matrix.py` — `KiyasSatiri` üretir. ⛔ Hiçbir hücre elle doldurulamaz; her hücre bir `OlcumSerisi` veya `EnerjiOlcumu` **kimliğine işaret eder** (SC-007)
+- [ ] T052 [US4] `scripts/build_comparison_matrix.py` — konfigürasyon denetimi (FR-012): iki taraf da **aynı n, aynı p, aynı problem** üzerinde koşmuş olmalı; değilse satır üretilmez
+- [ ] T053 [US4] `scripts/build_comparison_matrix.py` — `hizlanma` yalnız **iki taraf da doluysa** ölçülmüş değerlerden hesaplanır ve yayılımla birlikte verilir; aksi hâlde `null` kalır ve `not` alanı **zorunlu** olur (SC-008)
+- [ ] T054 [US4] CPU tarafı referanslarını bağla — **yeniden ölçülmez**: turbo **32,75 ms**, plato **41,93 ms**, enerji **0,644 J/koşum** (batarya delta yöntemi, 2026-09-19 temiz ölçüm). ⚠️ Eski 77,6/92,7 ms rakamları **geçersizdir**
+- [ ] T055 [US4] Matrisi üret → `docs/measurements/kiyas-matrisi_<tarih>_<git-hash>.json`. ⚠️ Gecikmede başabaş bekleniyor (FPGA 37,28 ms, CPU turbo 32,75 / plato 41,93 ms) — `hizlanma < 1` çıkması **hata değil bulgudur** ve öyle raporlanır
+
+**Checkpoint**: Tüm kullanıcı hikâyeleri tamam.
+
+---
+
+## Phase 7: Faz kapanışı ve çapraz kesen işler
+
+- [ ] T056 [P] `docs/olculen-degerler.md`'ye Faz 5 ölçümlerini işle — tez/makale için **tek referans** orası
+- [ ] T057 [P] `docs/olculen-degerler.md` — **kapsam sınırlarını açıkça yaz**: (a) faz ekseni bu fazda **hiç ölçülmedi**, Faz 2'nin n=8 cosim PASS'inden geliyor; (b) genlik fidelity'si **devralınan çıkarım**, ölçülmüş değil; (c) ölçümler sistem düzeyinde, bileşen düzeyinde değil
+- [ ] T058 [P] `docs/decisions/` altına ADR yaz — K1 (çoklu izdüşüm), K2 (EMIO I2C erken), K3 (`fpga/` üst dizini). Şablon: `docs/decisions/ADR-TEMPLATE.md`
+- [ ] T059 [P] `docs/risk-register.md` güncelle — PYNQ 2.5 / Vivado 2025.2 `.hwh` riskini T007'nin sonucuna göre **kapat veya yeniden derecelendir**
+- [ ] T060 [P] `docs/decisions/dead-ends.md` — elenen yollar: PYNQ 3.x imajı, `.hwh` elle yamama, board files indirme, ayrı AXI Timer IP'si
+- [ ] T061 [P] `CLAUDE.md` "Şu anki faz" paragrafını Faz 5 sonuçlarıyla güncelle
+- [ ] T062 `specs/003-zynq-ps-kartta-kosum/SIRADAKI.md` güncelle ve `docs/faz-sonu-kontrol.md` listesini geç
+- [ ] T063 `specs/003-zynq-ps-kartta-kosum/quickstart.md` faz kapanış kapısındaki **tüm kutuları** doğrula — G0'dan G6'ya hepsi geçildi mi
+
+---
+
+## Dependencies & Execution Order
+
+### Faz bağımlılıkları
+
+- **Phase 1 (G0, öbek 0)**: Bağımlılık yok — **ilk koşulur**, öbek 4'ü bloke eder
+- **Phase 2 (öbek 1–3)**: Öbek 1 ve 3 bağımsız; öbek 2 öbek 1'e bağlı
+- **Phase 3 (US1)**: Phase 1 **ve** Phase 2 tamamlanmalı
+- **Phase 4 (US2)**: US1'e bağlı
+- **Phase 5 (US3)**: US1 + INA219'a bağlı; **US2'yi beklemez**
+- **Phase 6 (US4)**: US2 + US3'e bağlı
+- **Phase 7**: Hepsine bağlı
+
+### Kullanıcı hikâyesi bağımlılıkları
+
+- **US1 (P1)**: Phase 1+2 sonrası başlar. Diğer hikâyelere bağımlı değil — **MVP**
+- **US2 (P2)**: US1'e bağlı (doğrulanmamış çekirdekte ölçüm anlamsız)
+- **US3 (P3)**: US1'e bağlı; US2'den **bağımsız** — paralel koşabilir
+- **US4 (P3)**: Birleştirme adımı; US2 **ve** US3 gerekli
+
+### Zorunlu sıralamalar (pazarlıksız)
+
+| Kural | Neden |
+|---|---|
+| T001–T007 (G0) **her şeyden önce** | Sonradan öğrenilirse öbek 4'ün konak kodu çöpe gider |
+| T025 (G2) **T032'den önce** | Kodlayıcı kartsız doğrulanmazsa uyuşmazlık "donanım mı kodlayıcı mı" belirsizliğinde kalır |
+| T039 (protokol) **T044'ten önce** | Ön kayıt (FR-011, SC-009) — sonuca bakıp protokol ayarlanamaz |
+| T048 (kalibrasyon) **T050'den önce** | Kalibre edilmemiş aletin ölçümü geçersiz (SC-005) |
+| T014 (EMIO I2C) **T017'den önce** | Sonra eklemek bitstream'i yeniden üretir, US1/US2 ölçümleri tekrarlanır |
+
+### Paralel fırsatlar
+
+- **T001–T004** birlikte: IP açma, iki betik yazımı ve kart açılışı birbirinden bağımsız
+- **T008–T012** birlikte: belge güncellemelerinin hepsi farklı dosyada
+- **T019–T024** birlikte: kodlayıcı parçaları ve testleri — **donanım beklemez** (Prensip V)
+- **Öbek 1+3 ile G0 aynı anda**: belge işleri ve kodlayıcı, probe sonucunu beklemez
+- **US2 ile US3**: ikisi de yalnız US1'e bağlı, birbirine değil
+- **T056–T060** birlikte: kapanış belgeleri farklı dosyalarda
+
+---
+
+## Parallel Example: Phase 2, donanım beklerken
+
+```powershell
+# Belge öbeği (öbek 1) — hiçbiri karta dokunmaz
+# T008 fpga/README.md · T009 docs/repo-conventions.md · T010 CLAUDE.md
+# T011 fpga/rtl/.gitkeep · T012 .gitignore
+
+# Kodlayıcı öbeği (öbek 3) — Prensip V, kart gerekmez
+# T019 paketleme · T020 ölçekleme · T021 istisna · T022 düzen
+# T023 cost vektörleri · T024 testler
+python -m pytest agent/tests/test_encoder.py -v
+```
+
+---
+
+## Implementation Strategy
+
+### Önce MVP (US1)
+
+1. **Phase 1 (G0)** — A/B yolu kararı. Bir saat.
+2. **Phase 2** — öbek 1 ve 3 donanım beklemeden, öbek 2 bitstream.
+3. **Phase 3 (US1)** — kartta koşum + 20 izdüşümle doğrulama.
+4. **DUR ve DOĞRULA**: US1 tek başına savunulabilir bir sonuçtur.
+
+### Artımlı teslim
+
+1. Phase 1 + 2 → temel hazır
+2. US1 → bağımsız doğrulandı → **MVP**
+3. US2 → gecikme ekseni → tek başına yayımlanabilir
+4. US3 → enerji ekseni → **fazın asıl beklenen sonucu**
+5. US4 → birleştirme
+
+### Tek geliştirici sırası (Prensip VI)
+
+Paralellik burada "aynı anda iki kişi" değil, **"donanım beklerken masa başı
+iş"** demektir. G0'ın Vivado adımı koşarken öbek 1 ve 3 ilerletilir; kart
+kapalıyken kodlayıcı tamamen bitirilebilir.
+
+---
+
+## Notes
+
+- `[P]` = farklı dosya, tamamlanmamış göreve bağımlı değil
+- **Kart kapalı**: her `ssh`/`scp` öncesi IP'yi seri konsoldan doğrula (`hostname -I`)
+- ⛔ Besleme düzeni (adaptör + JP5=REG) **hiçbir aşamada değişmez**
+- Ölçüm disiplini: **≥10 koşum, medyan ve yayılım birlikte, tek koşum rakamı yok**
+- Ölçüm rakamı elle sabitlenmez — `docs/measurements/` altına **damgalı** (tarih + git hash + konfig) yazılır
+- Her görev veya mantıklı grup sonrası commit
+- Sentez ara çıktıları (`.log`, `.jou`, `vivado_prj/`) commit edilmez

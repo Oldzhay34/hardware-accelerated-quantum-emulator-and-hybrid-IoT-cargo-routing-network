@@ -14,7 +14,7 @@ dizini **siliyor**. 2026-09-16'da tam olarak bu oldu ve paket kaybedildi;
 yeniden üretimi 13 dakika sürdü.
 
 Buradaki kopya o sıfırlamalardan etkilenmez.
-
+git add -A; git commit -m "tasks(faz5): 63 gorev uretildi - G0 ilk, olcum disiplini gomulu"
 ## Dosya adlandırma
 
 `qir_kernel_ip_<tarih>_<git-hash>.zip` — hangi kod sürümünden üretildiği
