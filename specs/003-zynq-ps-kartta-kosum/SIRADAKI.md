@@ -2,20 +2,38 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Faz 5 spec'i yazıldı ve onaylandı; sıradaki tek iş
-`/speckit-plan` çalıştırıp planı üretmek — **ilk görevi PYNQ 2.5 ile Vitis
-2025.2 arasındaki `.hwh` uyumluluk denemesi olmalı.**
+**Hedef (tek cümle)**: Faz 5 planı üretildi ve üç mimari karar onaylandı;
+sıradaki tek iş `/speckit-tasks` çalıştırıp görev listesini üretmek — **ilk
+görev PYNQ 2.5 ile Vivado 2025.2 arasındaki `.hwh` uyumluluk denemesi (G0).**
 
-**Dokunulacak dosyalar**: `specs/003-zynq-ps-kartta-kosum/spec.md` (hazır),
-`specs/003-zynq-ps-kartta-kosum/checklists/requirements.md` (16/16 geçti),
-`artifacts/ip/qir_kernel_ip_20260917_15931cc.zip` (Faz 5'in girdisi)
+**Dokunulacak dosyalar**: [plan.md](plan.md), [research.md](research.md),
+[data-model.md](data-model.md), [quickstart.md](quickstart.md),
+[contracts/](contracts/) — hepsi hazır.
 
-**Bilinen tuzak**: Kartta **PYNQ 2.5 (Glasgow, 2019)** var, IP paketi ise
-**Vitis 2025.2** ile üretildi — altı yıl fark. PYNQ'nun `Overlay` sınıfı
-`.hwh` dosyasını ayrıştıramayabilir ve bu **US1'i tamamen bloke eder**.
-Bir saatte test edilir, altıncı haftaya bırakılmamalı.
+**Planın bulduğu iki sert gerçek** (spec bunları varsaymıştı, tutmadı):
 
-**Son güncelleme**: 2026-09-19, Faz 5.0
+1. `artifacts/ip/*.zip` **bitstream değil**, IP kataloğu paketi. US1'den önce
+   bir **Vivado blok tasarım** adımı gerekiyor — spec'te adı geçmiyor.
+2. Çekirdek **genlik vektörünü dışarı vermiyor** (madde K-1, yalnız skaler
+   `beklenen_deger`). SC-001'in fidelity ölçütü kartta doğrudan ölçülemez.
+
+**Bilinen tuzak**: Kartta **PYNQ 2.5 (Glasgow, 2019)**, IP ise **Vitis 2025.2**
+— altı yıl fark. PYNQ'nun `.hwh` ayrıştırıcısı **tek alt sürüm farkında bile**
+kırılmış olarak belgelenmiş. Yedek yol sağlam: çekirdek yalnız `s_axilite`
+kullandığı için `Bitstream` + `MMIO` tam işlevsellik veriyor, DMA gerekmiyor.
+Yine de **G0 ilk görev** — bir saatte cevaplanır, altıncı haftaya bırakılamaz.
+
+**Son güncelleme**: 2026-09-19, Faz 5.1 (plan üretildi)
+
+---
+
+## Onaylanan üç karar (2026-09-19, Prensip I)
+
+| # | Karar |
+|---|---|
+| **K1** | Genlik yerine **çoklu izdüşüm**: `cost` bir AXI girişi ve yalnız `expectation_scaled`'i besliyor → aynı devre ≥20 rastgele `cost` vektörüyle koşulup aynı statevector'ün 20 bağımsız izdüşümü alınır. **Tasarım değişmez, yeniden sentez yok.** Yöntem **fazı görmez** — faz n=8 cosim'den gelir, rapor bunu ayrıca yazar. |
+| **K2** | **EMIO I2C ilk bitstream'e dahil** — sonra eklemek bir sentez turu artı US1/US2 ölçümlerinin tekrarı demek. |
+| **K3** | Donanım kaynağı **yeni `fpga/` üst dizinine** (`bd/` + şimdiden ayrılan `rtl/`). `repo-conventions.md` §2, `CLAUDE.md` depo haritası ve `fpga/README.md` aynı değişiklikte güncellenir. |
 
 ---
 
@@ -23,20 +41,18 @@ Bir saatte test edilir, altıncı haftaya bırakılmamalı.
 
 Çalışma dizini **`C:\Users\olcay\IdeaProjects\qir-engine`** olmalı — proje
 skill'leri (`.claude/skills/speckit-*`) dizine bağlı kayıt oluyor. Dizin üst
-klasöre çıkarsa `/speckit-plan` komut listesinden düşer (2026-09-19'da bu oldu).
+klasöre çıkarsa komut listesinden düşer (2026-09-19'da bu oldu).
 
 Eğik çizgi **mesajın en başında** olacak:
 
 ```
-/speckit-plan Faz 5 spec'i (specs/003-zynq-ps-kartta-kosum/spec.md) onaylandı,
-plana geç. Kart boot ediyor ve 192.168.1.2'de erişilebilir (SSH, Jupyter 9090
-doğrulandı), adaptörle besleniyor (JP5=REG, enerji ölçümü için sabit kalacak).
-IP paketi artifacts/ip/qir_kernel_ip_20260917_15931cc.zip hazır. CPU tabanı
-temiz ölçüldü: turbo 32,75 ms, plato 41,93 ms, enerji 0,644 J/koşum.
-KRİTİK RİSK — kartta PYNQ 2.5 (2019) var, IP ise Vitis 2025.2 ile üretildi;
-PYNQ'nun Overlay sınıfı .hwh dosyasını ayrıştıramayabilir ve bu US1'i tamamen
-bloke eder. Bu uyumluluk denemesi planın İLK görevi olmalı. INA219 elde ama
-US3 için, US1/US2 onu beklemiyor.
+/speckit-tasks Faz 5 planı hazır (specs/003-zynq-ps-kartta-kosum/plan.md),
+görev listesine geç. Önce SIRADAKI.md'yi oku. Üç karar onaylandı: K1 çoklu
+izdüşüm (≥20 cost vektörü, yeniden sentez yok), K2 EMIO I2C ilk bitstream'e
+dahil, K3 yeni fpga/ üst dizini. İlk görev G0 olmalı — PYNQ 2.5'in Vivado
+2025.2 .hwh'sini ayrıştırıp ayrıştıramadığı, PS-only kukla BD ile bir saatte
+test edilir. Kart 192.168.1.2'de, adaptörle besleniyor (JP5=REG, sabit
+kalacak). INA219 elde ama US3 için.
 ```
 
 ---
@@ -97,10 +113,18 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 
 | | İş | Bağımlılık | Durum |
 |---|---|---|---|
-| **US1** | Çekirdek kartta koşsun, çıktı Qiskit'e karşı doğrulansın | kart ✅, IP ✅ | ⬅️ **sıradaki** |
-| US2 | Kartta gerçek gecikme ölçümü | US1 | bekliyor |
+| — | **G0 uyumluluk denemesi** | yok | ⬅️ **sıradaki** |
+| — | `fpga/` dizini + belge güncellemeleri | yok | bekliyor (G0'dan bağımsız) |
+| — | Blok tasarım + bitstream (**spec'te yoktu**) | `fpga/` | bekliyor |
+| — | Konak kodlayıcı, **kartsız** doğrulanır | yok | bekliyor (G0'dan bağımsız) |
+| **US1** | Çekirdek kartta koşsun, ≥20 izdüşümle doğrulansın | G0 + bitstream + kodlayıcı | bekliyor |
+| US2 | Kartta gerçek gecikme ölçümü (üç kapsam) | US1 | bekliyor |
 | US3 | Kartta enerji ölçümü | US1 + INA219 ✅ elde | bekliyor |
 | US4 | Kıyas matrisi | US2 + US3 | bekliyor |
+
+⚠️ **Kodlayıcı kartsız doğrulanmadan karta gidilmez.** Gidilirse kartta çıkan
+her uyuşmazlık *"donanım mı, kodlayıcı mı"* belirsizliğinde kalır. Planın en
+önemli sıralama kararı budur.
 
 **5.2 (tünel, kimlik, uzaktan erişim) kapsam DIŞI** — İ etiketli.
 
