@@ -1,0 +1,56 @@
+n=16 COSIM HAM KANIT -- 19 Eylul 2026
+=====================================
+
+[1] DAMGA SORUNU VE COZUMU
+  Uretilen JSON git_hash alani "vitis" diyor, gercek commit degil.
+  Sebep: cosim /root/qir-n16 kopyasinda kosuldu, orada .git yok,
+  common.tcl'in git rev-parse cagrisi bos donduu.
+  Commit baglantisi md5 esitligiyle kuruldu (asagida). Repo HEAD: 4282956
+
+[2] KAYNAK ESITLIGI (repo <-> kosulan kopya)
+  src/qir_kernel.cpp       4284fe36588425fdf031a094390d4552  AYNI
+  src/qir_kernel.hpp       66a843329c22665d2fad68ef5ac8c4e4  AYNI
+  src/gates_pairing.hpp    735c2a865595599091988b3ccfe6a500  AYNI
+  tb/tb_kernel.cpp         935b872d280fd816ba3832f0334a6cc4  AYNI
+
+[3] ASIL ESDEGERLIK KANITI -- cikti test vektorleri
+  Kernel'in tek cikis portu: beklenen_deger (float32).
+  C modeli  : 0xbee28271
+  RTL       : 0xbee28271
+  SONUC     : BIT BIT AYNI
+
+[4] HATA SAYAClARI
+  AESL_mErrNo    : hic uretilmedi (uyusmazlik yok)
+  .exit.err      : olusmadi
+  .aesl_error    : olusmadi
+  rc(RTL sim)=0   rc(karsilastirma)=0
+
+[5] SURELER (vitis-run baypasli kosu)
+  === 2.ASAMA (RTL sim) BASLANGIC 2026-09-19 20:57:55 ===
+  === 2.ASAMA BITIS 2026-09-19 21:13:43 rc=0 ===
+  === 3.ASAMA (C-RTL karsilastirma) 2026-09-19 21:13:43 ===
+  === 3.ASAMA BITIS 2026-09-19 21:13:51 rc=0 ===
+
+[6] SIMULASYON HIZI PROFILI
+  saat,sim_ms,logMB,xsimk_cpu
+  20:58:08,0.0000,0,0
+  21:00:29,0.0001,0,106
+  21:02:39,11.7234,157,108
+  21:04:53,15.9210,299,108
+  21:07:06,16.8825,332,108
+  21:09:21,28.0197,493,108
+  21:11:33,33.0768,664,108
+  21:13:51,36.5465,664,0
+  # surec bitti 21:16:03
+
+[7] NE KANITLANDI / NE KANITLANMADI
+  KANITLANDI : RTL n=16'da elaborasyondan gecti, kilitlenmeden kosdu ve
+               tek cikis portunda C modeliyle BIT BIT ayni degeri uretti.
+  KANITLANMADI: 65536 genligin her birinin ayri ayri esitligi. sv[] dahili
+               BRAM'dir, cikis portu degildir; cosim onu goremez. Beklenen
+               deger 65536 terimlik bir indirgeme oldugu icin kanit guclu
+               ama tuketici degil. Ayrica tek bir uyaran (tek problem
+               ornegi, p=2) icin gecerlidir.
+  NOT        : JSON'daki fidelity=0.999978179 C modelinin Qiskit'e karsi
+               degeridir, RTL'inki DEGILDIR. tb_kernel.cpp'deki cikti[]
+               yazilim sv[]'sinden dolduruluyor. cosim bu sayiyi degistirmez.

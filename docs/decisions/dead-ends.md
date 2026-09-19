@@ -172,3 +172,27 @@ zamanla değişir** — "bir kez çalıştı" güvence değildir.
 güvenlik değişikliğidir ve bir derleme kolaylığı için yapılmaz. WSL/Ubuntu
 kurulumu çalışıyor ve **ölçümü bozmadığı kanıtlandı** (Tur 15 birebir yeniden
 üretildi). Bkz. [runbook](../runbooks/vitis-hls-kurulum.md).
+
+### Cosim'i `cosim_design` üzerinden koşmak (n=16) — 2026-09-19, Faz 2
+
+**Neden denendi**: Belgelenen yol. n=8'de sorunsuz çalışmıştı.
+
+**Neden olmadı**: n=16'da koşu 13 saate çıkıyordu ve süperdoğrusal yavaşlıyordu
+(0,856 → 0,036 ms/dk). Sebep tasarım değil, `run_sim.tcl`'deki tek satır:
+
+```tcl
+set ret [catch {eval exec "sh ./run_xsim.sh | tee temp2.log" >&@ stdout} err]
+```
+
+`>&@ stdout`, xsim'in yüz binlerce `Critical WARNING` satırını Tcl'in kanal
+katmanından geçiriyor. Ölçüm: `xsimk` %5 CPU (aç bekliyor), `vitis-run` %98.
+
+**Tekrar denenmeli mi**: n=16 için hayır. Cosim üç ayrı aşamadır ve 2. aşama
+(`verilog/run_xsim.sh`) doğrudan kabuktan koşulabilir — **15 dk 48 sn**, 76×
+hızlı, bilimsel olarak eşdeğer (aynı RTL, testbench ve uyaran). Betik:
+`/root/cosim-hizli.sh`. Ayrıntı: [§20](../measurements/faz2-sentez.md).
+
+**Yan ders**: Bu yavaşlık iki kez **diske** yıkıldı (`/mnt/c` köprüsü). İkisi de
+yanlıştı ve ikisi de ölçümle çürütüldü — ikincisi, koşu zaten yerel diskteyken
+aynı eğriyi çizerek. Bir hipotez çürütüldüğünde **onu yazan yorum satırı da
+güncellenmeli**; güncellenmeyen yorum bir sonraki turu aynı yanlış yola sokuyor.

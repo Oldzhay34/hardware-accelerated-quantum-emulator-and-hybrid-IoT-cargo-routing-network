@@ -51,8 +51,26 @@ Format taraması (p=2, en zorlu durum) — **Q1.17 H eşiğini geçen en dar for
 | 20 | Q1.19 | 0,999994814 | ✅ |
 | 24 | Q1.23 | 0,999999980 | ✅ |
 
-**RTL eşdeğerliği**: C/RTL cosimulation **PASS** (n=8, fidelity 0,999999871).
-⚠️ n=16 cosim ölçülmedi — 5,4 milyon çevrimlik RTL simülasyonu ~11,5 saat sürüyor.
+**RTL eşdeğerliği**: C/RTL cosimulation **PASS**, hem n=8 (fidelity 0,999999871)
+hem **n=16** (19 Eylül 2026, commit 4282956).
+
+n=16'da çekirdeğin tek çıkış portu olan `beklenen_deger` (float32), C modeliyle
+**bit bit aynı** çıktı: her iki tarafta da `0xbee28271` (= −0,442401439).
+`AESL_mErrNo` hiç üretilmedi, `.exit.err`/`.aesl_error` oluşmadı, her iki
+aşamanın dönüş kodu 0. Ham kanıt:
+[cosim-n16_20260919_4282956_p2.kanit.txt](measurements/cosim-n16_20260919_4282956_p2.kanit.txt),
+ölçüm: [cosim-n16_20260919_4282956_p2.json](measurements/cosim-n16_20260919_4282956_p2.json).
+
+⚠️ **Bu, 65536 genliğin tek tek doğrulandığı anlamına gelmez.** `sv[]` dahili
+BRAM'dir, arayüzde çıkış portu değildir; cosim onu göremez. Beklenen değer
+65536 terimlik bir indirgeme olduğu için kanıt güçlüdür ama tüketici değildir.
+Ayrıca **tek bir uyaran** (tek problem örneği, p=2) için geçerlidir.
+
+⚠️ JSON'daki `fidelity: 0,999978179`, **C modelinin Qiskit'e karşı** değeridir —
+RTL'inki değildir. `tb_kernel.cpp`'de karşılaştırılan `cikti[]` dizisi yazılım
+`sv[]`'sinden doldurulur; cosim bu sayıyı değiştirmez. Testbench'in kendi yorumu
+bunu söylüyor: *"bu çağrı fazladan bir doğrulama değil, cosim'in çalışabilmesi
+için gereken kancadır."*
 
 ---
 
@@ -178,7 +196,8 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 - Fidelity **≥ 0,99997**, dört konfigürasyonda, Qiskit Aer altın referansına karşı.
 - Tasarım **100 MHz'de yerleşir ve zamanlamayı tutturur** (post-route 9,122 ns).
 - Kaynak kullanımı **implementasyon sonrası** ölçülmüştür, HLS tahmini değildir.
-- RTL, C ile **eşdeğerdir** (cosim PASS, n=8).
+- RTL, C ile **eşdeğerdir** (cosim PASS, n=8 **ve n=16**); n=16'da çıkış portu
+  bit bit aynı — ama tek uyaran ve yalnızca çıkış portu üzerinden (bkz. §2).
 - Q1.17, H eşiğini geçen **en dar** sabit nokta formatıdır.
 
 **EDİLEMEZ**:
@@ -187,7 +206,8 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
   bitstream üretilmedi, kartta koşulmadı. CPU tarafı ayrıca ±%60 oynuyor.
 - ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
   tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
-- ❌ **n=16 RTL eşdeğerliği** — yalnızca n=8'de doğrulandı.
+- ⚠️ **n=16 RTL eşdeğerliği kısmen** — çıkış portu bit bit doğrulandı, ancak
+  65536 genliğin tek tek eşitliği ve birden fazla uyaran gösterilmedi.
 
 Hızlanma ve enerji karşılaştırması **Faz 5/10'da, kartta, aynı p ile ve CPU
 tarafı çoklu koşumla** yapılacaktır.

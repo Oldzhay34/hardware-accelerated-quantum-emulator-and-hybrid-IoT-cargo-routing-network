@@ -1112,3 +1112,128 @@ geliyor. Rapora böyle yazılmalıdır; düzeltme katsayısıyla uydurulmamalıd
     .venv\Scripts\python.exe scripts\cpu_load_loop.py --saniye 175 --p 2 --etiket bataryada
     # 4) hesap
     python scripts\battery_energy.py --bos bos.csv --yuk yuk.csv --kosum <kosum>
+
+---
+
+# §20 — n=16 cosim: bir çökme, bir yanlış teşhis, 76× hızlanma
+
+**19 Eylül 2026 · commit 4282956**
+
+## Özet
+
+n=16 C/RTL cosimulation **geçti**. Çekirdeğin tek çıkış portu `beklenen_deger`,
+C modeliyle bit bit aynı: `0xbee28271` (= −0,442401439). Bu, `olculen-degerler.md`
+§7'deki *"n=16 RTL eşdeğerliği ölçülmedi"* maddesini kaldırıyor.
+
+Asıl kazanım rakam değil, **yöntem**: cosim'in 13 saat sürmesinin sebebi
+tasarımın karmaşıklığı değil, araç zincirindeki bir çıktı aktarımıymış.
+Düzeltince koşu **15 dakika 48 saniyeye** indi.
+
+## Ne oldu
+
+**20:51 — makine çöktü.** Yeniden başlatma değil, mavi ekran:
+`0x00000116 VIDEO_TDR_ERROR`, parametre 3 = `0xc000009a`
+(STATUS_INSUFFICIENT_RESOURCES). Ekran sürücüsü sıfırlanamamış.
+**İlk değil**: 17 Eylül 11:47'de birebir aynı kod. Üç günde iki kez.
+
+Cosim %28,9'da öldü (10,787 / 37,28 ms), ~1 saat gitti.
+
+## Yanlış teşhis — iki kez
+
+`/root/cosim-n16.sh` başındaki yorum şunu iddia ediyordu:
+
+> *"darboğaz hesap değil I/O idi... log `/mnt/c` köprüsünden yazılıyordu."*
+
+**Yanlıştı.** Bu koşu zaten WSL yerel diskindeydi (`/root/qir-n16`) ve aynı
+eğriyi çizdi:
+
+| | `/mnt/c` (16 Eyl) | yerel disk (19 Eyl) |
+|---|---|---|
+| başlangıç | 0,885 ms/dk | 0,856 ms/dk |
+| çöktüğü yer | 0,064 ms/dk | 0,036 ms/dk |
+
+Disk değişkeni kalktı, davranış değişmedi → **sebep disk değildi.** Bu, 16 Eylül'de
+ölçülüp çürütülen hipotezin (`/mnt/c` 9,603 ms @ 30:30 vs yerel 9,604 ms @ 36:05)
+ikinci kez doğrulanmasıdır. Yorum, çürütmeden sonra güncellenmemişti.
+
+## Gerçek sebep
+
+`solution1/sim/verilog/run_sim.tcl`:
+
+```tcl
+set ret [catch {eval exec "sh ./run_xsim.sh | tee temp2.log" >&@ stdout} err]
+```
+
+`>&@ stdout` — xsim'in **her satırı Tcl'in kanal katmanından** geçiyor. Tasarımda
+`#pragma HLS DEPENDENCE` yüzünden xsim yüz binlerce 5 satırlık *Critical WARNING*
+bloğu basıyor (bkz. §17). Süreç tablosu bunu doğruluyordu:
+
+| süreç | eski (vitis-run içinden) | yeni (baypaslı) |
+|---|---|---|
+| `xsimk` (asıl simülatör) | **%5,1** — aç bekliyor | **%108** |
+| `vitis-run` (Tcl) | **%97,9**, 685 MB | yok |
+
+Yavaşlamanın **süperdoğrusal** olması da buna oturuyor: Tcl biriktirdikçe her
+yeni parça daha pahalıya geliyordu.
+
+## Çözüm
+
+Cosim aslında üç ayrı aşama ve dışarıdan sürülebiliyor:
+
+| Aşama | Ne yapar |
+|---|---|
+| 1 · `wrapc/cosim.tv.exe` | C testbench'i koşup test vektörlerini kaydeder |
+| 2 · `verilog/run_xsim.sh` | RTL simülasyonu (`xelab` + `xsim`) |
+| 3 · `wrapc_pc/cosim.pc.exe` | RTL çıktısını C ile karşılaştırır |
+
+1. aşama çökmeden önce bitmişti (`tv/cdatafile/` doluydu), tekrarlanmadı.
+`/root/cosim-hizli.sh` 2. ve 3. aşamayı **doğrudan kabuktan** koşuyor — aynı RTL,
+aynı testbench, aynı uyaran, sadece Tcl araya girmiyor.
+
+| | eski | yeni |
+|---|---|---|
+| ortalama hız | 0,036 ms/dk (kararlı hal) | **2,73 ms/dk** |
+| toplam süre | ~13 saat (öngörü) | **15 dk 48 sn** |
+| 3. aşama | — | 8 sn |
+
+**76× hızlanma.** Ve hız bu kez çökmedi: 0,43–5,41 ms/dk arasında salındı, düşüş
+eğilimi yok. (Salınım ölçüm yöntemindendir: ilerleme, uyarı satırlarındaki
+`@ "NNN"` damgalarından okunuyor, uyarı basılmayan evrelerde sayaç duruyor.)
+
+## Kanıt ve sınırları
+
+Ham kanıt: [cosim-n16_20260919_4282956_p2.kanit.txt](cosim-n16_20260919_4282956_p2.kanit.txt)
+
+**Kanıtlanan**: RTL n=16'da elaborasyondan geçti, kilitlenmeden koştu, çıkış
+portunda C ile bit bit aynı değeri üretti. `AESL_mErrNo` yok, `.exit.err` yok,
+rc=0/rc=0.
+
+**Kanıtlanmayan**: 65536 genliğin tek tek eşitliği. `sv[]` dahili BRAM'dir,
+çıkış portu değildir — cosim onu göremez. Beklenen değer 65536 terimlik bir
+indirgeme olduğu için kanıt güçlü ama tüketici değil. Ayrıca **tek uyaran** (tek
+problem örneği, p=2).
+
+**Tuzak**: üretilen JSON'daki `fidelity: 0,999978179` **RTL'in değil, C modelinin**
+Qiskit'e karşı değeridir. `tb_kernel.cpp`'de karşılaştırılan `cikti[]`, yazılım
+`sv[]`'sinden doldurulur. Testbench bunu zaten yazmış:
+*"bu çağrı fazladan bir doğrulama değil, cosim'in çalışabilmesi için gereken
+kancadır."* Cosim sonucunu fidelity ile raporlamak **yanlış olur**.
+
+## Damga
+
+Üretilen JSON'un `git_hash` alanı `"vitis"` diyor — gerçek commit değil. Sebep:
+koşu `/root/qir-n16` kopyasında yapıldı, orada `.git` yok, `common.tcl`'in
+`git rev-parse` çağrısı boş döndü. Commit bağlantısı **md5 eşitliğiyle** kuruldu:
+`qir_kernel.cpp`, `qir_kernel.hpp`, `gates_pairing.hpp`, `tb_kernel.cpp` —
+dördü de repo (HEAD 4282956) ile birebir aynı. Özetler kanıt dosyasında.
+
+## Sonraki koşular için
+
+```bash
+wsl -d Ubuntu -e bash /root/cosim-hizli.sh      # 2.+3. asama, ~16 dk
+wsl -d Ubuntu -e bash /root/cosim-hizli-durum.sh # ilerleme
+```
+
+⚠️ 1. aşama (test vektörleri) mevcut olmalı. Tasarım değişirse `cosim_design`'ı
+bir kez normal koşup 1. aşamayı yeniden üretmek gerekir.
+⚠️ Log 664 MB'a çıkıyor (`/var/log/cosim-n16-hizli.log`).
