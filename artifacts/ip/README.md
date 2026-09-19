@@ -28,6 +28,22 @@ ad içinde. Yanındaki `.rpt` o koşumun gerçek P&R sayılarıdır.
 
 İki ayrı koşumda **birebir aynı** çıktı: Vivado P&R bu tasarımda belirlenimci.
 
+## `bd_0_*.hwh` nedir
+
+Vitis `-flow impl` koşarken implementasyon için kendi blok tasarımını kurar ve
+yan ürün olarak bir `.hwh` bırakır. Bu dosya **Vivado 2025.2 tarafından
+üretilmiş, içinde gerçek `qir_kernel` IP'si olan** bir donanım tanımıdır —
+Faz 5'in G0 uyumluluk denemesi (PYNQ 2.5 bunu ayrıştırabiliyor mu?) için
+doğrudan kullanılabilir.
+
+Kaynağı `qir_hls_prj/solution1/impl/.../hw_handoff/bd_0.hwh` idi; orası
+gitignore'da ve `open_solution -reset` her sentez/cosim koşusunda siliyor.
+Buradaki kopya kalıcıdır.
+
+⚠️ Bu BD'de **PS yok**, dolayısıyla `BASEVALUE = 0x0` — adres atamasını test
+etmez. `REGISTER` elemanı da yok. Ayrıntı:
+[research.md §R1](../../specs/003-zynq-ps-kartta-kosum/research.md).
+
 ## Yeniden üretmek için
 
     wsl -d Ubuntu -e bash hls/run.sh impl

@@ -112,6 +112,48 @@ Sonuç ne olursa olsun plan durmaz — yalnızca A mı B mi kullanılacağı bel
 | `.hwh`'yi elle yamamak | Kırılgan, belgelenemez, her yeniden sentezde tekrarlanır |
 | IP'yi eski Vivado ile üretmek | 2019.1 kurulu değil; 2025.2 çıktısı geri alınamaz |
 
+### 🎁 2026-09-19 — hazır bir 2025.2 `.hwh` bulundu, T001–T005 kısalıyor
+
+Vitis `export_design -flow impl` koşarken implementasyon için **kendi blok
+tasarımını kuruyor** ve yan ürün olarak bir `.hwh` bırakıyor. Yani T002'nin
+üretmeye çalıştığı dosya **zaten elimizdeydi**:
+
+    qir_hls_prj/solution1/impl/verilog/project.gen/sources_1/bd/bd_0/hw_handoff/bd_0.hwh
+
+İçeriği doğrulandı:
+
+| | |
+|---|---|
+| `VIVADOVERSION` | **2025.2** ✓ sorgulanan sürüm |
+| `MODULE` | `hls_inst` / **`qir_kernel`** ✓ gerçek IP |
+| `MEMRANGE` | `s_axi_control`, `Reg`, `0x0000`–`0xFFFF` |
+| `REGISTER` | **0** — register düzeyi ayrıntı yok |
+
+⚠️ **`qir_hls_prj/` gitignore'da ve `open_solution -reset` onu siliyor.** Dosya
+bu yüzden **`artifacts/ip/bd_0_20260917_15931cc.hwh`** altına kopyalandı.
+(2026-09-19'da n=16 cosim başlatılırken son anda kurtarıldı.)
+
+**Ne test eder, ne etmez**
+
+- ✅ PYNQ 2.5'in **2025.2 biçimini** ve **özel IP'li** bir `.hwh`'yi okuyabilmesi
+  — R1'in asıl sorusu budur ve bilinen ayrıştırma hatalarının hepsi bu yoldadır
+- ❌ **Adres ataması**: bu BD'de PS yok, `BASEVALUE = 0x0`. Gerçek BD'de PS
+  olacak ve taban adres gerçek olacak
+- ❌ `REGISTER` yok → en iyi ihtimalle **kısmi başarı** çıkar (`ip_dict` dolar,
+  `registers` boş kalır). Sorun değil: register haritası
+  [contracts/axi-register-map.md](contracts/axi-register-map.md)'de zaten var,
+  erişim `MMIO` ile yapılır.
+
+**Sonuç**: T001–T005 yerine tek bir kopyalama + tek komut yeterli. Cevap
+**5 dakikada** alınır. T001–T007 yine de yapılmalı (gerçek BD'nin `.hwh`'si PS
+ve adres ataması içerecek) ama **hangi yola göre kod yazılacağı bugünden
+bilinebilir**.
+
+**Koşulacak** (kart açıkken):
+
+    scp artifacts/ip/bd_0_20260917_15931cc.hwh xilinx@<KART-IP>:/home/xilinx/probe.hwh
+    # sonra seri konsoldan fpga/bd/probe_test.py
+
 ---
 
 ## R2 — Bitstream nasıl üretilecek (board files yok)

@@ -71,6 +71,17 @@ yazılacağını.
 **Neden ilk**: Cevap sonradan öğrenilirse yazılan konak kodu çöpe gider.
 Sentez beklemeye gerek yok — `.hwh`, BD çıktı ürünleri üretilirken yazılır.
 
+> 🎁 **KISAYOL (2026-09-19 bulundu)**: Vitis `-flow impl` koşarken kendi blok
+> tasarımını kuruyor ve bir `.hwh` bırakıyor. T002'nin üretmeye çalıştığı dosya
+> **zaten var** ve kurtarıldı: `artifacts/ip/bd_0_20260917_15931cc.hwh`
+> (`VIVADOVERSION 2025.2`, `MODULE qir_kernel`). Karta kopyalayıp `probe_test.py`
+> koşmak **5 dakikada** A/B/kısmi cevabını verir — T001–T005'i beklemeden.
+> T001–T007 yine yapılır (gerçek BD'de PS ve adres ataması olacak) ama kod hangi
+> yola göre yazılacak, bugünden bilinebilir. Bkz. [research.md](research.md) §R1.
+>
+> ⚠️ Dosya `qir_hls_prj/` altındaydı; orası gitignore'da ve `open_solution -reset`
+> onu siliyor. `artifacts/ip/` kopyası kalıcıdır.
+
 - [ ] T001 [P] IP paketini Vivado IP deposuna aç: `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip` → `artifacts/ip/repo/qir_kernel_v0_1/`; BD betikleri buraya `set_property ip_repo_paths` ile bakacak
 - [ ] T002 [P] `fpga/bd/probe_hwh.tcl` yaz — kukla blok tasarım: `processing_system7` (PS preset **elle**, board files yok) + **gerçek `qir_kernel` IP** + `axi_smartconnect` + `proc_sys_reset`. `validate_bd_design` ve `generate_target all` ile `.hwh` üretilir; `launch_runs`/sentez/implementasyon **KOŞULMAZ**
 - [ ] T003 [P] `fpga/bd/probe_test.py` yaz — boş `ip_dict`'i **başarı saymaz**: `assert len(h.ip_dict) > 0` ve `assert any('qir' in k.lower() for k in h.ip_dict)`; ayrıca her IP'nin `phys_addr` ve `registers` sayısını yazdırır (register haritası da okunabiliyorsa A yolu **gerçekten** açık)
