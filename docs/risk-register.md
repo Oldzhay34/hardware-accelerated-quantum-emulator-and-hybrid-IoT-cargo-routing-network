@@ -410,5 +410,52 @@ durumu WSL'de yeniden üretildi, altı ölçütün altısı da birebir aynı ç�
   tahmini*; gerçek yerleştirme-yönlendirme sayısı `export.tcl` ile ölçülmedi.
   Sığmazsa geri dönüş yolu ölçülü: Tur 16'yı geri almak LUT'u %63'e indirir,
   bedeli 5.375.327 → 8.228.447 çevrim.
-- **n=16 cosim ölçülmedi.** RTL eşdeğerliği **n=8**'de doğrulandı (PASS).
-  n=16 koşusu 11,5 saat sürüyordu; gece koşusuna bırakıldı.
+- ~~**n=16 cosim ölçülmedi.**~~ ✅ **KAPANDI (19 Eylül)** — n=16 cosim geçti,
+  çıkış portu C ile bit bit aynı. 11,5 saatlik tahmin araç zincirindeki bir
+  darboğazdanmış; gerçek süre **15 dk 48 sn**
+  ([faz2-sentez.md §20](measurements/faz2-sentez.md)).
+
+
+---
+
+## GK-01 ⚠️ **YENİ — Geliştirme makinesi düzenli çöküyor (NVIDIA sürücüsü)**
+
+**Eklendi**: 2026-09-19 · **Olasılık**: Y · **Etki**: O · **Durum**: AÇIK
+
+**Risk**: Geliştirme dizüstü (MSI Cyborg A13V) 13 Eylül'den beri günde ~1 kez
+mavi ekran veriyor. Uzun koşuları öldürüyor — 19 Eylül'de n=16 cosim'i %28,9'da
+kesti (~1 saat kayıp).
+
+**Teşhis — sekiz çökmenin tamamı tek ve aynı kusur:**
+
+| Bulgu | Değer |
+|---|---|
+| Hata denetimi | `0x116` VIDEO_TDR_ERROR, 8/8 |
+| Microsoft'un kova kimliği | `0x116_TdrBCR:4:C000009A_Tdr:9_IMAGE_nvlddmkm.sys_Ada` |
+| Parametre 3 | `0xC000009A` STATUS_INSUFFICIENT_RESOURCES, 8/8 |
+| Parametre 4 | `0x4`, 8/8 |
+| Kurtarılabilir TDR (olay 4101) | **hiç yok** — her takılma ölümcül |
+| Sorumlu modül | `nvlddmkm.sys` 32.0.16.1656 |
+| **Hata ofseti** | **`nvlddmkm.sys + 0x1935300`**, bölüm `PAGE_K` (çalıştırılabilir kod) |
+
+Ofset beş minidump'tan bağımsız olarak çıkarıldı: parametre 2'nin düşük 16 biti
+sekiz çökmede de `0x5300`; modül tabanı (`par2 − 0x1935300`) beşinde de 64 KB
+hizalı; dökümdeki `SizeOfImage = 0x6d39000` diskteki `nvlddmkm.sys` ile birebir
+aynı. Yani **her seferinde aynı komut, aynı ikili**.
+
+**Bu ne demek değil**: ısı, güç dalgalanması veya donanım arızası olsaydı düşüş
+noktası rastgele dağılırdı; sekiz kez aynı ofsete denk gelmezdi. Sistem belleği
+de dar değil (taahhüt sınırı 28,2 GB, sayfa dosyası zirvesi 748 MB).
+
+**Yapılacak**: Sürücü **sürümünü değiştir** (geri al veya ileri git). Aynı
+sürümü yeniden kurmak aynı kodu yeniden kurar — ikili diskte sağlam olduğu için
+bozulma ihtimali zaten zayıf. Hata günde ~1 olduğundan birkaç gün içinde sonuç
+alınır.
+
+**Projeye etkisi ve azaltma**: Asıl tehlike Faz 5'te. T044 ≥30 koşumluk seri
+istiyor; ortada bir çökme seriyi çöpe atar. **Ölçümler koşum başına diske
+yazılacak** ki çökme bir örneği kaybettirsin, seriyi değil. Cosim artık 16
+dakika olduğu için orada risk kalmadı.
+
+**Ham kanıt**: `C:/Users/olcay/dump-inceleme/` (5 minidump + 8 Report.wer,
+repoya girmez). Ayrıştırma betikleri oturum kapanınca silinir; yöntem yukarıda.
