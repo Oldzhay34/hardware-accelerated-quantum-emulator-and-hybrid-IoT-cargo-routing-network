@@ -1,0 +1,13 @@
+{
+  "etiket": "bataryada",
+  "p": 2,
+  "kapi": 585,
+  "toplam_saniye": 175.038,
+  "kosum": 3688,
+  "verim_kosum_sn": 21.0697,
+  "kosum_basina_ms": {
+    "medyan": 47.536,
+    "min": 31.582,
+    "max": 86.009
+  }
+}

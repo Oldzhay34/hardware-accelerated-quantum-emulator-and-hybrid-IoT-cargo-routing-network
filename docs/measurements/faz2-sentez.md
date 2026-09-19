@@ -719,6 +719,13 @@ yerel diskine kopyalanarak, çünkü darboğaz `/mnt/c` üzerindeki log yazımı
 
 # 15. DÜZELTME — CPU karşılaştırması iki yerden birden yanlıştı (2026-09-16, T054)
 
+> ⛔ **BU BÖLÜMÜN SONUÇLARI DA GEÇERSİZDİR — bkz. §18.** Buradaki FPGA tarafı
+> düzeltmesi (p=2 ayrıştırması) **geçerlidir**, ama CPU tarafındaki rakamlar
+> (77,6 / 92,7 ms) ve onlardan türetilen **"FPGA 1,6–2,5× önde"** sonucu
+> **yanlıştır**: o ölçümler arka planda cosim koşarken alınmış ve ölçüm yöntemi
+> yalnızca turbo penceresini görüyordu. Temiz taban §18'de: turbo 32,75 ms,
+> plato 41,93 ms. Doğru sonuç **başabaş**.
+
 `quickstart.md` baştan sona koşulunca (T054) ortaya çıktı. Bu bölümden önceki
 bütün CPU karşılaştırmaları **hatalıdır**; aşağıdaki sayılar geçerlidir.
 
@@ -940,3 +947,168 @@ harcandı. Bkz. [risk-register.md](../risk-register.md).
 
 Ancak SK-02'nin *varsayımı* ayrıca yanlışlandı: çakışma bankalama ile
 çözülmüyordu, çünkü sınır bankalama değil **bellek portuydu** (§13, ADR 0009).
+
+---
+
+# 18. CPU TABANI YENİDEN ÖLÇÜLDÜ — eski rakamlar kirliydi (2026-09-19)
+
+⚠️ **Bu bölüm §15'i geçersiz kılar.** §15'te "FPGA tahmini CPU'yu 1,6–2,5×
+geçiyor" yazıyor; **yanlıştır**. §15 FPGA tarafındaki iki hatayı düzeltmişti
+ama CPU tarafının **kendisinin** güvenilmez olduğunu görmemişti.
+
+## İki ayrı kirlenme bulundu
+
+**1. Eski ölçümler arka plan yükü altında alınmış.**
+`cpu-referans-zaman_20260916_8fe16e6.json` damgası 2026-09-16 20:59 (yerel).
+O saatte **n=16 cosim koşuyordu** (xsim, tam çekirdek RTL simülasyonu;
+20:34:37'de başlatılmıştı ve oturum kayıtlarında 20:59'da hâlâ ilerliyordu).
+15 Eylül ölçümü için doğrudan kanıt yok ama o gün de sentez turları vardı.
+
+**2. Daha önemlisi: CPU'nun kendisi kararsız ve eski betik bunu göremiyor.**
+`cpu_reference_time.py` içinde `TEKRAR = 15`. 15 koşum ≈ 0,6 saniye — yani
+tam **turbo penceresi**. Ölçüm sistematik olarak işlemcinin kısa süreli en
+iyi hâlini yakalıyor, sürdürülen performansını değil.
+
+Teşhis deneyi (aynı devre, üç koşul):
+
+| Koşul | Medyan |
+|---|---:|
+| A — temiz, soğuk, 15 tekrar | **35,51 ms** |
+| B — Python benchmark'ından sonra, 15 tekrar | 53,47 ms |
+| C — sürdürülen, 400 tekrar | 53,44 ms |
+| A tekrar — soğuk koşullar yeniden | **53,08 ms** |
+
+"A tekrar"ın düzelmemesi belirleyici: suçlu Python benchmark'ı **değil**,
+termal doyum. İşlemci ısındıktan sonra o hızda kalıyor.
+
+## Temiz ölçüm
+
+2026-09-19 · prizde · harici monitör yok · sessiz makine · **7474 koşum / 300 sn**
+
+Pencere medyanları (10 sn'lik dilimler): 34,04 → 35,22 → 36,16 → … → 41,87 →
+42,23 → 41,96 → **41,90**. Son altı pencere sabit — **plato oturdu**.
+
+| | Değer |
+|---|---:|
+| **Turbo** (ilk 2 sn) | **32,75 ms** |
+| **Plato** (son 60 sn) | **41,93 ms** |
+| Turbo → plato | 1,28× yavaşlama |
+| Verim | 24,91 koşum/sn |
+
+**Eski kayıtların sapması:**
+
+| Kayıt | Değer | Platonun katı |
+|---|---:|---:|
+| 15 Eyl | 77,57 ms | **1,85×** |
+| 16 Eyl (xsim koşarken) | 92,66 ms | **2,21×** |
+
+## DÜZELTİLMİŞ KARŞILAŞTIRMA
+
+FPGA p=2: **37,28 ms** (HLS/implementasyon tahmini, 100 MHz)
+
+| Karşısında | Sonuç |
+|---|---|
+| CPU platosu 41,93 ms | FPGA **1,12× hızlı** |
+| CPU turbosu 32,75 ms | FPGA **1,14× YAVAŞ** |
+
+**Gecikme ekseninde kazanç yok — başabaş.** FPGA tahmini, CPU'nun turbo ve
+plato değerlerinin tam arasına düşüyor.
+
+Hangisinin adil olduğu kullanım senaryosuna bağlıdır ve tezde tartışılmalıdır:
+tek seferlik bir sorgu için turbo, sürekli yük için plato. İkisi de
+raporlanmalı, biri seçilip diğeri gizlenmemeli.
+
+## Enerji — asıl hikâye burada olabilir
+
+Ölçülen CPU enerjisi (bkz. §19): **0,644 J/koşum**.
+
+PYNQ-Z2 tüm kart olarak ~3–5 W çeker; 37 ms'lik koşum için 0,11–0,19 J eder,
+yani **3,5–5,8× daha az**. ⚠️ Bu bir **hesaptır, ölçüm değildir** — FPGA'nın
+gücü henüz ölçülmedi (US3, INA219 bekliyor).
+
+Büyüklük mertebesi doğrularsa tezin sonucu *"FPGA daha hızlı"* değil,
+**"FPGA aynı hızda ama belirgin biçimde daha az enerjiyle"** olacaktır.
+
+## Alınan ders
+
+Üç düzeltme üst üste geldi ve üçünün de kökü aynı: **tek koşumluk, kontrolsüz
+ortamda alınmış CPU rakamına güvenmek.**
+
+Bundan sonraki kural:
+- CPU tabanı **süre tabanlı** ölçülür, sabit tekrar sayısıyla değil
+- **Turbo ve plato ayrı** raporlanır
+- Plato oturduğu **doğrulanır** (son iki 30 sn'lik dilim %3'ten az farklı)
+- Makinede başka **hiçbir ağır iş koşmaz** — özellikle sentez/cosim
+- Prizde, harici ekran olmadan
+
+---
+
+# 19. CPU ENERJİSİ ÖLÇÜLDÜ — batarya yöntemi (2026-09-19)
+
+İlk gerçek enerji ölçümü. Anayasa Prensip II enerji rakamlarının gerçek
+ölçüme dayanmasını şart koşuyordu; bu bölüm o eksiği CPU tarafı için kapatıyor.
+
+## Neden batarya, neden INA219 değil
+
+Dizüstünün adaptörü **20 V / 6 A / 120 W**. INA219'u araya koymak için o hattı
+kesmek gerekirdi ve standart 0,1 Ω şönt 5 A'de **2,5 W** harcayıp yanardı.
+Batarya sayacı **aynı kapsamı** (tüm dizüstü) ölçüyor, çözünürlüğü fazlasıyla
+yeterli ve riski sıfır.
+
+## Yöntem — delta
+
+Boştaki güç ve yük altındaki güç ayrı ayrı ölçülür, işin maliyeti **farktan**
+hesaplanır. Ekran, diskler ve boştaki her şey iki ölçümde de var olduğu için
+sadeleşir. Bu, kart tarafında uygulanacak yöntemle **aynıdır**.
+
+Tek koşum ~42 ms; hiçbir batarya sayacı bunu göremez. İş yükü 175 saniye
+döngüye alınıp toplam enerji koşum sayısına bölündü.
+
+## Ölçüm
+
+2026-09-19 · fişten çıkık · harici monitör yok · fanlar makste (iki ölçümde de)
+· 180 sn kayıt, saniyede bir örnek
+
+| | Boşta | Yük altında |
+|---|---:|---:|
+| Ortalama güç | **21,58 W** | **34,80 W** |
+| Enerji A (gücün integrali) | 1076,29 mWh | 1738,39 mWh |
+| Enerji B (kapasite farkı) | 1038,00 mWh | 1755,00 mWh |
+| **A/B sapması** | %3,6 | **%0,9** |
+
+İki bağımsız hesap birbirini doğruladı (eşik %10). Ölçüm güvenilir.
+
+| | |
+|---|---:|
+| Yük − boş güç farkı | **13,22 W** |
+| İşin toplam enerjisi | 2374,8 J |
+| Koşum sayısı | 3688 |
+| **Koşum başına enerji** | **0,644 J** |
+
+## ⚠️ Çalışma noktası uyarısı
+
+Bu enerji **bataryadaki** çalışma noktasında ölçüldü ve orada CPU **kısılıyor**:
+
+| | Prizde | Bataryada |
+|---|---:|---:|
+| Verim | 25,68 koşum/sn | 21,07 koşum/sn |
+| Koşum başına | 38,9 ms | 47,5 ms |
+
+**−%18 verim, +%22 süre.** Yani 0,644 J, 47,5 ms/koşum noktasına aittir;
+prizdeki 41,93 ms noktasına değil.
+
+Bu, batarya yönteminin yapısal sınırıdır: ölçüm yalnızca fişten çıkıkken
+yapılabiliyor, dolayısıyla enerji ve gecikme **farklı çalışma noktalarından**
+geliyor. Rapora böyle yazılmalıdır; düzeltme katsayısıyla uydurulmamalıdır.
+
+## Üretmek için
+
+    # 1) prizde referans verim
+    .venv\Scripts\python.exe scripts\cpu_load_loop.py --saniye 60 --p 2 --etiket prizde
+    # 2) fisi cek, bosta
+    powershell -ExecutionPolicy Bypass -File scripts\battery_logger.ps1 -Saniye 180 -Cikti bos.csv
+    # 3) yuk altinda (iki pencere)
+    powershell -ExecutionPolicy Bypass -File scripts\battery_logger.ps1 -Saniye 180 -Cikti yuk.csv
+    .venv\Scripts\python.exe scripts\cpu_load_loop.py --saniye 175 --p 2 --etiket bataryada
+    # 4) hesap
+    python scripts\battery_energy.py --bos bos.csv --yuk yuk.csv --kosum <kosum>

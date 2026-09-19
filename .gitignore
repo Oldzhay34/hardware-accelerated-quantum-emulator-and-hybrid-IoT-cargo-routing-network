@@ -46,6 +46,8 @@ data/osrm/
 artifacts/bitstream/*
 artifacts/overlay/*
 artifacts/models/*
+artifacts/ip/*
+!artifacts/ip/README.md
 !artifacts/**/.gitkeep
 !artifacts/README.md
 *.bit

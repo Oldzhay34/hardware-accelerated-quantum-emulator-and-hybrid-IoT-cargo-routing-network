@@ -5,6 +5,14 @@
 
 ## SIRADAKİ
 
+> ✅ **BU FAZ KAPANDI** (2026-09-16, 54/54 görev, dört NEEDS CLARIFICATION da
+> çözüldü). Güncel iş **Faz 5**'tedir:
+> [specs/003-zynq-ps-kartta-kosum/SIRADAKI.md](../003-zynq-ps-kartta-kosum/SIRADAKI.md)
+>
+> ⚠️ Aşağıdaki CPU karşılaştırma rakamları **eskidir** — CPU tabanı 19 Eylül'de
+> yeniden ölçüldü (turbo 32,75 ms / plato 41,93 ms) ve sonuç **başabaş** çıktı.
+> Bkz. [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §18.
+
 **Hedef (tek cümle)**: **Faz 2 BİTTİ** — 54 görevin 54'ü kapalı, dört NEEDS
 CLARIFICATION'ın dördü de çözüldü, altı sentez riski kapandı. Tasarım Vivado
 implementasyonundan geçti: post-route **9,122 ns**, LUT **%42**, BRAM %66.

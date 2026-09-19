@@ -1,0 +1,13 @@
+{
+  "etiket": "prizde",
+  "p": 2,
+  "kapi": 585,
+  "toplam_saniye": 60.037,
+  "kosum": 1542,
+  "verim_kosum_sn": 25.6842,
+  "kosum_basina_ms": {
+    "medyan": 38.935,
+    "min": 27.806,
+    "max": 112.251
+  }
+}

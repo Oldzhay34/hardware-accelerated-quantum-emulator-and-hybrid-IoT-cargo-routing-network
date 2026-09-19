@@ -122,19 +122,51 @@ Kabul ölçütü ≤ 4.
 
 ---
 
-## 6. CPU tabanı — YAYILIMLA BİRLİKTE
+## 6. CPU tabanı — TEMİZ ÖLÇÜM (2026-09-19)
 
-⚠️ **Tek koşum bildirilmemelidir.** Aer'in koşumdan koşuma oynaması **±%60**.
+⛔ **15–16 Eylül ölçümleri GEÇERSİZDİR.** Arka planda cosim koşarken alınmışlar
+ve yöntem (`TEKRAR = 15`, ~0,6 sn) yalnızca **turbo penceresini** görüyordu.
+Sapma: platonun 1,85× ve 2,21× katı. Ayrıntı: [faz2-sentez.md](measurements/faz2-sentez.md) §18.
 
-| Koşum | p | min | **medyan** | max |
-|---|---|---:|---:|---:|
-| 2026-09-15 | 1 | 35,36 | 41,78 | 53,11 ms |
-| 2026-09-15 | 2 | 58,07 | **77,57** | 120,99 ms |
-| 2026-09-16 | 1 | 32,45 | 42,34 | 64,44 ms |
-| 2026-09-16 | 2 | 78,95 | **92,66** | 111,42 ms |
+**Geçerli taban** — 2026-09-19, prizde, harici monitör yok, sessiz makine,
+**7474 koşum / 300 sn**, plato oturduğu doğrulandı:
 
-Karşılaştırma (p=2, aynı devre): FPGA **37,28 ms** (HLS tahmini) — CPU medyanı
-77,57 / 92,66 ms. Oran **1,6× – 2,5×**.
+| | Değer |
+|---|---:|
+| **Turbo** (ilk 2 sn) | **32,75 ms** |
+| **Plato** (son 60 sn) | **41,93 ms** |
+| Turbo → plato | 1,28× yavaşlama |
+
+İşlemci ısındıkça yavaşlıyor ve orada kalıyor; iki değer de raporlanmalı,
+hangisinin adil olduğu kullanım senaryosuna bağlıdır.
+
+### Karşılaştırma (p=2, aynı devre)
+
+FPGA **37,28 ms** (HLS/implementasyon tahmini):
+
+| Karşısında | Sonuç |
+|---|---|
+| CPU platosu 41,93 ms | FPGA **1,12× hızlı** |
+| CPU turbosu 32,75 ms | FPGA **1,14× YAVAŞ** |
+
+**Gecikmede kazanç yok — başabaş.** FPGA tahmini CPU'nun iki değeri arasına
+düşüyor.
+
+### Enerji (CPU tarafı, ÖLÇÜLDÜ)
+
+Batarya delta yöntemiyle, tüm dizüstü kapsamı (§19):
+
+| | |
+|---|---:|
+| Boşta / yük altında güç | 21,58 W / 34,80 W |
+| Güç farkı | **13,22 W** |
+| **Koşum başına enerji** | **0,644 J** |
+
+İki bağımsız hesap (gücün integrali ve kapasite farkı) %0,9 sapmayla uyuştu.
+
+⚠️ Bu değer **bataryadaki** çalışma noktasına aittir (47,5 ms/koşum); batarya
+yöntemi yalnızca fişten çıkıkken çalışabildiği için enerji ve gecikme farklı
+noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 
 ---
 
@@ -153,7 +185,8 @@ Karşılaştırma (p=2, aynı devre): FPGA **37,28 ms** (HLS tahmini) — CPU me
 
 - ❌ **Hiçbir hızlanma iddiası.** 37,28 ms sentez sonrası bir **tahmindir**;
   bitstream üretilmedi, kartta koşulmadı. CPU tarafı ayrıca ±%60 oynuyor.
-- ❌ **Enerji iddiası** — hiç ölçülmedi.
+- ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
+  tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
 - ❌ **n=16 RTL eşdeğerliği** — yalnızca n=8'de doğrulandı.
 
 Hızlanma ve enerji karşılaştırması **Faz 5/10'da, kartta, aynı p ile ve CPU

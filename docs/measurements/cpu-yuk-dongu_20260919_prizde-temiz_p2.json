@@ -1,0 +1,17 @@
+{
+  "etiket": "prizde-temiz",
+  "p": 2,
+  "kapi": 585,
+  "toplam_saniye": 300.024,
+  "kosum": 7474,
+  "verim_kosum_sn": 24.9113,
+  "kosum_basina_ms": {
+    "medyan": 40.385,
+    "min": 25.273,
+    "max": 2484.063
+  },
+  "turbo_ms": 32.751,
+  "plato_ms": 41.934,
+  "plato_oturdu": true,
+  "turbo_plato_orani": 1.28
+}
