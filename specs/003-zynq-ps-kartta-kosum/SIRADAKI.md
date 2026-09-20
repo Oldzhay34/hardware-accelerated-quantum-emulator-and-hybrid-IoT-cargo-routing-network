@@ -2,18 +2,20 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Öbek 1 ve 3 **bitti**; sıradaki iş **öbek 2**
-(T013–T018: gerçek blok tasarım, EMIO I2C, bitstream) — ama önce kartta
-**parolasız sudo** çözülmeli, yoksa öbek 4 başlayamaz.
+**Hedef (tek cümle)**: Öbek 2 **bitti** — bitstream üretildi ve 100 MHz'de
+zamanlama tuttu; sıradaki iş **öbek 4** (T026+, US1: çekirdek kartta koşuyor),
+ama önce karttaki **parolasız sudo** çözülmeli.
 
-**Dokunulacak dosyalar**: `fpga/bd/qir_bd.tcl` (yok, T013 yazacak),
-`fpga/bd/qir_constraints.xdc` (yok, T015), `fpga/bd/build.sh` (yok, T016)
+**Dokunulacak dosyalar**: `agent/board.py` (yok, T026 yazacak),
+`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (üretildi, git'e girmez)
 
-**Bilinen tuzak**: T017'de **WNS ≥ 0 tutmazsa FCLK DÜŞÜRÜLMEZ** — 100 MHz,
-Faz 2'nin bütün ölçümlerinin dayanağıdır; faz durur ve sebep araştırılır.
-Ayrıca kartta `import pynq` root istiyor ve `sudo` parola soruyor.
+**Bilinen tuzak**: Konak kodu **FCLK'yi doğrulamak zorunda**
+(`from pynq.ps import Clocks; Clocks.fclk0_mhz = 100`). BD'deki 100 MHz yalnız
+implementasyon zamanı kısıtıdır; çalışma zamanında PL saatini kartın boot
+`ps7_init`'i belirler. Doğrulanmazsa bütün gecikme ölçümleri sessizce yanlış
+çıkar. Ayrıca `import pynq` root istiyor.
 
-**Son güncelleme**: 2026-09-20, Faz 5.2 (öbek 1 ve 3 bitti; G2 geçti)
+**Son güncelleme**: 2026-09-20, Faz 5.3 (öbek 2 bitti; bitstream hazır)
 
 ---
 
@@ -119,8 +121,8 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 1 | 0 — G0 uyumluluk | T001–T007 | ✅ **BİTTİ — A yolu** |
 | 2 | 1 — `fpga/` + belgeler | T008–T012 | ✅ **BİTTİ** |
 | 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
-| 2 | 2 — blok tasarım + bitstream | T013–T018 | ⬅️ **sıradaki** |
-| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | bekliyor |
+| 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
+| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ⬅️ **sıradaki** (önce sudo) |
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | bekliyor |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |

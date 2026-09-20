@@ -48,6 +48,7 @@ artifacts/overlay/*
 artifacts/models/*
 artifacts/ip/*
 !artifacts/ip/README.md
+!artifacts/bitstream/README.md
 !artifacts/**/.gitkeep
 !artifacts/README.md
 *.bit

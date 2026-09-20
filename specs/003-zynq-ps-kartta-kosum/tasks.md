@@ -112,12 +112,12 @@ Yeni üst dizin açmanın bedeli **aynı değişikliğe dahildir**.
 
 ### Öbek 2 — Blok tasarım ve bitstream (EMIO I2C dahil, karar K2)
 
-- [ ] T013 `fpga/bd/qir_bd.tcl` yaz — gerçek BD: `processing_system7` **elle preset** (DDR `MT41J256M16 RE-125`, PS ref saat 33,333 MHz, **FCLK0 = 100 MHz**), `qir_kernel` IP, `axi_smartconnect`, `proc_sys_reset`. AXI-Lite taban adresi **`0x43C0_0000` olarak sabitlenir** (B yolunun tek doğruluk kaynağı)
-- [ ] T014 `fpga/bd/qir_bd.tcl` içine **PS I2C0'ı EMIO ile** dışarı ver (karar K2) — US3 için; şimdi ~10 dk, sonra bir sentez turu artı US1/US2 ölçümlerinin tekrarı demek
-- [ ] T015 `fpga/bd/qir_constraints.xdc` yaz — EMIO I2C hatlarını PYNQ-Z2 PMOD pinlerine bağla (`PACKAGE_PIN` + `IOSTANDARD LVCMOS33`)
-- [ ] T016 `fpga/bd/build.sh` yaz — BD → sentez → implementasyon → `write_bitstream` → `.bit`/`.hwh` dosyalarını `artifacts/bitstream/qir_<tarih>_<git-hash>.{bit,hwh}` olarak kopyalar; WNS değerini stdout'a basar
-- [ ] T017 `wsl -d Ubuntu -e bash fpga/bd/build.sh` koş ve **WNS ≥ 0 doğrula**. ⛔ Zamanlama tutmazsa **FCLK DÜŞÜRÜLMEZ** — faz durur ve neden araştırılır (100 MHz, Faz 2'nin tüm ölçümlerinin dayanağı)
-- [ ] T018 `artifacts/bitstream/README.md` yaz — `artifacts/ip/README.md` kalıbıyla: SHA-256, üretim komutu, araç sürümü (`Vivado 2025.2`), kaynak git hash, kullanılan IP paketi adı ve **AXI taban adresi**. FR-016 / SC-010 böyle karşılanır
+- [X] T013 `fpga/bd/qir_bd.tcl` yaz — gerçek BD: `processing_system7` **elle preset** (DDR `MT41J256M16 RE-125`, PS ref saat 33,333 MHz, **FCLK0 = 100 MHz**), `qir_kernel` IP, `axi_smartconnect`, `proc_sys_reset`. AXI-Lite taban adresi **`0x43C0_0000` olarak sabitlenir** (B yolunun tek doğruluk kaynağı)
+- [X] T014 `fpga/bd/qir_bd.tcl` içine **PS I2C0'ı EMIO ile** dışarı ver (karar K2) — US3 için; şimdi ~10 dk, sonra bir sentez turu artı US1/US2 ölçümlerinin tekrarı demek
+- [X] T015 `fpga/bd/qir_constraints.xdc` yaz — EMIO I2C hatlarını PYNQ-Z2 PMOD pinlerine bağla (`PACKAGE_PIN` + `IOSTANDARD LVCMOS33`)
+- [X] T016 `fpga/bd/build.sh` yaz — BD → sentez → implementasyon → `write_bitstream` → `.bit`/`.hwh` dosyalarını `artifacts/bitstream/qir_<tarih>_<git-hash>.{bit,hwh}` olarak kopyalar; WNS değerini stdout'a basar
+- [X] T017 `wsl -d Ubuntu -e bash fpga/bd/build.sh` koş ve **WNS ≥ 0 doğrula**. ⛔ Zamanlama tutmazsa **FCLK DÜŞÜRÜLMEZ** — faz durur ve neden araştırılır (100 MHz, Faz 2'nin tüm ölçümlerinin dayanağı)
+- [X] T018 `artifacts/bitstream/README.md` yaz — `artifacts/ip/README.md` kalıbıyla: SHA-256, üretim komutu, araç sürümü (`Vivado 2025.2`), kaynak git hash, kullanılan IP paketi adı ve **AXI taban adresi**. FR-016 / SC-010 böyle karşılanır
 
 ### Öbek 3 — Konak kodlayıcı (**kart olmadan** doğrulanır, Prensip V)
 
