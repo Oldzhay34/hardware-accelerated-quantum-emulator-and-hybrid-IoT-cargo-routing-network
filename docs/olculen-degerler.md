@@ -56,6 +56,24 @@ hem **n=16** (19 Eylül 2026, commit 4282956).
 
 n=16'da çekirdeğin tek çıkış portu olan `beklenen_deger` (float32), C modeliyle
 **bit bit aynı** çıktı: her iki tarafta da `0xbee28271` (= −0,442401439).
+
+⛔ **Bu sayı bir enerji DEĞİLDİR ve tezde enerji olarak raporlanamaz.**
+20 Eylül'de ölçüldü: referanstaki ham Ising katsayıları `max|h| = 7512,61`,
+`max|J| = 1253,07` — yani Q1.17'nin `[-1, 1)` aralığını kat kat aşıyor.
+C testbench'i `cost.h[k] = qir::real_t(h_j[k].num)` diyor ve `AP_SAT`
+**16/16 h girdisini, 84/120 J girdisini sessizce kırpıyor**. `-0,442401439`,
+doymuş bir maliyet operatörünün beklenen değeridir.
+
+Etkilenmeyenler (ikisi de ayrı yoldan gelir):
+* **fidelity 0,999978179 geçerlidir** — `sv` yalnız `phases`'tan üretilir
+  (`qir_kernel_debug(phases, cos_beta, sin_beta, p, sv)`), `cost` girmez.
+  Fazlar mod 1'e indirgendiği için doyma yaşanmaz.
+* **RTL ≡ C eşdeğerliği geçerlidir** — iki taraf da aynı doymuş fonksiyonu
+  hesaplar ve bit bit aynı sonucu verir. Karşılaştırma bundan etkilenmez.
+
+Bu, `contracts/host-encoder.md`'nin önlemek için yazıldığı hatanın ta
+kendisidir ve Faz 5 kodlayıcısı (`agent/encoder.py`) ölçekleme protokolüyle
+bunu kapatır: aynı girdide **istisna fırlatır**, sessizce doyurmaz (madde H-3).
 `AESL_mErrNo` hiç üretilmedi, `.exit.err`/`.aesl_error` oluşmadı, her iki
 aşamanın dönüş kodu 0. Ham kanıt:
 [cosim-n16_20260919_4282956_p2.kanit.txt](measurements/cosim-n16_20260919_4282956_p2.kanit.txt),

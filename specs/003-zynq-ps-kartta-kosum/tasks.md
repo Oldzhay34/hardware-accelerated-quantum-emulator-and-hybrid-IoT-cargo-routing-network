@@ -104,11 +104,11 @@ Sentez beklemeye gerek yok — `.hwh`, BD çıktı ürünleri üretilirken yazı
 
 Yeni üst dizin açmanın bedeli **aynı değişikliğe dahildir**.
 
-- [ ] T008 [P] `fpga/README.md` yaz — dizinin kapsamı ve `hls/` ile sınırı: HLS `artifacts/ip/`'te biter, Vivado orada başlar
-- [ ] T009 [P] `docs/repo-conventions.md` §2 dizin listesine `fpga/` satırı ekle — "Vivado blok tasarım, kısıtlar, elle yazılan RTL (Faz 5)"
-- [ ] T010 [P] `CLAUDE.md` Depo haritası tablosuna `fpga/` satırı ekle (§2 ile aynı ifade)
-- [ ] T011 [P] `fpga/rtl/.gitkeep` oluştur — elle yazılacak Verilog için dizin **şimdiden ayrılır**; RTL `hls/` altına konamaz
-- [ ] T012 [P] `.gitignore`'a Vivado ara çıktılarını ekle: `fpga/bd/*.log`, `fpga/bd/*.jou`, `fpga/bd/vivado_prj/`. `artifacts/bitstream/*` zaten yok sayılıyor (satır 46) — `fpga/` kaynak dizini olarak **commit edilir**
+- [X] T008 [P] `fpga/README.md` yaz — dizinin kapsamı ve `hls/` ile sınırı: HLS `artifacts/ip/`'te biter, Vivado orada başlar
+- [X] T009 [P] `docs/repo-conventions.md` §2 dizin listesine `fpga/` satırı ekle — "Vivado blok tasarım, kısıtlar, elle yazılan RTL (Faz 5)"
+- [X] T010 [P] `CLAUDE.md` Depo haritası tablosuna `fpga/` satırı ekle (§2 ile aynı ifade)
+- [X] T011 [P] `fpga/rtl/.gitkeep` oluştur — elle yazılacak Verilog için dizin **şimdiden ayrılır**; RTL `hls/` altına konamaz
+- [X] T012 [P] `.gitignore`'a Vivado ara çıktılarını ekle: `fpga/bd/*.log`, `fpga/bd/*.jou`, `fpga/bd/vivado_prj/`. `artifacts/bitstream/*` zaten yok sayılıyor (satır 46) — `fpga/` kaynak dizini olarak **commit edilir**
 
 ### Öbek 2 — Blok tasarım ve bitstream (EMIO I2C dahil, karar K2)
 
@@ -123,13 +123,13 @@ Yeni üst dizin açmanın bedeli **aynı değişikliğe dahildir**.
 
 Sözleşme: [contracts/host-encoder.md](contracts/host-encoder.md)
 
-- [ ] T019 [P] `agent/encoder.py` — sabit-nokta paketleme: `real_t` Q1.17 (`round(x * 2**17)`, `[-2**17, 2**17-1]` aralığına kırp, `& 0x3FFFF` ile maskele, **işaret genişletmesi yok**); `phase_t` ap_uint<18> TUR cinsinden (`round((açı/(2π)) mod 1 * 2**18) mod 2**18`)
-- [ ] T020 [P] `agent/encoder.py` — ölçekleme protokolü (madde H-1, H-2, H-6): `S = 1.001 * max(|h|, |J|)` (kenar payı — `AP_SAT` tam `1,0`'ı kırpar), `h' = h/S`, `J' = J/S`, `beklenen_deger = beklenen_deger_ham * S`. `S` her koşumla **kaydedilir**; ham ve ölçekli değerler **ayrı** saklanır
-- [ ] T021 [P] `agent/encoder.py` — madde H-3: aralık dışı katsayıda **istisna fırlat**, sessizce doyurma. Sessiz kırpma bu fazın en olası gizli hatasıdır
-- [ ] T022 [P] `agent/encoder.py` — dizi düzeni ([contracts/axi-register-map.md](contracts/axi-register-map.md)): `cost[0..15] = h[k]`, `cost[16..271] = J[a][b]` (`16 + 16*a + b`); `phases[r*272 + 0..15] = phases[r].h[k]`, `phases[r*272 + 16..271] = phases[r].J[a][b]`, `r = 0..2`. `J`'nin yalnız `a < b` üçgeni okunur ama **256 word'ün tamamı yazılır**, kullanılmayanlar sıfırlanır
-- [ ] T023 [P] `agent/cost_vectors.py` — madde H-7: **sabit tohumlu** RNG ile ≥20 bağımsız `cost` vektörü üret, `[-1, 1)` içinde, `J`'nin yalnız `a < b` üçgeni doldurulur. Hepsi sıfır olan veya birbirinin katı olan vektörler **elenir** — bağımlı vektörler bağımsız kısıt üretmez
-- [ ] T024 [P] `agent/tests/test_encoder.py` — paketleme (Q1.17 ve TUR sınır değerleri), ölçekleme geri dönüşü, madde H-3 istisnası, dizi düzeni (816 ve 272 word sayıları), `cost` vektörü bağımsızlığı
-- [ ] T025 G2 kapısı: `python -m pytest agent/tests/test_encoder.py -v` geçsin, ardından C-sim eşdeğerlik kapısı — aynı girdi kodlayıcıdan ve altın referanstan geçirilir, beklenen değerler Faz 2 fidelity bütçesi içinde uyuşur. **Kart hiç gerekmez**
+- [X] T019 [P] `agent/encoder.py` — sabit-nokta paketleme: `real_t` Q1.17 (`round(x * 2**17)`, `[-2**17, 2**17-1]` aralığına kırp, `& 0x3FFFF` ile maskele, **işaret genişletmesi yok**); `phase_t` ap_uint<18> TUR cinsinden (`round((açı/(2π)) mod 1 * 2**18) mod 2**18`)
+- [X] T020 [P] `agent/encoder.py` — ölçekleme protokolü (madde H-1, H-2, H-6): `S = 1.001 * max(|h|, |J|)` (kenar payı — `AP_SAT` tam `1,0`'ı kırpar), `h' = h/S`, `J' = J/S`, `beklenen_deger = beklenen_deger_ham * S`. `S` her koşumla **kaydedilir**; ham ve ölçekli değerler **ayrı** saklanır
+- [X] T021 [P] `agent/encoder.py` — madde H-3: aralık dışı katsayıda **istisna fırlat**, sessizce doyurma. Sessiz kırpma bu fazın en olası gizli hatasıdır
+- [X] T022 [P] `agent/encoder.py` — dizi düzeni ([contracts/axi-register-map.md](contracts/axi-register-map.md)): `cost[0..15] = h[k]`, `cost[16..271] = J[a][b]` (`16 + 16*a + b`); `phases[r*272 + 0..15] = phases[r].h[k]`, `phases[r*272 + 16..271] = phases[r].J[a][b]`, `r = 0..2`. `J`'nin yalnız `a < b` üçgeni okunur ama **256 word'ün tamamı yazılır**, kullanılmayanlar sıfırlanır
+- [X] T023 [P] `agent/cost_vectors.py` — madde H-7: **sabit tohumlu** RNG ile ≥20 bağımsız `cost` vektörü üret, `[-1, 1)` içinde, `J`'nin yalnız `a < b` üçgeni doldurulur. Hepsi sıfır olan veya birbirinin katı olan vektörler **elenir** — bağımlı vektörler bağımsız kısıt üretmez
+- [X] T024 [P] `agent/tests/test_encoder.py` — paketleme (Q1.17 ve TUR sınır değerleri), ölçekleme geri dönüşü, madde H-3 istisnası, dizi düzeni (816 ve 272 word sayıları), `cost` vektörü bağımsızlığı
+- [X] T025 G2 kapısı: `python -m pytest agent/tests/test_encoder.py -v` geçsin, ardından C-sim eşdeğerlik kapısı — aynı girdi kodlayıcıdan ve altın referanstan geçirilir, beklenen değerler Faz 2 fidelity bütçesi içinde uyuşur. **Kart hiç gerekmez**
 
 **Checkpoint**: G1 ve G2 geçti. Artık kartta çıkacak her uyuşmazlık
 **donanıma izole** — "donanım mı, kodlayıcı mı" belirsizliği yok.

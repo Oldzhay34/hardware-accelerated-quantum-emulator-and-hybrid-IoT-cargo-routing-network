@@ -1237,3 +1237,90 @@ wsl -d Ubuntu -e bash /root/cosim-hizli-durum.sh # ilerleme
 ⚠️ 1. aşama (test vektörleri) mevcut olmalı. Tasarım değişirse `cosim_design`'ı
 bir kez normal koşup 1. aşamayı yeniden üretmek gerekir.
 ⚠️ Log 664 MB'a çıkıyor (`/var/log/cosim-n16-hizli.log`).
+
+---
+
+# §21 — `cost` sessizce doyuyor: sözleşmenin uyardığı hata, zaten depoda
+
+**20 Eylül 2026 · Faz 5 öbek 3 sırasında bulundu**
+
+## Bulgu
+
+Konak kodlayıcıyı C-sim'e karşı doğrularken referans dosyasının ham Ising
+katsayılarına bakıldı:
+
+| | |
+|---|---|
+| `max\|h\|` | **7512,61** |
+| `max\|J\|` | **1253,07** |
+| Q1.17 üst sınırı | 0,99999237 |
+| `AP_SAT` ile doyan `h` | **16 / 16** |
+| `AP_SAT` ile doyan `J` | **84 / 120** |
+
+C testbench'i ([tb_kernel.cpp](../../hls/tb/tb_kernel.cpp)) şunu yapıyor:
+
+```cpp
+cost.h[k] = qir::real_t(h_j[k].num);      // real_t = ap_fixed<18,1,AP_RND_CONV,AP_SAT>
+```
+
+Düz atama. `-6313,985` değeri `AP_SAT` ile **sessizce** `-1,0`'a kırpılıyor.
+Doğrulandı: dökülen `cost` word'lerinin ilk altısı `131072 = 0x20000`, yani
+Q1.17'nin en negatif ucu.
+
+## Ne etkilenir, ne etkilenmez
+
+**Etkilenir**: `beklenen_deger = -0,442401439`. Bu, **doymuş** bir maliyet
+operatörünün beklenen değeridir. Tezde bir enerji olarak raporlanamaz.
+
+**Etkilenmez — ikisi de ayrı yoldan gelir:**
+
+| Sonuç | Neden etkilenmez |
+|---|---|
+| **fidelity 0,999978179** | `sv`, `qir_kernel_debug(phases, cos_beta, sin_beta, p, sv)` ile üretilir — `cost` bu çağrıya **girmez**. Fazlar mod 1'e indirgendiği için doyma yaşanmaz. |
+| **RTL ≡ C (§20)** | İki taraf da aynı doymuş fonksiyonu hesaplar ve bit bit aynı sonucu verir. Eşdeğerlik karşılaştırması bundan bağımsızdır. |
+
+Yani Faz 2'nin iki ana sonucu da ayakta. Düşen tek şey, `beklenen_deger`'in
+fiziksel yorumu — ki zaten hiçbir yerde enerji olarak raporlanmamıştı.
+
+## Neden şimdi görüldü
+
+Çünkü ilk kez **konak tarafı** yazıldı. Faz 2 boyunca ölçüt fidelity'ydi ve
+fidelity bu hatayı görmüyor. `contracts/host-encoder.md` bu riski açıkça
+yazmıştı:
+
+> *"Ham QUBO katsayıları ~1e4 mertebesinde; `ap_fixed` doyurması onları uyarı
+> vermeden kırpar ve sonuç yanlış çıkar — üstelik hata **donanıma yıkılır**."*
+
+Sözleşme bir tahmin olarak yazılmıştı. **Ölçüldü: gerçekti ve zaten oluyordu.**
+
+## Kapatan şey
+
+[`agent/encoder.py`](../../agent/encoder.py) ölçekleme protokolünü uygular ve
+madde H-3 gereği aynı girdide **istisna fırlatır**:
+
+```
+AralikDisi: h[0]=-6313.985 Q1.17'ye sığmıyor: q=-827671482 ∉ [-131072, 131071].
+Ölçekleme atlanmış olabilir (madde H-3: sessiz kırpma yasak).
+```
+
+Testle sabitlendi: `agent/tests/test_csim_esdegerlik.py::test_kodlayici_doyurmak_yerine_atar`.
+
+## G2 kapısı — kodlayıcı C'ye karşı bit bit doğrulandı
+
+`tb_kernel.cpp`'ye `--dump-words` eklendi (hesabı değiştirmez, yalnız
+paketlenmiş word'leri JSON'a yazar). Karşılaştırma:
+
+| Dizi | Sonuç |
+|---|---|
+| `phases` (816 word) | ✅ **816/816 bit bit aynı** — 200'ü sıfırdan farklı, 51 benzersiz değer |
+| `cos_beta`, `sin_beta` | ✅ bit bit aynı |
+| `cost` (272 word) | ⚠️ **kasıtlı farklı** — C doyuruyor, kodlayıcı ölçekliyor |
+
+Word karşılaştırması, beklenen değer karşılaştırmasından üstündür: ikinci
+yöntemde iki ayrı hata birbirini götürebilir. Bit bit tutuyorsa kodlayıcı,
+Qiskit'e (fidelity) ve RTL'e (cosim) karşı doğrulanmış C yolunun **tam
+aynısını** üretiyor demektir.
+
+⚠️ Ölçekleme protokolünün C'de karşılığı **yoktur** — orada hiç ölçekleme
+yapılmıyor. O yüzden ölçekleme C'ye karşı değil, kendi sözleşmesine karşı
+doğrulanır (`test_encoder.py`: H-2 payı, geri dönüş, H-3 istisnası).

@@ -30,6 +30,7 @@ qir-engine/
 ├── firmware/            ESP32 (Faz 4)
 ├── hls/                 Vitis HLS kaynakları, C-sim, Tcl akışı (Faz 2)
 ├── agent/                PYNQ fpga-agent (Faz 5)
+├── fpga/                Vivado blok tasarım, kısıtlar, elle yazılan RTL (Faz 5)
 ├── web/                 React arayüzü (Faz 6, 8, 9, 10.2)
 ├── infra/               docker/, k8s/, railway/ (dağıtım tanımları)
 ├── scripts/             Tek satırlık yardımcı betikler

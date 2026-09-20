@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
     std::string git_hash = "unknown";
     std::string cikti_dizin = "docs/measurements";
     std::string dump_yolu;
+    std::string words_yolu;   // --dump-words: G2 kapisi (gorev T025)
     int beklenen_n = qir::N_QUBITS;
 
     for (int i = 1; i < argc; ++i) {
@@ -96,11 +97,12 @@ int main(int argc, char** argv) {
         else if (a == "--out-dir" && i + 1 < argc) cikti_dizin = argv[++i];
         else if (a == "--n" && i + 1 < argc) beklenen_n = std::stoi(argv[++i]);
         else if (a == "--dump" && i + 1 < argc) dump_yolu = argv[++i];
+        else if (a == "--dump-words" && i + 1 < argc) words_yolu = argv[++i];
         else { std::cerr << "bilinmeyen argüman: " << a << "\n"; return 2; }
     }
     if (ref_taban.empty()) {
         std::cerr << "kullanim: tb_kernel --reference <yol/reference_..._pN_n5> "
-                     "[--n 16] [--git-hash h] [--out-dir d]\n";
+                     "[--n 16] [--git-hash h] [--out-dir d] [--dump-words w.json]\n";
         return 2;
     }
     // ".npy"/".json" uzantısı verilmişse at
@@ -198,6 +200,67 @@ int main(int argc, char** argv) {
         for (int a = 0; a < n; ++a)
             for (int b = a + 1; b < n; ++b)
                 cost.J[a][b] = qir::real_t(J_j[a].arr[b].num);
+
+        // --- G2 kapisi: paketlenmis word'leri dok (gorev T025) ---
+        //
+        // Konak kodlayicisi (agent/encoder.py) bu ciktiya karsi BIT BIT
+        // dogrulanir. Hesabi DEGISTIRMEZ; yalniz yukarida uretilmis olani
+        // yazar. Bayrak verilmezse hicbir sey yapmaz.
+        //
+        // ⚠️ Tip ICI erisim kullanilmaz (mock'ta .v/.raw, Vitis'te range()):
+        // bu dosya hem QIR_NO_VITIS taklidiyle hem gercek Vitis tipleriyle
+        // derleniyor, arayuzleri ayni degil. Sayisal degerden geri hesaplamak
+        // iki tarafta da ayni sonucu verir.
+        if (!words_yolu.empty()) {
+            std::ofstream wf(words_yolu);
+            if (!wf) {
+                std::cerr << "UYARI: --dump-words yazilamadi: " << words_yolu << "\n";
+            } else {
+                auto fw = [](qir::phase_t x) -> unsigned long {
+                    return static_cast<unsigned long>(
+                               static_cast<unsigned long long>(x)) & 0x3FFFFul;
+                };
+                auto rw = [](qir::real_t x) -> unsigned long {
+                    // double(x) tam olarak raw/2^17'dir; yuvarlama kipi onemsiz.
+                    const long long q = std::llround(double(x) * 131072.0);
+                    return static_cast<unsigned long>(q) & 0x3FFFFul;
+                };
+                const int NW = qir::N_QUBITS * (qir::N_QUBITS + 1);   // 272
+                wf << "{\n  \"p\": " << p << ",\n  \"n_qubits\": " << n << ",\n";
+                wf << "  \"phases\": [";
+                for (int r = 0; r < qir::P_MAX; ++r)
+                    for (int k = 0; k < NW; ++k) {
+                        unsigned long v = 0;
+                        if (r < p) {
+                            if (k < qir::N_QUBITS) {
+                                v = fw(phases[r].h[k]);
+                            } else {
+                                const int t = k - qir::N_QUBITS;
+                                v = fw(phases[r].J[t / qir::N_QUBITS][t % qir::N_QUBITS]);
+                            }
+                        }
+                        if (r || k) wf << ",";
+                        wf << v;
+                    }
+                wf << "],\n  \"cost\": [";
+                for (int k = 0; k < NW; ++k) {
+                    const int t = k - qir::N_QUBITS;
+                    const qir::real_t rv = (k < qir::N_QUBITS)
+                        ? cost.h[k]
+                        : cost.J[t / qir::N_QUBITS][t % qir::N_QUBITS];
+                    if (k) wf << ",";
+                    wf << rw(rv);
+                }
+                wf << "],\n  \"cos_beta\": [";
+                for (int r = 0; r < qir::P_MAX; ++r)
+                    wf << (r ? "," : "") << rw(cos_beta[r]);
+                wf << "],\n  \"sin_beta\": [";
+                for (int r = 0; r < qir::P_MAX; ++r)
+                    wf << (r ? "," : "") << rw(sin_beta[r]);
+                wf << "]\n}\n";
+                std::printf("Words           : %s\n", words_yolu.c_str());
+            }
+        }
 
         float beklenen_deger = 0.0f;
         qir_kernel(phases, cos_beta, sin_beta, cost, p, beklenen_deger);

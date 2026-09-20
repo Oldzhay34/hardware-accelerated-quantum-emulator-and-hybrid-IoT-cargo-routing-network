@@ -41,6 +41,7 @@ adapters/
 |---|---|---|
 | `specs/00X-.../` | spec.md, plan.md, tasks.md — her fazın kalıcı hafızası | |
 | `services/`, `firmware/`, `hls/`, `agent/`, `web/` | uygulama kodu | [docs/repo-conventions.md](docs/repo-conventions.md) §2 |
+| `fpga/` | Vivado blok tasarım, kısıtlar, elle yazılan RTL (Faz 5) | [fpga/README.md](fpga/README.md) |
 | `infra/` | docker/k8s/railway | |
 | `docs/` | risk kaydı, kararlar, tez, ölçümler | [docs/README.md](docs/README.md) |
 | `artifacts/` | bitstream/overlay/model — **git'e girmez** | |

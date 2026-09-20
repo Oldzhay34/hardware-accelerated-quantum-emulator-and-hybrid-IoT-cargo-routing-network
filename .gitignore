@@ -70,3 +70,10 @@ qir_hls_prj*/
 # Vitis HLS'in depo kokune biraktigi artik
 dfx_runtime.txt
 ci-olcumler/
+
+# Vivado ara ciktilari (Faz 5, gorev T012).
+# fpga/ bir KAYNAK dizinidir ve commit edilir; yalnizca arac ciktilari elenir.
+fpga/bd/*.log
+fpga/bd/*.jou
+fpga/bd/vivado_prj/
+fpga/bd/.Xil/

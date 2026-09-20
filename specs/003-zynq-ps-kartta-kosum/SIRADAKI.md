@@ -2,19 +2,18 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: G0 **kapandı — A yolu açık**; sıradaki iş, öbek 4
-başlamadan **kartta root erişimini çözmek** (`import pynq` root istiyor, sudo
-parola soruyor), sonra öbek 1 ve 3 (kartsız ilerleyebilir).
+**Hedef (tek cümle)**: Öbek 1 ve 3 **bitti**; sıradaki iş **öbek 2**
+(T013–T018: gerçek blok tasarım, EMIO I2C, bitstream) — ama önce kartta
+**parolasız sudo** çözülmeli, yoksa öbek 4 başlayamaz.
 
-**Dokunulacak dosyalar**: `specs/003-zynq-ps-kartta-kosum/tasks.md` (T008+),
-`fpga/` (öbek 1), konak kodlayıcı (T019–T025)
+**Dokunulacak dosyalar**: `fpga/bd/qir_bd.tcl` (yok, T013 yazacak),
+`fpga/bd/qir_constraints.xdc` (yok, T015), `fpga/bd/build.sh` (yok, T016)
 
-**Bilinen tuzak**: Kartta `import pynq` → `RuntimeError: Root permission needed
-by the library` (`pynq/xlnk.py:133`). `sudo` parola istiyor. Ayrıca belgelerdeki
-`pynq.pl_server.hwh_parser.HWH` sınıfı **bu sürümde yok** — `_HWHABC`,
-`_HWHZynq`, `_HWHUltrascale` var.
+**Bilinen tuzak**: T017'de **WNS ≥ 0 tutmazsa FCLK DÜŞÜRÜLMEZ** — 100 MHz,
+Faz 2'nin bütün ölçümlerinin dayanağıdır; faz durur ve sebep araştırılır.
+Ayrıca kartta `import pynq` root istiyor ve `sudo` parola soruyor.
 
-**Son güncelleme**: 2026-09-20, Faz 5.1 (G0 kapandı: A yolu)
+**Son güncelleme**: 2026-09-20, Faz 5.2 (öbek 1 ve 3 bitti; G2 geçti)
 
 ---
 
@@ -100,6 +99,15 @@ kaba hesap FPGA lehine 3,5–5,8× ama **ölçülmedi**.
 koşarken alınmışlardı ve `TEKRAR=15` yalnız turbo penceresini görüyordu.
 Bkz. [faz2-sentez.md](../../docs/measurements/faz2-sentez.md) §18.
 
+**Konak kodlayıcı** (2026-09-20, G2): `phases` 816/816 word **bit bit** C-sim
+ile aynı; `cos_beta`/`sin_beta` aynı. `cost` **kasıtlı farklı** — C sessizce
+doyuruyor, kodlayıcı ölçekliyor. 59 test geçiyor, kart gerekmiyor.
+
+⛔ **`beklenen_deger = -0,442401439` bir enerji DEĞİLDİR** — referansın ham
+katsayıları (`max|h|=7512`) Q1.17'yi aşıyor ve C tarafında 16/16 h girdisi
+doyuyor. fidelity ve RTL eşdeğerliği etkilenmez (ikisi de `cost`'tan
+bağımsız). Bkz. [faz2-sentez.md §21](../../docs/measurements/faz2-sentez.md).
+
 Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-degerler.md)
 
 ---
@@ -109,7 +117,9 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | Faz | Öbek | Görev | Durum |
 |---|---|---|---|
 | 1 | 0 — G0 uyumluluk | T001–T007 | ✅ **BİTTİ — A yolu** |
-| 2 | 1,2,3 — belge, bitstream, kodlayıcı | T008–T025 | ⬅️ **sıradaki** |
+| 2 | 1 — `fpga/` + belgeler | T008–T012 | ✅ **BİTTİ** |
+| 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
+| 2 | 2 — blok tasarım + bitstream | T013–T018 | ⬅️ **sıradaki** |
 | 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | bekliyor |
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | bekliyor |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
