@@ -190,3 +190,48 @@ Yerelde aynı kontrol: `.\scripts\secrets.ps1 check`.
 | Log maskeleme filtresi + testle kanıt | **Faz 3** / **Faz 0.4** (kişisel veri) |
 | Testlerde Testcontainers'ın geçici kimlik bilgileri | **Faz 11** test stratejisi |
 | PYNQ tarafı için `secrets.ps1`'in bash karşılığı | **Faz 5** (agent Linux'ta koşuyor) |
+
+---
+
+## ⚠️ Bulgu (2026-09-20): kayıtlı `pynq.ssh_password` **gerçek değil**
+
+Faz 5'te kartta parolasız sudo kurulurken ortaya çıktı.
+
+**Olgu**: `secrets.enc.yaml` → `pynq.ssh_password` 29 karakterlik bir değer
+tutuyor. Kartta denendi, **üç denemede de reddedildi**. Sebep:
+
+```
+/etc/shadow   son değişiklik: 2019-09-30 09:03
+/etc/passwd   son değişiklik: 2019-09-30 09:03   <- PYNQ 2.5 imaj tarihi
+```
+
+`/etc/shadow` imajın derlendiği günden beri **hiç değişmemiş**. Yani kartın
+`xilinx` kullanıcısı hâlâ **fabrika varsayılanındadır** ve kayıtlı değer
+karta hiç uygulanmamış.
+
+**Nasıl oldu**: Bu belgedeki rotasyon sırası doğru yazılmış —
+*"Kartta `passwd` → `secrets.ps1 edit`"*. İkinci adım yapılmış, **birincisi
+atlanmış**. Parola üretilip kasaya yazılmış ama karta işlenmemiş.
+
+**Neden kötü**: Kayıtlı ama yanlış bir sır, hiç kayıt olmamasından **daha
+tehlikelidir**. Kayıt, işin yapıldığı izlenimi verir; denetimde "PYNQ SSH
+parolası kasada" satırı yeşil görünür. Oysa kart, yerel ağda fabrika
+varsayılanıyla duruyor.
+
+**Ders**: Bir sırrın kasaya yazılması onun **uygulandığı anlamına gelmez**.
+Rotasyon adımlarının tamamlandığı, kasanın içeriğine bakarak değil **hedef
+sistemde doğrulanarak** teyit edilmeli.
+
+**Yapılacak** (kart bir sonraki açılışta elde olduğunda):
+
+1. Kartta parolayı gerçekten ayarla: `passwd` — kasadaki 29 karakterlik değer
+   kullanılabilir, o zaman kayıt doğru hâle gelir.
+2. Ya da yeni bir parola üret, kartta ayarla, sonra `secrets.ps1 edit`.
+3. Doğrula: `ls -l --time-style=long-iso /etc/shadow` tarihi **bugünü**
+   göstermeli. Göstermiyorsa `passwd` işlememiştir.
+
+> Not: SSH artık **anahtarla** çalışıyor (2026-09-20, `%USERPROFILE%\.ssh\pynq`)
+> ve parolasız sudo kurulduğunda parola günlük kullanımda gerekmeyecek. Bu,
+> parolayı düzeltmeyi gereksiz kılmaz — kart yerel ağda ve SSH parola
+> kimlik doğrulaması hâlâ açık olabilir; bir sonraki adımda kapatılması da
+> değerlendirilmeli.

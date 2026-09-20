@@ -2,20 +2,20 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Öbek 2 **bitti** — bitstream üretildi ve 100 MHz'de
-zamanlama tuttu; sıradaki iş **öbek 4** (T026+, US1: çekirdek kartta koşuyor),
-ama önce karttaki **parolasız sudo** çözülmeli.
+**Hedef (tek cümle)**: Öbek 0/1/2/3 bitti, kart engelleri kalktı; sıradaki iş
+**öbek 4** (T026–T038, US1) — konak kodu yazılıp bitstream kartta koşturulacak
+ve 20 izdüşümle doğrulanacak. 🎯 MVP burada tamamlanıyor.
 
 **Dokunulacak dosyalar**: `agent/board.py` (yok, T026 yazacak),
-`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (üretildi, git'e girmez)
+`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (hazır, git'e girmez)
 
-**Bilinen tuzak**: Konak kodu **FCLK'yi doğrulamak zorunda**
-(`from pynq.ps import Clocks; Clocks.fclk0_mhz = 100`). BD'deki 100 MHz yalnız
-implementasyon zamanı kısıtıdır; çalışma zamanında PL saatini kartın boot
-`ps7_init`'i belirler. Doğrulanmazsa bütün gecikme ölçümleri sessizce yanlış
-çıkar. Ayrıca `import pynq` root istiyor.
+**Bilinen tuzak**: Konak kodu FCLK'yi **doğrulamalı**
+(`from pynq.ps import Clocks; Clocks.fclk0_mhz`). Şu an 100 MHz ölçüldü ama
+bu bir boot varsayılanıdır, bitstream'in garantisi değil — değişirse bütün
+gecikme ölçümleri sessizce yanlış çıkar. Ayrıca `import pynq` **root** ister
+(sudo artık parolasız).
 
-**Son güncelleme**: 2026-09-20, Faz 5.3 (öbek 2 bitti; bitstream hazır)
+**Son güncelleme**: 2026-09-20, Faz 5.4 (öbek 0/1/2/3 bitti; kart hazır)
 
 ---
 
@@ -69,7 +69,10 @@ T001-T005 yerine bu dosya karta kopyalanıp probe_test.py koşulabilir.
 Ayrıca **`192.168.2.99`** (USB ethernet gadget). Üç yoldan doğrulandı: seri `hostname -I`, mDNS `pynq.local`, ping |
 | Seri konsol | **COM3**, 115200 8N1 — **parolasız açık** (`xilinx@pynq`). Yedek yol; ağ düşerse buradan girilir |
 | SSH | ✅ **anahtarla parolasız** (2026-09-20). Anahtar: `%USERPROFILE%\.ssh\pynq` (şifresiz), parmak izi `SHA256:8rUb5U7k8QIVMYgYM3ZK5g0cX6rNNPogP0s4Gxxtiqw`.<br>`ssh -i $env:USERPROFILE\.ssh\pynq xilinx@192.168.1.2` · `scp` 157 KB = **1,6 sn** |
-| sudo | ⚠️ **parola istiyor** — `import pynq` root gerektirdiği için öbek 4'ten önce çözülmeli |
+| sudo | ✅ **parolasız** (2026-09-20, `/etc/sudoers.d/010_xilinx-nopasswd`, `visudo -c` parsed OK) |
+| `import pynq` | ✅ root altında çalışıyor — PYNQ **2.5**, `Overlay`/`Bitstream`/`MMIO` erişilebilir |
+| FCLK0 | **100,0 MHz** ölçüldü (boot varsayılanı) — bitstream'in zamanlama hedefiyle aynı. Yine de konak kodu **doğrulamalı**, varsaymamalı |
+| Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
 | Besleme | **Adaptör**, **JP5 = REG** — ⚠️ DEĞİŞTİRİLMEYECEK (enerji ölçümü buna bağlı) |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
 | INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
