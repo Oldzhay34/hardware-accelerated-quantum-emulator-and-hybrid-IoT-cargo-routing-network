@@ -126,7 +126,7 @@ hls/                        # DOKUNULMUYOR — çekirdek Faz 2'de donduruldu
 fpga/                       # YENİ ÜST DİZİN (karar K3)
 ├── README.md               # kapsamı ve hls/ ile sınırı
 ├── bd/                     # Vivado blok tasarım
-│   ├── probe_hwh.sh        # G0: PS-only kukla BD -> .hwh (uyumluluk denemesi)
+│   ├── probe_hwh.sh        # G0: PS + gercek qir_kernel IP -> .hwh (uyumluluk denemesi)
 │   ├── qir_bd.tcl          # PS preset (elle, board files YOK) + qir_kernel + EMIO I2C
 │   └── build.sh            # G1: BD -> sentez -> implementasyon -> .bit/.hwh
 └── rtl/                    # ŞİMDİDEN AYRILDI — elle yazılacak Verilog için
@@ -167,7 +167,7 @@ Sıra keyfî değil — her öbek bir öncekinin açtığı belirsizliği kapat�
 
 | # | Öbek | Kapsam | Bağımlılık | Kapı |
 |---|---|---|---|---|
-| **0** | **`.hwh` uyumluluk denemesi** | **M** | yok | G0 |
+| ~~**0**~~ | ~~**`.hwh` uyumluluk denemesi**~~ ✅ **BİTTİ 2026-09-20 — A YOLU** | **M** | yok | G0 ✅ |
 | 1 | `fpga/` dizini + belge güncellemeleri (K3) | M | yok | — |
 | 2 | Blok tasarım + bitstream (EMIO I2C dahil) | M | 1 | G1 |
 | 3 | Konak kodlayıcı (**kartsız** doğrulanır) | M | yok | G2 |
@@ -190,6 +190,15 @@ yazıyordu; bu **testi anlamsız kılar** — PS-only bir `.hwh`'de özel IP yok
 `ip_dict` boş döner ve bilinen ayrıştırma hatalarının hiçbiri (hepsi IP
 tarafındadır) tetiklenmez. Probe boş `ip_dict`'i **başarı saymamalı**.
 Ek maliyet ~5 dk. Bkz. [research.md](research.md) §R1, [quickstart.md](quickstart.md) G0.
+
+✅ **SONUÇ (2026-09-20)**: Deneme koşuldu, **A yolu açık**. PYNQ 2.5 ayrıştırıcısı
+`ip_dict`'i, taban adresi (`0x40000000`) ve **11 register'ın hepsini** okudu.
+Öbek 4'ün konak kodu `Overlay("qir.bit")` üzerine yazılacak; B yolu yedekte kalır.
+
+⚠️ Deney iki yeni kısıt çıkardı, **öbek 4 başlamadan çözülmeli**:
+`import pynq` **root istiyor** (konak kodu `sudo` ile koşacak, karttaki sudo
+parola soruyor) ve belgelerdeki `HWH` sınıfı bu sürümde **yok** (Zynq için
+`_HWHZynq`). Ayrıntı: [research.md](research.md) §R1.
 
 **Öbek 3 neden 4'ten önce**: Kodlayıcı kartsız doğrulanmazsa, kartta çıkan her
 uyuşmazlık *"donanım mı, kodlayıcı mı"* belirsizliğinde kalır. Önce

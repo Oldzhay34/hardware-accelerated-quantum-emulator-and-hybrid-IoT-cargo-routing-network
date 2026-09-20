@@ -2,41 +2,45 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Görev listesi (63 görev) üretildi; sıradaki iş **G0
-uyumluluk denemesi** — ve elde hazır bir `.hwh` olduğu için bu **5 dakikada**
-cevaplanabiliyor, T001–T005'i beklemeden.
+**Hedef (tek cümle)**: G0 **kapandı — A yolu açık**; sıradaki iş, öbek 4
+başlamadan **kartta root erişimini çözmek** (`import pynq` root istiyor, sudo
+parola soruyor), sonra öbek 1 ve 3 (kartsız ilerleyebilir).
 
-**Dokunulacak dosyalar**: `specs/003-zynq-ps-kartta-kosum/tasks.md` (T001–T007),
-`artifacts/ip/bd_0_20260917_15931cc.hwh` (hazır probe dosyası),
-`fpga/bd/probe_test.py` (henüz yazılmadı — T003)
+**Dokunulacak dosyalar**: `specs/003-zynq-ps-kartta-kosum/tasks.md` (T008+),
+`fpga/` (öbek 1), konak kodlayıcı (T019–T025)
 
-**Bilinen tuzak**: Kukla BD **PS-only olmamalı**; PS-only bir `.hwh`'de özel IP
-yoktur, `ip_dict` boş döner ve test hiçbir şey kanıtlamaz. Elimizdeki
-`bd_0_*.hwh` gerçek `qir_kernel` IP'sini içeriyor, o yüzden geçerli.
+**Bilinen tuzak**: Kartta `import pynq` → `RuntimeError: Root permission needed
+by the library` (`pynq/xlnk.py:133`). `sudo` parola istiyor. Ayrıca belgelerdeki
+`pynq.pl_server.hwh_parser.HWH` sınıfı **bu sürümde yok** — `_HWHABC`,
+`_HWHZynq`, `_HWHUltrascale` var.
 
-**Son güncelleme**: 2026-09-19, Faz 5.0 (tasks bitti, implement başlamadı)
+**Son güncelleme**: 2026-09-20, Faz 5.1 (G0 kapandı: A yolu)
 
 ---
 
-## ŞU AN KOŞAN İŞ ⏳
+## KAPANAN İŞ ✅ n=16 cosim
 
-**n=16 cosim**, 2026-09-19 ~19:50'de başlatıldı. `/root/cosim-n16.sh`,
-log `/var/log/cosim-n16.log`, durum `bash /root/cosim-durum.sh`.
+**19 Eylül 21:13'te GEÇTİ.** Çekirdeğin tek çıkış portu `beklenen_deger`,
+C modeliyle bit bit aynı: `0xbee28271` (= −0,442401439). `AESL_mErrNo` yok,
+rc=0/rc=0.
 
-- Hedef **37,28 ms** simüle zaman (p=2). ⚠️ Daha önce 53,75 ms sanılıyordu —
-  o **p=3'ün max gecikmesi** ve YANLIŞTI; bütün "11 saat sürer" tahminleri
-  bu hatadan geliyordu.
-- Hız devrenin bölümüne göre değişiyor: mikser (toplamın %64'ü) ~0,1 ms/dk,
-  geri kalanı ~1,6 ms/dk. Tahmini toplam **~4-5 saat**.
-- Yavaşlığın sebebi: `DEPENDENCE` pragması yüzünden autotb her bellek
-  erişiminde uyarı üretiyor (~127 bin adet). Kapatma anahtarı **aranıp
-  bulunamadı**.
-- Beklenen sonuç: `PASS`, fidelity **0,999978179**.
-- Geçerse [olculen-degerler.md](../../docs/olculen-degerler.md) §2 ve §7'deki
-  *"n=16 RTL eşdeğerliği ölçülmedi"* uyarıları kalkar.
+⚠️ **Fidelity ile raporlanmaz.** JSON'daki 0,999978179 C modelinin Qiskit'e
+karşı değeridir; `tb_kernel.cpp`'de karşılaştırılan dizi yazılım `sv[]`'sinden
+dolar, cosim onu değiştirmez. Kanıt, yukarıdaki bit eşitliğidir.
 
-⚠️ **Cosim koşarken ağır iş başlatma** — özellikle CPU ölçümü (sonuç kirlenir)
-ve Vivado/Vitis (yarışır). Üç kez tam bu yüzden yarıda kesildi.
+⚠️ **65536 genliğin tek tek eşitliği gösterilmedi** — `sv[]` dahili BRAM,
+çıkış portu değil. Tek uyaran (p=2, tek problem örneği).
+
+**"11,5 saat" tahmini yanlıştı**: darboğaz tasarım değil, `run_sim.tcl`'in
+xsim çıktısını Tcl kanal katmanından geçirmesiydi (`>&@ stdout`). Baypas
+edilince **15 dk 48 sn**. Sonraki koşular:
+
+```
+wsl -d Ubuntu -e bash /root/cosim-hizli.sh        # 2.+3. asama, ~16 dk
+wsl -d Ubuntu -e bash /root/cosim-hizli-durum.sh  # ilerleme
+```
+
+Ayrıntı: [faz2-sentez.md §20](../../docs/measurements/faz2-sentez.md)
 
 ---
 
@@ -59,12 +63,16 @@ T001-T005 yerine bu dosya karta kopyalanıp probe_test.py koşulabilir.
 
 | | |
 |---|---|
-| Kart | **KAPALI** (2026-09-19'da prizden çekildi) |
-| IP | `192.168.1.2` idi — **tekrar açılınca değişebilir**, seri konsoldan `hostname -I` |
-| Seri konsol | **COM3**, 115200 8N1 |
+| Kart | ✅ **AÇIK ve doğrulandı** (2026-09-20 10:22) |
+| IP | **`192.168.1.2`** (RJ45) — ping 2 ms, SSH/9090/80 açık, MAC `00-05-6b-04-42-a1`.
+Ayrıca **`192.168.2.99`** (USB ethernet gadget). Üç yoldan doğrulandı: seri `hostname -I`, mDNS `pynq.local`, ping |
+| Seri konsol | **COM3**, 115200 8N1 — **parolasız açık** (`xilinx@pynq`). Yedek yol; ağ düşerse buradan girilir |
+| SSH | ✅ **anahtarla parolasız** (2026-09-20). Anahtar: `%USERPROFILE%\.ssh\pynq` (şifresiz), parmak izi `SHA256:8rUb5U7k8QIVMYgYM3ZK5g0cX6rNNPogP0s4Gxxtiqw`.<br>`ssh -i $env:USERPROFILE\.ssh\pynq xilinx@192.168.1.2` · `scp` 157 KB = **1,6 sn** |
+| sudo | ⚠️ **parola istiyor** — `import pynq` root gerektirdiği için öbek 4'ten önce çözülmeli |
 | Besleme | **Adaptör**, **JP5 = REG** — ⚠️ DEĞİŞTİRİLMEYECEK (enerji ölçümü buna bağlı) |
-| PYNQ | **2.5 (Glasgow)** ⚠️ Vitis 2025.2 ile 6 yıl fark → G0'ın sebebi |
+| PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
 | INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
+| Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
 
 **Kart boot etmezse**: kırmızı LED yanıp **yeşil DONE sönükse ve konsol
 sessizse**, sorun "kart bozuk" değil **"boot kaynağına ulaşılamıyor"**dur.
@@ -79,7 +87,7 @@ yuvasından çıkmıştı, iki saat kaybettirdi.)
 **FPGA** (Vivado implementasyonu, gerçek):
 LUT %42 · FF %18 · DSP %15 · BRAM %67 · post-route **9,122 ns** ·
 gecikme p=2 **37,28 ms** (tahmin, kartta ölçülmedi) ·
-fidelity ≥0,99997 · cosim PASS (n=8)
+fidelity ≥0,99997 · cosim PASS (**n=8 ve n=16**)
 
 **CPU** (2026-09-19 temiz ölçüm, prizde, 7474 koşum, plato oturdu):
 turbo **32,75 ms** · plato **41,93 ms** · enerji **0,644 J/koşum**
@@ -100,8 +108,8 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 
 | Faz | Öbek | Görev | Durum |
 |---|---|---|---|
-| 1 | 0 — G0 uyumluluk | T001–T007 | ⬅️ **sıradaki** |
-| 2 | 1,2,3 — belge, bitstream, kodlayıcı | T008–T025 | bekliyor |
+| 1 | 0 — G0 uyumluluk | T001–T007 | ✅ **BİTTİ — A yolu** |
+| 2 | 1,2,3 — belge, bitstream, kodlayıcı | T008–T025 | ⬅️ **sıradaki** |
 | 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | bekliyor |
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | bekliyor |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |

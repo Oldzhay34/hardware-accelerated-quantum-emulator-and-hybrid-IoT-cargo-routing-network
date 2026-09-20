@@ -104,6 +104,68 @@ Sonuç ne olursa olsun plan durmaz — yalnızca A mı B mi kullanılacağı bel
 > donanımı riske atar, saatler sürer ve PYNQ 3.0 da Vivado 2022.1 tabanlıdır —
 > 2025.2 ile arada hâlâ üç yıl kalır. Risk aynı yerde durur, bedeli çok yüksektir.
 
+---
+
+### ✅ SONUÇ — 2026-09-20, kartta ölçüldü: **A YOLU AÇIK**
+
+Tahmin *"çalışmayacağı yönünde"* idi. **Yanlış çıktı.** PYNQ 2.5 (çekirdek
+`4.19.0-xilinx-v2019.1`), Vivado 2025.2'nin `.hwh`'sini altı yıllık farka
+rağmen sorunsuz ayrıştırdı.
+
+**Deney**: PS7 + **gerçek** `qir_kernel` IP + `axi_interconnect` +
+`proc_sys_reset` içeren kukla BD ([probe_hwh.tcl](../../fpga/bd/probe_hwh.tcl)),
+sentez koşulmadan `.hwh` üretildi (156.920 bayt), seri konsoldan karta
+aktarıldı (md5 `7e5168268ab1604e5d6740781bdc6919` iki tarafta da doğrulandı) ve
+[probe_test.py](../../fpga/bd/probe_test.py) koşuldu.
+
+**Sonuç — üç katmanın üçü de okundu:**
+
+| Katman | Beklenen | Okunan |
+|---|---|---|
+| IP keşfi | `ip_dict` dolu | ✅ 1 IP: `qir_kernel_0`, tip `qir-engine:hls:qir_kernel:0.1` |
+| Taban adres | `.hwh`'deki `BASEVALUE` | ✅ `0x40000000`, uzunluk `0x10000` |
+| Register haritası | 11 register | ✅ **11/11** doğru ofsetlerle |
+
+Okunan register'lar: `CTRL` +0x000 · `GIER` +0x004 · `IP_IER` +0x008 ·
+`IP_ISR` +0x00C · `Memory_cos_beta` +0x020 · `Memory_cost` +0x2000 ·
+`Memory_phases` · `Memory_sin_beta` · `p` · `beklenen_deger` ·
+`beklenen_deger_ctrl`.
+
+**Karar**: Öbek 4'ün konak kodu **A yoluna** göre yazılır — `Overlay("qir.bit")`.
+B yolu (`Bitstream` + `MMIO`) yedek olarak belgede kalır; artık zorunlu değil.
+
+#### ⚠️ Deneyin ortaya çıkardığı iki yeni kısıt
+
+**1. `import pynq` root istiyor.**
+
+```
+RuntimeError: Root permission needed by the library.   (pynq/xlnk.py:133)
+```
+
+Konak kodu **`sudo` ile koşacak**. Karttaki `sudo` parola istiyor
+(`sudo: a password is required`), yani otomatik koşumlar için ya parolasız
+sudo kuralı ya da bir servis gerekir — öbek 4 başlamadan çözülmeli.
+
+Sondanın bunu kazara atlatmış olduğu not edilmeli: ilk aday içe aktarma bu
+hatayı verdi, `except` yakaladı, ikinci denemede modül `sys.modules`'da yarı
+yüklü olduğu için geçti. **Ayrıştırma sonucu geçerlidir** (değerler `.hwh` ile
+birebir), ama `Overlay()`'in tam yolu root olmadan uçtan uca denenmedi.
+
+**2. `HWH` diye bir sınıf yok.**
+
+`pynq/pl_server/hwh_parser.py` (PYNQ 2.5) üç sınıf tanımlar:
+
+```
+ 78: class _HWHABC(metaclass=abc.ABCMeta)
+494: class _HWHZynq(_HWHABC)          ← bizim kartımız
+547: class _HWHUltrascale(_HWHABC)
+```
+
+Belgelerde geçen `pynq.pl_server.hwh_parser.HWH` **bu sürümde mevcut değil**.
+Doğrudan sınıf adı kullanılacaksa Zynq-7000 için `_HWHZynq`'tir. `Overlay`
+doğru sınıfı kendi seçtiği için konak kodu bundan etkilenmez — ama teşhis
+betiği yazan herkes bu tuzağa düşer.
+
 **Elenen alternatifler**
 
 | Alternatif | Neden elendi |

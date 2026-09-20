@@ -82,13 +82,13 @@ Sentez beklemeye gerek yok — `.hwh`, BD çıktı ürünleri üretilirken yazı
 > ⚠️ Dosya `qir_hls_prj/` altındaydı; orası gitignore'da ve `open_solution -reset`
 > onu siliyor. `artifacts/ip/` kopyası kalıcıdır.
 
-- [ ] T001 [P] IP paketini Vivado IP deposuna aç: `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip` → `artifacts/ip/repo/qir_kernel_v0_1/`; BD betikleri buraya `set_property ip_repo_paths` ile bakacak
-- [ ] T002 [P] `fpga/bd/probe_hwh.tcl` yaz — kukla blok tasarım: `processing_system7` (PS preset **elle**, board files yok) + **gerçek `qir_kernel` IP** + `axi_smartconnect` + `proc_sys_reset`. `validate_bd_design` ve `generate_target all` ile `.hwh` üretilir; `launch_runs`/sentez/implementasyon **KOŞULMAZ**
-- [ ] T003 [P] `fpga/bd/probe_test.py` yaz — boş `ip_dict`'i **başarı saymaz**: `assert len(h.ip_dict) > 0` ve `assert any('qir' in k.lower() for k in h.ip_dict)`; ayrıca her IP'nin `phys_addr` ve `registers` sayısını yazdırır (register haritası da okunabiliyorsa A yolu **gerçekten** açık)
-- [ ] T004 [P] Kartı aç; JP4=SD ve JP5=REG doğrula, adaptörle besle. Seri konsoldan (COM3, 115200 8N1) `hostname -I` ile **gerçek IP'yi öğren** ve `specs/003-zynq-ps-kartta-kosum/SIRADAKI.md` donanım tablosuna yaz. DONE LED sönükse önce microSD yuvasına bak (bilinen arıza)
-- [ ] T005 `fpga/bd/probe_hwh.sh` yaz ve koş (`wsl -d Ubuntu -e bash fpga/bd/probe_hwh.sh`) — `LC_ALL=en_US.UTF-8` şart, `/opt/Xilinx/2025.2/Vivado` kullanılır; çıktı `artifacts/bitstream/probe.hwh`
-- [ ] T006 `probe.hwh` ve `probe_test.py` dosyalarını karta kopyala (T004'teki doğrulanmış IP ile) ve `probe_test.py`'yi koş. `pynq.pl_server.hwh_parser` içe aktarma yolu PYNQ 2.5'te **doğrulanmalı** — farklıysa `python3 -c "import pynq, os; print(os.path.dirname(pynq.__file__))"` ile modül aranır
-- [ ] T007 Sonucu [research.md](research.md) §R1'e **tarih damgasıyla** işle: A yolu (ip_dict + register'lar okundu), **kısmi başarı** (ip_dict dolu, register'lar boş → taban adres `.hwh`'den, erişim `MMIO` ile) veya B yolu (ayrıştırıcı hata verdi). `plan.md` öbek 0 satırını da güncelle
+- [X] T001 [P] IP paketini Vivado IP deposuna aç: `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip` → `artifacts/ip/repo/qir_kernel_v0_1/`; BD betikleri buraya `set_property ip_repo_paths` ile bakacak
+- [X] T002 [P] `fpga/bd/probe_hwh.tcl` yaz — kukla blok tasarım: `processing_system7` (PS preset **elle**, board files yok) + **gerçek `qir_kernel` IP** + `axi_smartconnect` + `proc_sys_reset`. `validate_bd_design` ve `generate_target all` ile `.hwh` üretilir; `launch_runs`/sentez/implementasyon **KOŞULMAZ**
+- [X] T003 [P] `fpga/bd/probe_test.py` yaz — boş `ip_dict`'i **başarı saymaz**: `assert len(h.ip_dict) > 0` ve `assert any('qir' in k.lower() for k in h.ip_dict)`; ayrıca her IP'nin `phys_addr` ve `registers` sayısını yazdırır (register haritası da okunabiliyorsa A yolu **gerçekten** açık)
+- [X] T004 [P] Kartı aç; JP4=SD ve JP5=REG doğrula, adaptörle besle. Seri konsoldan (COM3, 115200 8N1) `hostname -I` ile **gerçek IP'yi öğren** ve `specs/003-zynq-ps-kartta-kosum/SIRADAKI.md` donanım tablosuna yaz. DONE LED sönükse önce microSD yuvasına bak (bilinen arıza)
+- [X] T005 `fpga/bd/probe_hwh.sh` yaz ve koş (`wsl -d Ubuntu -e bash fpga/bd/probe_hwh.sh`) — `LC_ALL=en_US.UTF-8` şart, `/opt/Xilinx/2025.2/Vivado` kullanılır; çıktı `artifacts/bitstream/probe.hwh`
+- [X] T006 `probe.hwh` ve `probe_test.py` dosyalarını karta kopyala (T004'teki doğrulanmış IP ile) ve `probe_test.py`'yi koş. `pynq.pl_server.hwh_parser` içe aktarma yolu PYNQ 2.5'te **doğrulanmalı** — farklıysa `python3 -c "import pynq, os; print(os.path.dirname(pynq.__file__))"` ile modül aranır
+- [X] T007 Sonucu [research.md](research.md) §R1'e **tarih damgasıyla** işle: A yolu (ip_dict + register'lar okundu), **kısmi başarı** (ip_dict dolu, register'lar boş → taban adres `.hwh`'den, erişim `MMIO` ile) veya B yolu (ayrıştırıcı hata verdi). `plan.md` öbek 0 satırını da güncelle
 
 **Checkpoint**: A mı B mi belli. Bu bilgi olmadan T025 yazılamaz.
 
