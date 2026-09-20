@@ -246,6 +246,10 @@ Ayrıca iki **dürüstlük uyarısı** Faz 10 için kaydedildi:
 **Alternatives considered**:
 - *Qiskit Python `Statevector`*: Reddedildi — adil değil.
 - *Aer `matrix_product_state` veya GPU*: Kapsam dışı; kıyas tek çekirdekli CPU'ya karşı.
+  > ⚠️ **2026-09-21: GPU kısmı geri alındı.** Gerekçe daireseldi (*neden* tek
+  > çekirdekli CPU'ya karşı?) ve geliştirme makinesinde RTX 4060 var. Elinde GPU
+  > varken ölçmeden "FPGA üstün" demek savunulamaz. GPU tabanı Faz 5'e görev
+  > olarak eklendi (Phase 6B, T064–T069). `matrix_product_state` kapsam dışı kalır.
 
 ---
 

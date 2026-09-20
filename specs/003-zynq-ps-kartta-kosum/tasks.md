@@ -232,9 +232,44 @@ kaynağı (tarih, koşum sayısı, konfigürasyon) izlenebilir.
 - [ ] T052 [US4] `scripts/build_comparison_matrix.py` — konfigürasyon denetimi (FR-012): iki taraf da **aynı n, aynı p, aynı problem** üzerinde koşmuş olmalı; değilse satır üretilmez
 - [ ] T053 [US4] `scripts/build_comparison_matrix.py` — `hizlanma` yalnız **iki taraf da doluysa** ölçülmüş değerlerden hesaplanır ve yayılımla birlikte verilir; aksi hâlde `null` kalır ve `not` alanı **zorunlu** olur (SC-008)
 - [ ] T054 [US4] CPU tarafı referanslarını bağla — **yeniden ölçülmez**: turbo **32,75 ms**, plato **41,93 ms**, enerji **0,644 J/koşum** (batarya delta yöntemi, 2026-09-19 temiz ölçüm). ⚠️ Eski 77,6/92,7 ms rakamları **geçersizdir**
-- [ ] T055 [US4] Matrisi üret → `docs/measurements/kiyas-matrisi_<tarih>_<git-hash>.json`. ⚠️ Gecikmede başabaş bekleniyor (FPGA 37,28 ms, CPU turbo 32,75 / plato 41,93 ms) — `hizlanma < 1` çıkması **hata değil bulgudur** ve öyle raporlanır
+- [ ] T055 [US4] Matrisi üret → `docs/measurements/kiyas-matrisi_<tarih>_<git-hash>.json`. ⚠️ Gecikmede başabaş bekleniyor (FPGA 37,28 ms, CPU turbo 32,75 / plato 41,93 ms) — `hizlanma < 1` çıkması **hata değil bulgudur** ve öyle raporlanır. ⚠️ Bu matris **GPU sütunu olmadan nihai değildir** — bkz. Phase 6B (T069 onu yeniden üretir)
 
 **Checkpoint**: Tüm kullanıcı hikâyeleri tamam.
+
+---
+
+## Phase 6B: GPU tabanı (US4 eki) — **2026-09-21'de kapsama alındı**
+
+**Neden eklendi**: Faz 2'de GPU *"kapsam dışı; kıyas tek çekirdekli CPU'ya
+karşı"* diye elenmişti — ama gerekçe daireseldi ve **makinede RTX 4060 var**.
+Elinde GPU varken onu ölçmeden "FPGA üstün" demek savunulamaz; bilgisayar
+mimarisi okuyan bir değerlendiricinin soracağı ilk soru budur.
+
+**Beklenti (ölçülmemiş, bu yüzden görev var)**: GPU hızda muhtemelen iki-üç
+kat büyüklük önde olur — n=16 yalnızca 65.536 genlik, ~1 MB, bir L2
+önbelleğine sığar. **Enerjide bile önde olabilir.** Bu bir sorun değil, bir
+bulgudur; FPGA'nın savunması hız değil **dağıtım zarfıdır** (12 V/2 A uç
+cihaz; RTX 4060 o zarfa girmez).
+
+⛔ **Sonuç ne çıkarsa çıksın raporlanır.** "GPU kazandı" çıkması bu öbeğin
+başarısızlığı değil, tam da varlık sebebidir.
+
+**Bağımlılık**: US4 (T051–T055). Kart **gerekmez**.
+
+- [ ] T064 WSL2 + CUDA üzerinde `qiskit-aer-gpu` kur ve doğrula: `AerSimulator(method="statevector").available_devices()` çıktısında **`GPU` görünmeli**. ⚠️ `qiskit-aer-gpu` tekerleri Linux'tur, Windows'a doğrudan kurulmaz; `/dev/dxg` mevcut olduğu için WSL yolu açık. **Kurulamazsa uydurma yapılmaz**: `dead-ends.md`'ye yazılır ve öbek burada durur
+- [ ] T065 `scripts/cpu_load_loop.py`'ye `--device {CPU,GPU}` ekle. ⛔ **Ayrı betik YAZILMAZ** — farklı koşum hattı rakamları kıyaslanamaz kılar; aynı döngü, aynı zamanlama, aynı turbo/plato ayrımı kullanılmalı (FR-012)
+- [ ] T066 **Önce doğruluk**: GPU statevector'ü aynı altın referansa karşı koşulur, fidelity Faz 2 bütçesi içinde olmalı. ⛔ Hızlı ama yanlış bir sonuç taban değildir — doğrulanmadan hiçbir süre kaydedilmez (Anayasa Prensip IV)
+- [ ] T067 GPU gecikmesini **CPU ile aynı protokolle** ölç: ≥60 sn döngü, ≥30 koşum, turbo/plato ayrımı, platonun oturduğu doğrulanır (T042/T044 ile aynı ölçütler). Protokol **ölçümden önce** yazılır (FR-011)
+- [ ] T068 GPU enerjisini **aynı batarya-delta yöntemiyle** ölç (FR-009c). Alet ve yöntem CPU ölçümüyle birebir aynı olmalı; yalnız iş yükü değişir. ⚠️ Boş güç ölçümü GPU boştayken **yeniden** alınır — CPU'nunki kullanılamaz, GPU boşta da güç çeker
+- [ ] T069 Kıyas matrisini **üçüncü sütunla** yeniden üret (T055'in çıktısı güncellenir) ve yorumu yaz: hangi eksende kim önde, ve FPGA'nın savunmasının **dağıtım zarfı** olduğu — hız değil. `docs/olculen-degerler.md`'ye işle
+
+⚠️ **GK-01 riski**: makine `nvlddmkm.sys` yüzünden günde ~1 çöküyor
+([risk-register.md](../../docs/risk-register.md)). GPU'ya yük bindirmek bunu
+tetikleyebilir; ölçüm serisi **koşum başına** diske yazılmalı. Aynı zamanda
+teşhis fırsatı: GPU hesabı düzenli çökertiyorsa sürücü sorununun kapsamı
+netleşir.
+
+**Checkpoint**: Kıyas üç sütunlu ve her sütun ölçülmüş.
 
 ---
 
@@ -261,6 +296,7 @@ kaynağı (tarih, koşum sayısı, konfigürasyon) izlenebilir.
 - **Phase 4 (US2)**: US1'e bağlı
 - **Phase 5 (US3)**: US1 + INA219'a bağlı; **US2'yi beklemez**
 - **Phase 6 (US4)**: US2 + US3'e bağlı
+- **Phase 6B (GPU tabanı)**: US4'e bağlı; **kart gerekmez**, US1–US3 ile paralel koşabilir
 - **Phase 7**: Hepsine bağlı
 
 ### Kullanıcı hikâyesi bağımlılıkları

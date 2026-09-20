@@ -224,6 +224,12 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
   bitstream üretilmedi, kartta koşulmadı. CPU tarafı ayrıca ±%60 oynuyor.
 - ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
   tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
+- ❌ **GPU'ya karşı hiçbir şey.** Kıyas yalnız CPU'ya karşı kuruldu ve GPU
+  **hiç ölçülmedi** (`AerSimulator` CPU build'i, `available_devices() == ('CPU',)`).
+  Makinede RTX 4060 var; ölçülene kadar "FPGA daha hızlı/verimli" **hiçbir
+  biçimde** yazılamaz. Beklenti GPU'nun hızda, muhtemelen enerjide de önde
+  olduğu yönünde — FPGA'nın savunması **dağıtım zarfı**, hız değil.
+  Ölçüm görevi: Faz 5 Phase 6B (T064–T069).
 - ⚠️ **n=16 RTL eşdeğerliği kısmen** — çıkış portu bit bit doğrulandı, ancak
   65536 genliğin tek tek eşitliği ve birden fazla uyaran gösterilmedi.
 
