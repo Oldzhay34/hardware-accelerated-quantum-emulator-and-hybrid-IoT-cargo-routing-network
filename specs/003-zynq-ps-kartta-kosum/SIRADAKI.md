@@ -9,13 +9,18 @@ ve 20 izdüşümle doğrulanacak. 🎯 MVP burada tamamlanıyor.
 **Dokunulacak dosyalar**: `agent/board.py` (yok, T026 yazacak),
 `artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (hazır, git'e girmez)
 
-**Bilinen tuzak**: Konak kodu FCLK'yi **doğrulamalı**
-(`from pynq.ps import Clocks; Clocks.fclk0_mhz`). Şu an 100 MHz ölçüldü ama
-bu bir boot varsayılanıdır, bitstream'in garantisi değil — değişirse bütün
-gecikme ölçümleri sessizce yanlış çıkar. Ayrıca `import pynq` **root** ister
-(sudo artık parolasız).
+**Bilinen tuzak**: ⛔ **Kartta Python 3.6.5 var.** `agent/encoder.py` ve
+`agent/cost_vectors.py` şu an `from __future__ import annotations` (3.7+) ve
+`dataclasses` (3.7+) kullanıyor — **kartta içeri aktarılamazlar**. Öbek 4'ün
+ilk işi bunu doğrulayıp 3.6 uyumlu hâle getirmek olmalı (`dataclasses` yerine
+`namedtuple`/düz sınıf, `__future__` satırını kaldır). Test yarıda kaldı,
+kesin doğrulanmadı ama sürüm farkı kesin.
 
-**Son güncelleme**: 2026-09-20, Faz 5.4 (öbek 0/1/2/3 bitti; kart hazır)
+Ayrıca konak kodu FCLK'yi **doğrulamalı** (`Clocks.fclk0_mhz`); şu an 100 MHz
+ölçüldü ama bu boot varsayılanı, bitstream garantisi değil. `import pynq` root
+ister (sudo artık parolasız).
+
+**Son güncelleme**: 2026-09-20, Faz 5.4 (öbek 0/1/2/3 bitti; öbek 4 başlamadı — mola)
 
 ---
 
@@ -64,7 +69,7 @@ T001-T005 yerine bu dosya karta kopyalanıp probe_test.py koşulabilir.
 
 | | |
 |---|---|
-| Kart | ✅ **AÇIK ve doğrulandı** (2026-09-20 10:22) |
+| Kart | **KAPALI** (2026-09-20, düzgün kapatıldı). Açılışta IP'yi seri konsoldan yine doğrula |
 | IP | **`192.168.1.2`** (RJ45) — ping 2 ms, SSH/9090/80 açık, MAC `00-05-6b-04-42-a1`.
 Ayrıca **`192.168.2.99`** (USB ethernet gadget). Üç yoldan doğrulandı: seri `hostname -I`, mDNS `pynq.local`, ping |
 | Seri konsol | **COM3**, 115200 8N1 — **parolasız açık** (`xilinx@pynq`). Yedek yol; ağ düşerse buradan girilir |
