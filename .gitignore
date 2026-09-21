@@ -78,3 +78,7 @@ fpga/bd/*.log
 fpga/bd/*.jou
 fpga/bd/vivado_prj/
 fpga/bd/.Xil/
+
+# Izdusum dogrulama girdileri (Faz 5, T031). Tohumdan BIREBIR yeniden
+# uretilebilir, o yuzden commit edilmez — uretim komutu agent/README.md'de.
+artifacts/izdusum_*.json

@@ -153,7 +153,7 @@ enerji ölçümü gerekmez.
 - [X] T028 [US1] `agent/board.py` — çağrı sırası (maddeler A-1…A-6): `ap_idle` (bit2) **doğrulanır** → `cost`+`phases`+`cos_beta`+`sin_beta`+`p` yazılır (**1.095 yazma**) → `ap_start` (bit0) ← 1 → `ap_done` (bit1) yoklanır (**5 sn zaman aşımı**) → `0x0050` ham 32-bit okunur ve `struct.unpack('<f', ...)` ile yorumlanır (kesme/cast **yok**, bit deseni korunur)
 - [X] T029 [US1] `agent/board.py` — zaman aşımı davranışı (madde A-4): `ap_done` 5 sn içinde gelmezse koşum `gecerli=false` işaretlenir ve **hiçbir seride sayılmaz**; kısmî sonuç ölçüm sayılmaz
 - [X] T030 [US1] `agent/board.py` — izdüşüm kısa yolu: yalnız `cost` (272 word) yeniden yazılır, `phases`/`cos_beta`/`sin_beta`/`p` yerinde kalır. ⚠️ **Bu kısa yol gecikme ölçümünde KULLANILMAZ** — karıştırılırsa `T_yazma` olduğundan küçük raporlanır
-- [ ] T031 [US1] `agent/run_board.py` — `--n 16 --p 2 --izdusum 20 --tohum 42`; `cost_vectors.py`'den vektörleri alır, her biri için koşar, C-sim çıktılarıyla karşılaştırır, `IzdusumSerisi` üretir
+- [X] T031 [US1] `agent/run_board.py` — `--n 16 --p 2 --izdusum 20 --tohum 42`; `cost_vectors.py`'den vektörleri alır, her biri için koşar, C-sim çıktılarıyla karşılaştırır, `IzdusumSerisi` üretir
 - [ ] T032 [US1] Bitstream'i karta yükle ve **yüklemenin başarılı olduğunu doğrula** (FR-001) — `ap_idle` okunabiliyor ve 1 dönüyor mu. "Yükledim, koşuyordur" varsayımı yetmez
 - [ ] T033 [US1] G3 koş (p=2): **20 izdüşümün hepsi** kart ↔ C-sim **birebir** tutmalı (SC-003). Biri bile saparsa kapı kapalı — hangi `cost` vektörlerinde saptığı hatayı `h` yoluna mı `J` yoluna mı daralttığını gösterir
 - [ ] T034 [US1] Belirlenimcilik (SC-002, madde A-5): aynı girdiyle iki ardışık koşum **bit düzeyinde aynı** çıktı vermeli

@@ -28,7 +28,7 @@ import math
 import random
 from typing import List
 
-from .encoder import N_QUBITS
+from .encoder import N_QUBITS, cost_dizisi, olcek_bul, olcekle
 
 # Vektör, [-1, 1) içinde doğrudan üretilir; ölçekleme yine de uygulanır
 # (sözleşme: "yol aynı kalsın"). Bu yüzden burada kenar payı gerekmez.
@@ -130,3 +130,53 @@ def uret(adet: int = 20, tohum: int = 20260920) -> IzdusumSerisi:
         seri.vektorler.append({"h": h, "J": J})
 
     return seri
+
+
+# =========================================================================
+# CLI — vektörleri JSON'a yaz
+# =========================================================================
+# ⚠️ TEK KAYNAK İLKESİ: vektörler burada üretilir ve **dosyaya** yazılır;
+# hem C referans aracı (`hls/tb/izdusum_ref.cpp`) hem kart koşucusu
+# (`agent/run_board.py`) AYNI dosyayı okur. Vektörleri iki yerde üretmek —
+# örneğin C++ tarafında RNG'yi yeniden gerçeklemek — sessiz bir ayrışma
+# kaynağıdır: karşılaştırma yeşil yanar ama farklı devreleri kıyaslar.
+def json_yaz(yol, adet=20, tohum=20260920):
+    import json
+    seri = uret(adet, tohum)
+
+    # Her vektör, kodlayıcının KENDİSİ tarafından ölçeklenip paketlenir ve
+    # 272 word olarak yazılır. C referans aracı bu word'leri okur, ham
+    # vektörü DEĞİL — böylece ölçekleme mantığı C++ tarafında tekrarlanmaz
+    # ve iki taraf bit bit aynı girdiyi görür.
+    kodlu = []
+    for v in seri.vektorler:
+        S = olcek_bul(v["h"], v["J"])
+        ho, Jo = olcekle(v["h"], v["J"], S)
+        kodlu.append({"olcek": S, "words": cost_dizisi(ho, Jo)})
+
+    veri = {
+        "tohum": seri.tohum,
+        "adet": len(seri),
+        "elenen": seri.elenen,
+        "en_buyuk_benzerlik": seri.en_buyuk_benzerlik,
+        "bagimlilik_esigi": BAGIMLILIK_ESIGI,
+        "n_qubits": N_QUBITS,
+        "vektorler": seri.vektorler,
+        "kodlu": kodlu,
+    }
+    with open(yol, "w") as f:
+        json.dump(veri, f, indent=1)
+    return seri
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description="Izdusum cost vektorlerini uret")
+    ap.add_argument("--cikti", required=True)
+    ap.add_argument("--adet", type=int, default=20)
+    ap.add_argument("--tohum", type=int, default=20260920)
+    a = ap.parse_args()
+    s = json_yaz(a.cikti, a.adet, a.tohum)
+    print("{} vektor yazildi -> {}".format(len(s), a.cikti))
+    print("tohum={}  elenen={}  en buyuk |cos|={:.4f}".format(
+        s.tohum, s.elenen, s.en_buyuk_benzerlik))
