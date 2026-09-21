@@ -1,0 +1,28 @@
+{
+  "stamped_date": "20260921",
+  "git_hash": "c504294",
+  "ne": "AYNI cekirdek kodunun konak CPU'da zamanlanmasi. Faz 2'nin Qiskit Aer tabaninin adil olup olmadigini sinar.",
+  "makine": "MSI Cyborg A13V, dizustu i7, WSL/Ubuntu, g++ -O3",
+  "kosum": "hls/tb/bench_kernel.cpp, n=16 p=2, ayni referans (reference_20260915_c6ad872_p2_n5)",
+  "varyantlar": {
+    "float_yerel": {
+      "medyan_ms": 3.273, "iqr_ms": 0.190, "min_ms": 2.901, "maks_ms": 3.441,
+      "tekrar": 10, "fidelity": 0.999999897,
+      "not": "yerel float32; yetkin bir gerceklemenin yapacagi sey"
+    },
+    "q117_taklit": {
+      "medyan_ms": 12.992, "iqr_ms": 0.690, "min_ms": 11.699, "maks_ms": 14.146,
+      "tekrar": 5, "fidelity": 0.999978179,
+      "not": "ap_fixed_mock; donanimla AYNI aritmetik ama her islem double'da"
+    }
+  },
+  "kiyas": {
+    "fpga_p2_ms": 37.28,
+    "fpga_not": "sentez tahmini, kartta henuz olculmedi",
+    "qiskit_aer_turbo_ms": 32.75,
+    "qiskit_aer_plato_ms": 41.93
+  },
+  "bulgu": "Ayni algoritma konak CPU'da 3,273 ms. Qiskit Aer ayni isi 32,75 ms'de yapiyor -> Aer tabani ~10x ADIL DEGIL. Sebep: Aer RZZ'yi CX-RZ-CX olarak ayristiriyor (p=2'de 384 kapi), bizim cekirdek kosegen operatoru TEK gecise fuzyonluyor (32 kapi).",
+  "sonuc": "Faz 2'nin 'gecikmede basabas' sonucu ZAYIF TABANDAN kaynaklaniyordu. Adil tabanla dizustu CPU FPGA'dan 11,4x hizli.",
+  "etkilenen_belge": ["docs/mimari-gerekce.md §2.2 ve §2.4", "docs/olculen-degerler.md", "docs/measurements/faz2-sentez.md §18"]
+}

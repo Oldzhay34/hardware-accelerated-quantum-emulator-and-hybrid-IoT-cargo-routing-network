@@ -1,0 +1,26 @@
+{
+  "stamped_date": "20260921",
+  "git_hash": "c504294",
+  "ne": "Kaba kuvvet TSP cozucu ile QAOA emulasyon yolunun ayni makinede kiyasi",
+  "n_sehir": 5,
+  "kubit": 16,
+  "genlik": 65536,
+  "tur_sayisi": 24,
+  "kaba_kuvvet": {
+    "dil": "Python+numpy",
+    "tekrar": 2000,
+    "medyan_us": 43.2,
+    "en_iyi_us": 34.4,
+    "sonuc": "kesin (tum turlar tarandi)"
+  },
+  "qaoa_fpga": {
+    "iterasyon": 99,
+    "cagri_basi_ms": 37.28,
+    "toplam_s": 3.691,
+    "not": "37,28 ms sentez tahmini; kartta henuz olculmedi",
+    "optimal_probability": 2.38e-05
+  },
+  "oran_kaba_kuvvet_lehine": 85433,
+  "yorum": "Statevector 2^((N-1)^2) buyur, cozum uzayi (N-1)! . Makas her N de acilir: N=5 2731x, N=6 279620x. Emulator emule edebildigi her boyutta kaba kuvvetten ustel olarak pahalidir.",
+  "makine": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel"
+}

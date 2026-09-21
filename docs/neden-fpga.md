@@ -69,6 +69,83 @@ ile ölçümle kapandı: II tabanının kaynağı bankalama değil **bellek port
 
 ---
 
+---
+
+## 0.5 Önce bu: projenin ne OLMADIĞI
+
+### ⛔ Emülasyon, kaba kuvvetten üstel olarak pahalıdır — yapısal
+
+Tek-sıcak TSP kodlamasında statevector `2^((N-1)²)` büyür, çözüm uzayı
+`(N-1)!`. Makas her N'de açılır:
+
+| N (şehir) | kübit | genlik | **gerçek tur sayısı** | makas |
+|---|---|---:|---:|---:|
+| 4 | 9 | 512 | 6 | 85× |
+| **5** | **16** | **65.536** | **24** | **2.731×** |
+| 6 | 25 | 33.554.432 | 120 | 279.620× |
+
+**N=5'te 65.536 genlik emüle ediliyor — 24 tur arasından seçim yapmak için.**
+
+Aynı makinede ölçüldü
+([kaba-kuvvet-kiyas](measurements/kaba-kuvvet-kiyas_20260921_c504294.json)):
+
+```
+Kaba kuvvet (Python+numpy, 2000 tekrar) :  43,2 µs medyan  →  KESİN sonuç
+QAOA yolu (FPGA)  99 × 37,28 ms         :   3,69 s         →  doğru olma olasılığı 2,4e-05
+
+ORAN: ~85.000× kaba kuvvet lehine
+```
+
+Üstelik kaba kuvvet **Python'da**; C'de bir iki mertebe daha.
+
+> Bir statevector emülatörü, **emüle edebildiği her boyutta**, aynı TSP'yi
+> kaba kuvvetle çözmekten üstel olarak pahalıdır. Bu N'i küçültmekle
+> düzelmez — **kötüleşir**. Donanım seçimiyle de ilgisi yoktur; CPU, GPU,
+> FPGA fark etmez.
+
+**Sonucu**: Hiçbir *uygulama* gereksinimi (bulut bağlantısızlık, gecikme,
+enerji) bu iş yükü için hızlandırıcıyı gerekçelendiremez. Gerekçe
+uygulamada değil, **emülatörün kendisinde**dir: bu proje bir rota
+optimizasyonu ürünü değil, bir **donanım emülasyon çalışmasıdır**. TSP/QAOA
+burada çözülecek problem değil, altın referansı olduğu için **doğrulanabilir
+bir iş yüküdür**.
+
+---
+
+
+### Projenin adı ölçüme bağlıdır
+
+*"Donanım hızlandırmalı"* ifadesi şu an **ölçümle desteklenmiyor** — ama
+yanlış tabana karşı ölçtüğümüz için.
+
+| Taban | Sonuç |
+|---|---|
+| Dizüstü i7 (Faz 2'de ölçüldü) | **başabaş** — 37,28 ms vs 32,75–41,93 ms ❌ |
+| **Kart üstü ARM** (Cortex-A9 650 MHz) | ✅ **84,13 ms → FPGA 2,26× hızlı** (2026-09-21) |
+
+Dizüstü karşılaştırması *"dizüstüm yerine PYNQ mı alsam"* sorusunu cevaplar;
+mimari olarak anlamsızdır. SoC hızlandırmasında doğru soru **"çekirdeği
+PS'ten PL'e taşımak neye değer?"**dir ve tabanı aynı çipteki ARM'dır. Bu,
+zayıf taban seçmek değil, **mimari olarak doğru** tabanı seçmektir; HLS
+literatürü hızlanmayı böyle raporlar.
+
+✅ **ÖLÇÜLDÜ (2026-09-21, T045b)**: ARM float 84,13 ms (IQR 0,210, n=30),
+FPGA 37,28 ms → **2,26×**
+([ps-pl-hizlanma](measurements/ps-pl-hizlanma_20260921_c504294.json)).
+
+> **Karar: *"donanım hızlandırmalı"* ifadesi kullanılabilir — ama daima
+> sayısıyla ve tabanıyla birlikte**: *"kart üstü ARM Cortex-A9'a karşı
+> 2,26×"*. Genel bir hızlanma ima edecek şekilde tek başına kullanılmaz;
+> aynı çekirdek bir dizüstü CPU'da FPGA'dan 11,4× hızlıdır.
+
+| Sonuç | Proje adı |
+|---|---|
+| ARM belirgin şekilde yavaş | *"Donanım hızlandırmalı gömülü kuantum devre emülatörü"* — ölçülmüş |
+| Değilse | *"FPGA tabanlı gömülü kuantum devre emülatörü"* — "hızlandırmalı" **çıkarılır** |
+
+
+---
+
 ## 1. Kullanılmayacak argümanlar (savunulamaz — kurmayın)
 
 Bunların her biri kulağa makul gelir ve her biri ilk soruda çöker.
@@ -79,6 +156,7 @@ Bunların her biri kulağa makul gelir ve her biri ilk soruda çöker.
 | *"FPGA daha çok kübite ölçeklenir"* | **Tam tersi.** Biz 16 kübitte BRAM'e sıkıştık (%67 dolu). GPU 30+ kübite çıkar, çünkü GB'larca belleği var. Bu argüman kurulursa karşı taraf bir cümleyle yıkar |
 | *"FPGA daha az enerji harcar"* | **Henüz ölçülmedi.** Kaba hesap GPU'nun bu boyutta enerjide de önde olabileceğini söylüyor. Ölçmeden söylenirse Anayasa madde II ihlal edilir |
 | *"Kuantum-esinli hesap özel donanım ister"* | İstemez. Yapılan iş doğrusal cebir; GPU'lar bunda mükemmeldir |
+| *"Rota optimizasyonunu hızlandırıyoruz"* | **Hayır.** Kaba kuvvet ~85.000× hızlı ve kesin (§0.5). Bu cümle projenin temelini çürütür |
 
 > **Kural**: Bu dört cümlenin hiçbiri teze, sunuma veya makaleye girmez.
 

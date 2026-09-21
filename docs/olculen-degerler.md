@@ -224,6 +224,11 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
   bitstream üretilmedi, kartta koşulmadı. CPU tarafı ayrıca ±%60 oynuyor.
 - ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
   tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
+- ❌ **Rota optimizasyonunda herhangi bir hızlanma.** Kaba kuvvet aynı makinede
+  **43,2 µs**'de kesin sonucu veriyor; QAOA yolu 3,69 s ve doğru olma olasılığı
+  2,4e-05 — **~85.000× kaba kuvvet lehine**, ölçüldü
+  ([kaba-kuvvet-kiyas](measurements/kaba-kuvvet-kiyas_20260921_c504294.json)).
+  Bu yapısaldır ve donanımla ilgisizdir; ayrıntı: [neden-fpga.md](neden-fpga.md).
 - ❌ **GPU'ya karşı hiçbir şey.** Kıyas yalnız CPU'ya karşı kuruldu ve GPU
   **hiç ölçülmedi** (`AerSimulator` CPU build'i, `available_devices() == ('CPU',)`).
   Makinede RTX 4060 var; ölçülene kadar "FPGA daha hızlı/verimli" **hiçbir

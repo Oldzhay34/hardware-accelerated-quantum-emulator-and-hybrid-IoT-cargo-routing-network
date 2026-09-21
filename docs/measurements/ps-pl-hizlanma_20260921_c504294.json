@@ -1,0 +1,43 @@
+{
+  "stamped_date": "20260921",
+  "git_hash": "c504294",
+  "gorev": "T045b",
+  "ne": "PS (Cortex-A9) vs PL (FPGA) — ayni cekirdek, ayni SoC. 'Donanim hizlandirmali' ifadesinin olculmus dayanagi.",
+  "not_saat": "Kart saati ~20,5 saat geride (NTP yok). Damga KONAKTA uretildi.",
+  "kart": {
+    "cihaz": "PYNQ-Z2 / xc7z020", "cekirdek": "4.19.0-xilinx-v2019.1",
+    "ps": "ARMv7 Cortex-A9, 2 cekirdek, 650 MHz (Clocks.cpu_mhz ile olculdu)",
+    "derleyici": "g++ 7.3.0 (Ubuntu/Linaro), -O3",
+    "ram_mb": 496, "yuk_ortalamasi": "0.14 0.21 0.10"
+  },
+  "kosum": "hls/tb/bench_kernel.cpp, n=16 p=2, reference_20260915_c6ad872_p2_n5",
+  "olcumler": {
+    "arm_float": {
+      "medyan_ms": 84.132, "iqr_ms": 0.210, "p25_ms": 83.988, "p75_ms": 84.199,
+      "min_ms": 83.691, "maks_ms": 84.935, "jitter_ms": 1.244,
+      "tekrar": 30, "isinma": 3,
+      "beklenen_deger": -3950.990722656,
+      "rol": "MANSET TABAN — yetkin bir ARM gerceklemesinin yapacagi sey"
+    },
+    "arm_q117_taklit": {
+      "medyan_ms": 1579.266, "iqr_ms": 20.308, "min_ms": 1575.957, "maks_ms": 1609.171,
+      "jitter_ms": 33.213, "tekrar": 10, "isinma": 2,
+      "beklenen_deger": -0.442401439,
+      "rol": "UST SINIR, hizlanma iddiasinda KULLANILMAZ",
+      "neden": "ap_fixed_mock her islemi double'da yapar; Cortex-A9'un NEON'u cift duyarlik DESTEKLEMEZ. float varyantindan 18,8x yavas — bu bir mimari gercek degil, taklit sinifin artefakti."
+    }
+  },
+  "fpga": { "ms": 37.28, "not": "sentez tahmini, kartta henuz olculmedi (obek 4)" },
+  "sonuc": {
+    "hizlanma_ps_to_pl": 2.26,
+    "taban": "arm_float",
+    "ifade": "Cekirdegi PS'ten PL'e tasimak 2,26x hizlandiriyor (ayni SoC, ayni guc zarfi)."
+  },
+  "cevrim_basina_model": {
+    "cift_guncellemesi_p2": 1048576,
+    "fpga":   {"m_cift_s": 28.1,  "saat_mhz": 100,  "cevrim_basina": 3.56},
+    "arm":    {"m_cift_s": 12.5,  "saat_mhz": 650,  "cevrim_basina": 52.2},
+    "dizustu":{"m_cift_s": 320.4, "saat_mhz": 4000, "cevrim_basina": 12.5},
+    "dogrulama": "ARM'a karsi mimari ustunluk 14,7x, saat dezavantaji 6,5x -> net 2,26x. Model olcumu birebir ongoruyor."
+  }
+}

@@ -16,7 +16,11 @@ namespace qir {
 
 /// Beklenen değer akümülatörü. Terimler ~1,5e-5 mertebesinde ve 65536 tanesi
 /// toplanıyor; 40 kesir biti çözünürlüğü 9e-13, birikimli hata ~3e-8.
+#ifdef QIR_REAL_FLOAT
+using sum_t = double;   // float32 65536 terim toplamakta yetersiz kalır
+#else
 using sum_t = ap_fixed<48, 8, AP_RND_CONV, AP_SAT>;
+#endif
 
 /// Ölçeklenmiş Ising katsayıları — beklenen değer yolu için.
 ///

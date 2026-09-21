@@ -1324,3 +1324,49 @@ aynısını** üretiyor demektir.
 ⚠️ Ölçekleme protokolünün C'de karşılığı **yoktur** — orada hiç ölçekleme
 yapılmıyor. O yüzden ölçekleme C'ye karşı değil, kendi sözleşmesine karşı
 doğrulanır (`test_encoder.py`: H-2 payı, geri dönüş, H-3 istisnası).
+
+---
+
+# §22 — ⛔ §18'in CPU tabanı geçersiz: adil taban ölçüldü
+
+**21 Eylül 2026**
+
+§18'de CPU tabanı **Qiskit Aer** ile ölçülmüştü (turbo 32,75 ms, plato
+41,93 ms) ve sonuç *"gecikmede başabaş"* diye kaydedilmişti. **O taban adil
+değilmiş.**
+
+Aynı çekirdek kodu (`hls/tb/bench_kernel.cpp`, aynı `qir_kernel` çağrısı)
+doğrudan CPU'da zamanlandı:
+
+| Taban | Medyan | FPGA'ya göre |
+|---|---:|---|
+| Aynı kod, yerel `float` | **3,273 ms** | **CPU 11,4× hızlı** |
+| Aynı kod, Q1.17 (taklit) | 12,992 ms | CPU 2,9× hızlı |
+| Qiskit Aer (§18 tabanı) | 32,750 ms | CPU 1,14× → *"başabaş"* |
+| FPGA | 37,28 ms | — |
+
+**Sebep**: Aer, RZZ'yi CX-RZ-CX olarak ayrıştırır ve p=2'de **384 kapı**
+uygular; bizim çekirdek köşegen operatörün tamamını **32 geçişe** füzyonlar
+([gates_diagonal.hpp](../../hls/src/gates_diagonal.hpp)). 12× kapı farkı,
+ölçülen ~10× süre farkını açıklıyor.
+
+Kayıt: [adil-cpu-tabani](adil-cpu-tabani_20260921_c504294.json)
+
+## Doğru taban: kart üstü ARM (PS↔PL)
+
+| Platform | Gecikme | M çift/s | Saat | çevrim/çift | FPGA'ya göre |
+|---|---:|---:|---:|---:|---|
+| **FPGA (PL)** | 37,28 ms | 28,1 | 100 MHz | **3,56** | — |
+| **ARM Cortex-A9 (PS)** | **84,13 ms** | 12,5 | 650 MHz | 52,2 | **FPGA 2,26×** |
+| Dizüstü i7 | 3,27 ms | 320,4 | ~4 GHz | 12,5 | CPU 11,4× |
+
+Kayıt: [ps-pl-hizlanma](ps-pl-hizlanma_20260921_c504294.json)
+
+**FPGA üç platformun en verimlisi** — çevrim başına 3,56, ARM'ın 14,7 katı,
+i7'nin 3,5 katı. Sonucu belirleyen mimari değil **saat frekansı**: 100 MHz
+650 MHz'i yener, 4 GHz'i yenmez.
+
+## Etkilenmeyenler
+
+Fidelity, C/RTL eşdeğerliği, kaynak kullanımı, zamanlama kapanışı — hiçbiri
+etkilenmez. Düşen **yalnız gecikme karşılaştırmasıdır**.

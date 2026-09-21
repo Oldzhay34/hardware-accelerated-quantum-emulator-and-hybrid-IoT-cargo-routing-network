@@ -190,6 +190,12 @@ yayılım raporlanır. Enerji düzeneği gerekmez.
 - [ ] T044 [US2] Ölçümleri koş (n=16, p=2 ve p=1, **≥30 tekrar**) → `docs/measurements/kart-gecikme_<tarih>_<git-hash>_n16_p{1,2}.json`; her kapsam için ayrı `OlcumSerisi`. **Ortalama değil dağılım raporlanır**: p50 / p95 / p99 / maks ve jitter (maks−min). FPGA'da jitter **yapısı gereği sıfırdır** (3.728.217 çevrim, her seferinde); CPU ve GPU'da kuyruk vardır. Gerçek zamanlı bir denetim döngüsünde önemli olan en kötü durumdur — ek ölçüm değil, aynı veriden farklı bir tablo (bkz. [neden-fpga.md §2.3](../../docs/neden-fpga.md))
 - [ ] T045 [US2] HLS tahminiyle karşılaştır (p=2 için **37,28 ms**) ve sapmayı **gizlemeden** kaydet; nedeni araştır, bulunamazsa **bulunamadığı yazılır** (FR-014). `T_yazma`'nın CPU tarafında **karşılığı olmadığı** ayrıca not edilir
 
+- [ ] T045b [US2] **PS↔PL tabanı — projenin adını belirleyen ölçüm.** Aynı hesabı kartın **kendi ARM'ında** (Cortex-A9, 650 MHz — bu oturumda ölçüldü) koş ve zamanla: `hls/src/qir_kernel.cpp`, `-DQIR_NO_VITIS` ile ARM üzerinde derlenir (C-sim yolunun aynısı). **≥10 tekrar**, T039 protokolünün aynısı, medyan + IQR. Sonuç `docs/measurements/ps-pl-hizlanma_<tarih>_<git-hash>.json`
+
+  **Neden zorunlu**: Faz 2'nin CPU tabanı bir **dizüstü i7**'sidir ve o karşılaştırma *"dizüstüm yerine PYNQ mı alsam"* sorusunu cevaplar — mimari olarak anlamsız bir soru. SoC hızlandırmasında doğru taban, **aynı çipteki PS**'tir: *"çekirdeği PS'ten PL'e taşımak neye değer?"* Bu, `donanım hızlandırmalı` ifadesinin ölçümle desteklenip desteklenmediğini belirleyen **tek** ölçümdür — dizüstü tabanına karşı desteklenmiyor (başabaş, [§18](../../docs/measurements/faz2-sentez.md)).
+
+  ⛔ Sonuç ne çıkarsa çıksın raporlanır ve proje adı ona göre düzeltilir. ARM belirgin şekilde yavaşsa *"donanım hızlandırmalı"* **ölçülmüş** bir ifade olur; değilse isimden **çıkarılır**. Bkz. [neden-fpga.md](../../docs/neden-fpga.md), [CLAUDE.md tez çerçevesi](../../CLAUDE.md).
+
 **Checkpoint**: Gecikme ekseni ölçüldü; US3 olmadan da yayımlanabilir.
 
 ---

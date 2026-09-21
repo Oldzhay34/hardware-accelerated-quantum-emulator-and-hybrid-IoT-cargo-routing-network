@@ -211,6 +211,11 @@ artırıyor.
 | *"FPGA, Qiskit'in ürettiği devreyi doğru taklit ediyor"* | ✅ **ölçüldü** — fidelity 0,999978, cosim bit bit |
 | *"QAOA rotaları iyileştiriyor"* | ⚠️ bu veriyle **zayıf** |
 
+⛔ **Daha sertine hazır ol**: aynı makinede kaba kuvvet çözücü N=5'i **43,2 µs**'de
+**kesin** olarak çözüyor — QAOA yolu 3,69 s. **~85.000× fark** ve bu yapısal
+([neden-fpga.md §0.5](neden-fpga.md)). Yani sistem, rota kalitesi veya hızı için
+QAOA'ya ihtiyaç duymuyor. QAOA burada **doğrulanabilir bir iş yüküdür**.
+
 Bu projenin katkısı **birincisidir**. İkincisi p'yi artırmayı veya farklı
 parametre başlatması denemeyi gerektirir ve bu fazın kapsamında değildir.
 Karıştırılırsa savunma çöker.

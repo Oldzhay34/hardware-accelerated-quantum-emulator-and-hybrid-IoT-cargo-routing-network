@@ -117,34 +117,87 @@ Bu, klasik bir FFT kelebeğinin erişim desenidir ve iki sonucu vardır:
 
 **[Ö]** CPU: [faz2-sentez.md §18](measurements/faz2-sentez.md), 19 Eylül temiz ölçüm.
 
-FPGA, CPU'nun turbo ve plato değerlerinin **arasına** düşüyor. Bu bir
-başarısızlık değil, açıklanması gereken bir olgudur.
+FPGA, CPU'nun turbo ve plato değerlerinin **arasına** düşüyor.
 
-### 2.2 Neden başabaş — çevrim başına ayrıştırma
+⛔ **Bu tablo aşıldı — §2.2'ye bakın.** Buradaki CPU rakamları **Qiskit Aer**'e
+aittir ve o taban ~10× adil değildir. Aynı algoritma konak CPU'da **3,273 ms**
+sürüyor. Tablo, Faz 2'nin ne ölçtüğünü göstermek için bırakıldı.
 
-Von Neumann darboğazı argümanı doğrudur ama **tek başına yanlış sonuca
-götürür**. Sayalım:
+### 2.2 ⛔ DÜZELTME (2026-09-21): başabaş sonucu zayıf tabandan geliyordu
+
+Bu bölüm önce *"35× mimari üstünlük, 40× saat dezavantajı, sadeleşiyor,
+başabaş"* diyordu. **Girdisi yanlıştı.** §2.4'te "geçerliliğe yönelik gerçek
+tehdit" diye işaretlenen şey ölçüldü ve gerçekleşti.
+
+**Deney**: aynı çekirdek kodu (`hls/tb/bench_kernel.cpp`, `qir_kernel`
+çağrısı) konak CPU'da zamanlandı. **[Ö]**
+[adil-cpu-tabani](measurements/adil-cpu-tabani_20260921_c504294.json)
+
+| Taban | Medyan | FPGA'ya göre |
+|---|---:|---|
+| **Aynı kod, yerel `float`** | **3,273 ms** | **CPU 11,4× hızlı** |
+| Aynı kod, Q1.17 (taklit, `double` aritmetik) | 12,992 ms | CPU 2,9× hızlı |
+| Qiskit Aer (Faz 2 tabanı) | 32,750 ms | CPU 1,14× hızlı → *"başabaş"* |
+| FPGA (sentez tahmini) | 37,28 ms | — |
+
+**Aer tabanı ~10× adil değildi.** Sebep §2.4'te yazılıydı: Aer, RZZ'yi
+CX-RZ-CX olarak ayrıştırıp p=2'de **384 kapı** uygularken bizim çekirdek
+köşegen operatörün tamamını **32 geçişe** füzyonluyor.
+
+### Düzeltilmiş çevrim başına ayrıştırma
 
 ```
-FPGA :  3.728.217 çevrim / 1.048.576 çift  ≈   3,56 çevrim/çift   [Ö]
-CPU  :  4,0 GHz / 32,0 M çift/s            ≈ 125    çevrim/çift   [T]
+FPGA :  3.728.217 çevrim / 1.048.576 çift  ≈  3,56 çevrim/çift   [Ö]
+CPU  :  4,0 GHz / 320,4 M çift/s           ≈ 12,5  çevrim/çift   [T]
 ```
 
-⚠️ CPU satırı, sürdürülen çekirdek frekansı için **4,0 GHz varsayar**;
-ölçülmedi. Mertebe doğru, kesin değer değil.
+| | |
+|---|---|
+| Mimari üstünlük (çevrim başına) | **3,5×** FPGA lehine — *35× değil* |
+| Saat frekansı | **40×** CPU lehine |
+| **Net** | **11,4× CPU lehine** |
 
-**Mimari verimlilik oranı ≈ 35×.** FPGA, her saat çevriminde CPU'dan otuz
-beş kat fazla yararlı iş yapıyor. Bu, mekânsal hesaplamanın gerçek kazancıdır
-ve fetch-decode-execute, ALU paylaşımı, register baskısı ve dal tahmini
-maliyetlerinin toplam faturasıdır.
+Model, ölçümü yine birebir öngörüyor (40 / 3,5 = 11,4). **Değişen model
+değil, girdisiydi.** Mekânsal hesaplamanın çevrim başına kazancı gerçektir —
+ama bu iş yükünde **3,5 kat**, ve 100 MHz'lik bir saat bunu taşımaya yetmez.
 
-**Ama saat frekansı oranı ≈ 40× CPU lehinedir** (4,0 GHz / 100 MHz).
+⚠️ CPU satırı sürdürülen çekirdek frekansı için **4,0 GHz varsayar**;
+ölçülmedi.
 
-> **35× mimari üstünlük, 40× frekans dezavantajıyla neredeyse tam olarak
-> sadeleşiyor.** Ölçülen başabaşın açıklaması budur. Gizemli bir şey yoktur.
+### 2.5 PS↔PL — doğru taban ve ölçülen hızlanma **[Ö]**
 
-Bu, savunmada söylenebilecek en güçlü tek cümledir: sonucu *savunmuyoruz*,
-**açıklıyoruz**.
+Dizüstü karşılaştırması *"dizüstüm yerine PYNQ mı alsam"* sorusunu cevaplar;
+mimari olarak anlamsızdır. SoC hızlandırmasında doğru soru **"çekirdeği
+PS'ten PL'e taşımak neye değer?"**dir. Ölçüldü (görev T045b):
+[ps-pl-hizlanma](measurements/ps-pl-hizlanma_20260921_c504294.json)
+
+| Platform | Gecikme | M çift/s | Saat | **çevrim/çift** | FPGA'ya göre |
+|---|---:|---:|---:|---:|---|
+| **FPGA (PL)** | 37,28 ms | 28,1 | 100 MHz | **3,56** ← en verimli | — |
+| **ARM Cortex-A9 (PS)** | **84,13 ms** | 12,5 | 650 MHz | 52,2 | **FPGA 2,26× hızlı** |
+| Dizüstü i7 | 3,27 ms | 320,4 | ~4 GHz | 12,5 | CPU 11,4× hızlı |
+
+> **Çekirdeği PS'ten PL'e taşımak 2,26× hızlandırıyor** — aynı SoC, aynı güç
+> zarfı, aynı kutu. *"Donanım hızlandırmalı"* ifadesinin ölçülmüş dayanağı
+> budur ve **tek** dayanağıdır.
+
+**Model üçüncü kez tutuyor**: ARM'a karşı mimari üstünlük 14,7×, saat
+dezavantajı 6,5× → net **2,26×**. Üç platformda da aynı ayrıştırma çalışıyor.
+
+**Asıl mimari bulgu tabloda**: FPGA, üç platformun **en verimlisi** —
+çevrim başına 3,56, ARM'ın 14,7 katı, i7'nin 3,5 katı. Sonucu belirleyen
+mimari değil **saat frekansıdır**. 100 MHz, 650 MHz'i yenmeye yeter; 4 GHz'i
+yenmeye yetmez. Krossover tam olarak buradadır.
+
+⚠️ **Q1.17 taklit varyantı hızlanma iddiasında KULLANILMAZ.** Kartta 1579 ms
+ölçüldü (42×) ama bu sayı sahtedir: `ap_fixed_mock` her işlemi `double`'da
+yapar ve Cortex-A9'un NEON'u çift duyarlık **desteklemez**. Float varyantından
+**18,8× yavaş** olması bir mimari gerçek değil, taklit sınıfın artefaktıdır.
+Yalnız float varyantı raporlanır.
+
+⚠️ Jitter farkı beklenenden **küçük**: ARM 30 koşumda 1,244 ms yayılım
+(%1,5). Yüksüz gömülü Linux oldukça belirlenimci. §2.3'teki jitter argümanı
+bu veriyle **zayıftır**.
 
 ### 2.3 Bellek duvarı argümanı n=16'da GEÇERLİ DEĞİL
 
@@ -166,7 +219,7 @@ ayırt edici değildir** — çünkü rakip de çip-dışına çıkmıyor. Bu ö
 ≳ 32 MiB) ayırt edici olmaya başlar. Orada değiliz.
 
 ⚠️ Yüksek *k* için CPU'nun erişimi 512 KiB uzaklıkta bir adımla gerçekleşir;
-bu, L1 ve TLB açısından düşmanca bir desendir ve CPU'nun 125 çevrim/çift
+bu, L1 ve TLB açısından düşmanca bir desendir ve CPU'nun 12,5 çevrim/çift
 değerinin bir kısmını açıklar. Ama DRAM'e çıkmaz — **önbellek içi** bir
 maliyettir. **[T]**
 
@@ -183,10 +236,13 @@ fark.** **[Ö]**
 Bu fark **donanım değil, algoritma** farkıdır. Elle füzyon yapan bir CPU
 çekirdeği yazılsaydı CPU tarafı da hızlanırdı.
 
-> **Sonuç**: CPU tabanımız *"aynı algoritmanın CPU'daki en iyi hâli"* değil,
-> *"yaygın kütüphanenin varsayılan hâli"*dir. Başabaş sonucu bu ışıkta
-> okunmalıdır — ve zaten FPGA lehine bir sonuç olmadığı için bu sınırlama
-> iddiamızı şişirmez, **daraltır**. Yine de yazılmalıdır.
+> ⛔ **BU TEHDİT GERÇEKLEŞTİ (2026-09-21).** Ölçüldü: aynı algoritma konak
+> CPU'da **3,273 ms**, Aer ise 32,75 ms — **~10× fark**, tam da öngörülen 12×
+> kapı farkı mertebesinde. Faz 2'nin *"gecikmede başabaş"* sonucu bir
+> **taban artefaktıydı**. Adil tabanla dizüstü CPU, FPGA'dan **11,4× hızlıdır**.
+>
+> Bu, Faz 2'nin fidelity ve eşdeğerlik sonuçlarını etkilemez — yalnız
+> **gecikme karşılaştırmasını** geçersiz kılar.
 
 ---
 
@@ -408,7 +464,8 @@ Savunmanın sağlamlığı, neyi iddia etmediğini bilmesinden gelir.
 
 | ❌ | Neden |
 |---|---|
-| FPGA daha hızlıdır | Ölçüldü: CPU ile başabaş; GPU'nun ~100× önde olması bekleniyor |
+| FPGA **her şeyden** hızlıdır | Hayır. Dizüstü CPU 11,4× önde. FPGA yalnız **kart üstü ARM'ı** yener — 2,26× (§2.5) |
+| 42× hızlanma (Q1.17 taklit tabanı) | Sahte sayı — `double` emülasyonunun artefaktı, mimari fark değil |
 | FPGA daha az enerji harcar | Ölçülmedi |
 | 18 bit DSP48'e oturduğu için %100 silikon verimi | Kaynak tablosuyla çelişir (DSP %15) |
 | Derin boru hattı / agresif unroll kazandırdı | Unroll **ölçümle elendi** (2× yavaşlama) |
@@ -422,21 +479,20 @@ Savunmanın sağlamlığı, neyi iddia etmediğini bilmesinden gelir.
 
 > Bu iş yükü, n=16'da hiçbir modern işlemcinin bellek hiyerarşisini
 > zorlamayacak kadar küçüktür; dolayısıyla hızlandırıcı seçimi bir *hız*
-> yarışı değildir. Ölçtüğümüz şey şudur: mekânsal bir mimari, çevrim başına
-> CPU'dan **~35 kat** fazla yararlı iş yapar, ancak **40 kat** düşük saat
-> frekansıyla çalışır; ikisi sadeleşir ve gecikmede başabaş elde edilir — bu
-> sonuç öngörülmüş değil, **ölçülmüş ve modelle açıklanmıştır**. Tasarımın
-> bağlayıcı kısıtı aritmetik değil **bellek portudur**: bankalama faktörünü
-> dörde katlamak sıfır kazanç verirken, bellek tipini gerçek çift porta
-> çevirmek tek kelimeyle %22,6 kazandırmıştır. Aynı bellek-merkezli mantık
-> sayısal genişliği de belirlemiştir: 18 bit, doğruluk eşiğini geçen en dar
-> format olmakla kalmaz, BRAM36'nın 36-bit kelimesine iki genlik bileşeni
-> hâlinde **sıfır israfla** oturur — bir GPU'nun aritmetik menüsünde
-> bulunmayan, bulunsa bile bellek hizalaması diye bir tasarım değişkeni
-> olmadığı için anlamsız kalacak bir nokta. Katkımız bir hız rekoru değil,
-> **bu tasarım noktasının ölçülerek bulunmuş olmasıdır.**
-
----
+> yarışı değildir — ve bu yarışı **kaybettiğimizi ölçtük**: aynı algoritma
+> bir dizüstü CPU'da 3,27 ms, FPGA'da 37,28 ms. Mekânsal mimari çevrim başına
+> **3,5 kat** fazla yararlı iş yapar, ama **40 kat** düşük saatle çalışır;
+> net sonuç CPU lehine 11,4 kattır. Bu sonucu gizlemiyoruz, **modelle
+> açıklıyoruz** — ve yol boyunca Faz 2'nin *"başabaş"* sonucunun zayıf bir
+> tabandan (Qiskit Aer'in 12× fazla kapı uygulamasından) kaynaklandığını da
+> ölçerek gösterdik. Tasarımın bağlayıcı kısıtı aritmetik değil **bellek
+> portudur**: bankalama faktörünü dörde katlamak sıfır kazanç verirken,
+> bellek tipini gerçek çift porta çevirmek tek kelimeyle %22,6 kazandırmıştır.
+> Aynı bellek-merkezli mantık sayısal genişliği de belirlemiştir: 18 bit,
+> doğruluk eşiğini geçen en dar format olmakla kalmaz, BRAM36'nın 36-bit
+> kelimesine iki genlik bileşeni hâlinde **sıfır israfla** oturur. Katkımız
+> bir hız rekoru değil — hız rekorunun **neden mümkün olmadığının** ölçülmüş
+> ve modellenmiş açıklamasıdır.
 
 ## İlgili belgeler
 

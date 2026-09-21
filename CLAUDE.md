@@ -6,6 +6,36 @@ ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 
 **Şu anki faz**: Faz 2 — plan onaylandı (A1+B4+C1, [ADR 0008](docs/decisions/0008-statevector-cekirdek-mimarisi.md)). Çekirdek yazıldı, C-sim ile doğrulandı (fidelity ≥0,99997, n=8/12/16), **n=16 cosim geçti** (19 Eyl, çıkış portu C ile bit bit aynı: `0xbee28271` — ama 65536 genliğin tek tek eşitliği değil, bkz. [§20](docs/measurements/faz2-sentez.md)) ve **sentezlendi**: 7,195 ns (100 MHz), BRAM %66, DSP %16, FF %46, **LUT %84**, gecikme **p=2 için 3.728.217 çevrim = 37,3 ms**. **Vivado implementasyonu koşuldu**: LUT gerçekte **22.535 (%42)**, FF **19.466 (%18)**, DSP 33 (%15), BRAM 187 (%67), post-route **9,122 ns** — yani HLS tahmini LUT'u **2× fazla** saymış. SC-002/SC-003 geçti, NC-4 kapandı. CPU tabanı **yeniden ölçüldü** (19 Eyl, temiz): turbo **32,75 ms**, plato **41,93 ms**. FPGA'nın p=2 tahmini (37,28 ms) tam ikisinin arasına düşüyor — **gecikmede başabaş, kazanç yok**. Eski 77,6/92,7 ms rakamları arka planda cosim koşarken alınmıştı, **geçersiz** ([§18](docs/measurements/faz2-sentez.md)). CPU enerjisi ölçüldü: **0,644 J/koşum**; FPGA tarafı henüz ölçülmedi. Vitis 2025.2 **WSL/Ubuntu altında kurulu ve çalışıyor** — Windows'ta Device Guard engellemişti ([SK-05](docs/risk-register.md)), taşınmanın ölçümü bozmadığı Tur 15 yeniden üretilerek kanıtlandı. Kurulum ve sentez komutları: [runbook](docs/runbooks/vitis-hls-kurulum.md). Paralellik arama turu **ölçümle kapandı** ([ADR 0009](docs/decisions/0009-paralellik-turu-kapatildi.md)): satın alınabilir paralellik kalmadı, tek kazanç `RAM_T2P` port düzeltmesiydi; II tabanı bankalama değil **bellek portu** çıktı. Altı sentez riski de kapandı ([risk-register.md](docs/risk-register.md)). **Faz 2 KAPANDI** (54/54 görev). **Şu an Faz 5** — durum ve sıradaki iş: [specs/003-zynq-ps-kartta-kosum/SIRADAKI.md](specs/003-zynq-ps-kartta-kosum/SIRADAKI.md).
 
+## Tez çerçevesi — her belge buna hizalanır
+
+> **Sabit noktalı bir QAOA statevector emülatörünü gömülü bir FPGA'da tasarladık,
+> doğruladık ve karakterize ettik. Bu sınıf cihazın tutabildiği problem
+> boyutlarında emülasyon, klasik kesin çözümle rekabet etmez — ne kadar
+> etmediğini niceliksel olarak gösteriyoruz. Katkı, emülatörün tasarım uzayının
+> karakterizasyonudur: 18-bit hassasiyet noktası, bellek-portu bağlı II tabanı,
+> ve kuantum devre emülasyonunu 5 W zarfında koşturmanın ölçülmüş gecikme/enerji
+> bedeli.**
+
+**İsim**: *"Donanım hızlandırmalı"* ifadesi **ölçülmüş** bir dayanağa sahiptir —
+ama yalnız doğru tabana karşı: çekirdeği **PS'ten PL'e** taşımak **2,26×**
+hızlandırıyor (ARM Cortex-A9 84,13 ms → FPGA 37,28 ms, 21 Eyl,
+[ps-pl-hizlanma](docs/measurements/ps-pl-hizlanma_20260921_c504294.json)).
+⛔ Genel hızlanma ima edecek şekilde **tek başına kullanılmaz**: aynı çekirdek
+bir dizüstü CPU'da FPGA'dan **11,4× hızlıdır**
+([adil-cpu-tabani](docs/measurements/adil-cpu-tabani_20260921_c504294.json)).
+Faz 2'nin *"başabaş"* sonucu zayıf bir tabandan (Qiskit Aer, 12× fazla kapı)
+geliyordu ve **geçersizdir**.
+
+**Bu proje bir rota optimizasyonu ürünü DEĞİLDİR.** Kaba kuvvet çözücü aynı
+makinede N=5'i **43,2 µs**'de kesin olarak çözüyor; QAOA yolu 3,69 s ve doğru
+olma olasılığı 2,4e-05 — **~85.000× fark**, ölçüldü. Bu yapısaldır
+(statevector `2^((N-1)²)`, çözüm uzayı `(N-1)!`) ve donanımla ilgisizdir.
+TSP/QAOA burada **çözülecek problem değil, altın referansı olduğu için
+doğrulanabilir bir iş yüküdür**.
+
+⛔ *"Rota optimizasyonunu hızlandırıyoruz"* cümlesi hiçbir yerde kullanılmaz —
+projenin temelini çürütür. Ayrıntı: [docs/neden-fpga.md §0.5](docs/neden-fpga.md).
+
 ## Anayasa — altı ilke (tam metin: [.specify/memory/constitution.md](.specify/memory/constitution.md))
 
 1. **Onay kapısı**: karşılaştırma raporu + açık onay olmadan hiçbir teknoloji/mimari karar kodlanmaz.

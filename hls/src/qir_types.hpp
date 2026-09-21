@@ -52,11 +52,26 @@ static_assert(N_QUBITS % 2 == 0,
 //                göstermedi, çünkü emülasyon başlangıç durumunu kuantalamıyor;
 //                donanım ise onu belleğe YAZAR. Sarmanın hata kipi sessiz ve
 //                ölümcül, doyurmanınki 7,6e-6'lık bir sapma.
+// ⚙️ QIR_REAL_FLOAT — YALNIZCA PS↔PL taban ölçümü için (görev T045b).
+// ARM'da adil bir taban gerekiyor: `ap_fixed_mock` her işlemi double'da yapıp
+// kuantalar ve Cortex-A9'un NEON'u çift duyarlık DESTEKLEMEZ. O kodu ARM'da
+// ölçmek, "yazılım FPU'sunda fixed-point emülasyonu"nu ölçmek olur ve
+// hızlanmayı 10-50 kat ŞİŞİRİR. Bu bayrak, aynı algoritmayı yerel float ile
+// derler — yetkin bir ARM gerçeklemesinin yapacağı şey.
+// ⛔ SENTEZDE KULLANILMAZ. Donanım yolu her zaman Q1.17'dir.
+#ifdef QIR_REAL_FLOAT
+using real_t = float;
+#else
 using real_t = ap_fixed<18, 1, AP_RND_CONV, AP_SAT>;
+#endif
 
 // Ara sonuç: iki Q1.17 değerinin çarpımı Q2.34'tür; RX'te iki çarpım toplanır,
 // büyüklük 2'yi aşmaz -> 2 tam sayı biti yeter.
+#ifdef QIR_REAL_FLOAT
+using acc_t = float;
+#else
 using acc_t = ap_fixed<36, 2, AP_RND_CONV, AP_SAT>;
+#endif
 
 // --- Faz temsili: TUR (turn) cinsinden ---------------------------------------
 // E(i) bu problemde ~1e4 mertebesinde (ceza katsayısı). gamma*E'yi doğrudan
