@@ -2,25 +2,36 @@
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Öbek 0/1/2/3 bitti, kart engelleri kalktı; sıradaki iş
-**öbek 4** (T026–T038, US1) — konak kodu yazılıp bitstream kartta koşturulacak
-ve 20 izdüşümle doğrulanacak. 🎯 MVP burada tamamlanıyor.
+> # 🔒 KAPSAM DONDURULDU — 2026-09-21
+>
+> **Öbek 4 (T026–T038, MVP) bitene kadar yeni görev AÇILMAZ.**
+>
+> Gerekçe: 21 Eylül'de 14 görev eklendi (T064–T077) ve öbek 4'ten **hiçbiri**
+> bitmedi. Eklenenlerin hepsi iyi fikir — ama hepsi MVP'nin *süsü*, MVP'nin
+> kendisi değil. Öbek 4 bittiğinde elde **tek başına savunulabilir** bir sonuç
+> olur: *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve altın
+> referansa karşı doğrulandı."* Bu cümle GPU'dan, enerjiden ve rota
+> kalitesinden bağımsız ayakta durur — ve şu an **söylenemiyor**, çünkü
+> bitstream kartta koşmadı.
+>
+> T064–T077 (GPU tabanı, Pareto, sıcak başlangıç) **MVP'den sonra**.
+> İyi bir fikir çıkarsa tasks.md'ye yazılır ama **başlanmaz**.
 
-**Dokunulacak dosyalar**: `agent/board.py` (yok, T026 yazacak),
-`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (hazır, git'e girmez)
+**Hedef (tek cümle)**: **Öbek 4 — T026'dan başla.** İlk iş: `agent/encoder.py`
+ve `agent/cost_vectors.py`'yi **Python 3.6 uyumlu** hâle getirmek (kartta 3.6.5
+var; `dataclasses` ve `from __future__ import annotations` 3.7+ — kartta içeri
+aktarılamazlar).
 
-**Bilinen tuzak**: ⛔ **Kartta Python 3.6.5 var.** `agent/encoder.py` ve
-`agent/cost_vectors.py` şu an `from __future__ import annotations` (3.7+) ve
-`dataclasses` (3.7+) kullanıyor — **kartta içeri aktarılamazlar**. Öbek 4'ün
-ilk işi bunu doğrulayıp 3.6 uyumlu hâle getirmek olmalı (`dataclasses` yerine
-`namedtuple`/düz sınıf, `__future__` satırını kaldır). Test yarıda kaldı,
-kesin doğrulanmadı ama sürüm farkı kesin.
+**Dokunulacak dosyalar**: `agent/encoder.py`, `agent/cost_vectors.py`
+(3.6 uyumu), `agent/board.py` (yok, T026 yazacak),
+`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (hazır)
 
-Ayrıca konak kodu FCLK'yi **doğrulamalı** (`Clocks.fclk0_mhz`); şu an 100 MHz
-ölçüldü ama bu boot varsayılanı, bitstream garantisi değil. `import pynq` root
-ister (sudo artık parolasız).
+**Bilinen tuzak**: Konak kodu FCLK'yi **doğrulamalı**
+(`from pynq.ps import Clocks; Clocks.fclk0_mhz`) — 100 MHz ölçüldü ama bu boot
+varsayılanı, bitstream garantisi değil. `import pynq` **root** ister (sudo
+artık parolasız). Register haritası: IP paketindeki `xqir_kernel_hw.h`.
 
-**Son güncelleme**: 2026-09-20, Faz 5.4 (öbek 0/1/2/3 bitti; öbek 4 başlamadı — mola)
+**Son güncelleme**: 2026-09-21, Faz 5.4 (kapsam donduruldu; öbek 4 sırada)
 
 ---
 
@@ -122,7 +133,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 
 ---
 
-## Faz 5 görev haritası (73 görev — 63 + GPU tabanı + Pareto)
+## Faz 5 görev haritası (77 görev — 63 + GPU + Pareto + sıcak başlangıç)
 
 | Faz | Öbek | Görev | Durum |
 |---|---|---|---|
@@ -136,6 +147,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | bekliyor — kart gerekmez, bağımlılık yok |
+| 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 
 **MVP**: T001–T038 → *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve

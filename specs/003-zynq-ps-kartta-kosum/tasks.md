@@ -238,6 +238,8 @@ kaynağı (tarih, koşum sayısı, konfigürasyon) izlenebilir.
 
 ---
 
+> 🔒 **MVP'den sonra** — kapsam 2026-09-21'de donduruldu; öbek 4 (T026–T038) bitmeden başlanmaz.
+
 ## Phase 6B: GPU tabanı (US4 eki) — **2026-09-21'de kapsama alındı**
 
 **Neden eklendi**: Faz 2'de GPU *"kapsam dışı; kıyas tek çekirdekli CPU'ya
@@ -273,6 +275,8 @@ netleşir.
 
 ---
 
+> 🔒 **MVP'den sonra** — kapsam 2026-09-21'de donduruldu; öbek 4 (T026–T038) bitmeden başlanmaz.
+
 ## Phase 6C: Sayısal genişlik Pareto eğrisi — **FPGA'ya özgü katkı**
 
 **Neden**: Bu, projenin GPU'da **karşılığı olmayan** tek sonucudur. 18 bit,
@@ -296,6 +300,32 @@ re+im = 2×18 tam oturuyor, sıfır israf). GPU'da ne 18 bitlik reel vardır ne 
 - [ ] T073 Pareto figürünü üret (`docs/figures/`) ve `docs/neden-fpga.md` §2.2b'yi **ölçülmüş** tabloyla güncelle. Anlatı: dirseğin 18 bitte olması ve o noktanın GPU'da **seçilemez** olması. ⛔ "18 bit fp16'dan daha doğru" **yazılmaz** — iddia doğruluk üstünlüğü değil, ifade edilebilirlik ve sığmadır
 
 **Checkpoint**: Projenin FPGA'ya özgü katkısı ölçülmüş bir eğriyle ortada.
+
+---
+
+> 🔒 **MVP'den sonra** — kapsam 2026-09-21'de donduruldu; öbek 4 (T026–T038) bitmeden başlanmaz.
+
+## Phase 6D: Sıcak başlangıç — optimize edici döngüsünü kısaltma
+
+**Neden**: Süreyi domine eden şey tek çağrı değil, **klasik optimize edici
+döngüsüdür**. Referansta `optimizer_iterations = 99` (COBYLA), yani bir alt
+problem = 99 FPGA çağrısı = **3,69 s**. Gecelik toplu işte sorun değil, ama
+**artımlı güncelleme yolunda** (adres değişikliği, kullanıcı bekliyor) doğrudan
+gecikmedir ([sistem-mimarisi.md §3, §7](../../docs/sistem-mimarisi.md)).
+
+**Bağımlılık**: yok — **kart ve FPGA gerekmez**. Tamamen Qiskit referans
+yolunda ölçülür; sonuç iterasyon sayısıdır, donanım süresi değil.
+
+⛔ **Tek başına iterasyon sayısı ölçüt DEĞİLDİR.** 5 adımda yakınsayıp daha
+kötü bir tura oturan bir başlangıç, iyileştirme değil gerilemedir. Her
+görevde **iterasyon ve çözüm kalitesi birlikte** raporlanır.
+
+- [ ] T074 Taban dağılımı: ≥20 farklı problem örneğinde soğuk başlangıçla (rastgele γ/β) COBYLA koş; **iterasyon sayısı** ve `optimal_probability`/`best_energy` dağılımını çıkar. Tek örnekten (99) genelleme yapılmaz — dağılım gerekir
+- [ ] T075 Sıcak başlangıç: bir önceki çözümün (γ, β) değerleriyle başla ve **az değişmiş** bir problem üzerinde koş (artımlı yolun benzetimi — bir durağın adresi değiştirilir). İterasyon sayısı **ve** çözüm kalitesi T074 tabanıyla karşılaştırılır
+- [ ] T076 Sabit açı QAOA: literatürden/önceden belirlenmiş γ/β ile optimize ediciyi tamamen kaldır (**99 → 1 çağrı**). ⚠️ Beklenen bedel çözüm kalitesindedir; **ne kadar** kaybedildiği ölçülür. Kabul edilebilirse artımlı yol saniyenin altına iner
+- [ ] T077 Sonucu `docs/measurements/sicak-baslangic_<tarih>_<git-hash>.json` olarak yaz ve [sistem-mimarisi.md §7](../../docs/sistem-mimarisi.md) tablosunu **ölçülmüş** değerlerle güncelle. Hiçbiri kazanmazsa bu da sonuçtur ve öyle yazılır
+
+**Checkpoint**: Artımlı yolun gerçek gecikmesi biliniyor.
 
 ---
 
@@ -324,6 +354,7 @@ re+im = 2×18 tam oturuyor, sıfır israf). GPU'da ne 18 bitlik reel vardır ne 
 - **Phase 6 (US4)**: US2 + US3'e bağlı
 - **Phase 6B (GPU tabanı)**: US4'e bağlı; **kart gerekmez**, US1–US3 ile paralel koşabilir
 - **Phase 6C (genişlik Pareto)**: bağımlılık **yok**; kart gerekmez, her an koşabilir
+- **Phase 6D (sıcak başlangıç)**: bağımlılık **yok**; kart ve FPGA gerekmez, saf Qiskit
 - **Phase 7**: Hepsine bağlı
 
 ### Kullanıcı hikâyesi bağımlılıkları
