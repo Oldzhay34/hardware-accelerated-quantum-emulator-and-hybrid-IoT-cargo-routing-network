@@ -187,7 +187,7 @@ yayılım raporlanır. Enerji düzeneği gerekmez.
 - [ ] T041 [US2] `agent/measure_latency.py` — `ap_done` yoklama periyodunu ölç ve **kaydet**: yoklama `T_cekirdek`'e üst taraftan hata ekler ve bu hata raporlanmalı
 - [ ] T042 [US2] `agent/measure_latency.py` — **termal plato doğrulaması** (CPU tarafındaki turbo/plato ayrımının kart karşılığı): ilk N koşum ile son N koşum **ayrı** raporlanır, platonun oturduğu gösterilir, koşum sırası kaydedilir. Isınma/kısılma ardışık koşumları yavaşlatabilir
 - [ ] T043 [US2] `agent/measure_latency.py` — seri istatistiği: **medyan ve yayılım (IQR) birlikte**; `min`/`max` de saklanır. ⛔ `kosum_sayisi < 10` olan seri **serileştirilmesin, hata versin** (SC-004'ün kod düzeyindeki karşılığı). Tek koşum rakamı hiçbir yere yazılmaz
-- [ ] T044 [US2] Ölçümleri koş (n=16, p=2 ve p=1, **≥30 tekrar**) → `docs/measurements/kart-gecikme_<tarih>_<git-hash>_n16_p{1,2}.json`; her kapsam için ayrı `OlcumSerisi`
+- [ ] T044 [US2] Ölçümleri koş (n=16, p=2 ve p=1, **≥30 tekrar**) → `docs/measurements/kart-gecikme_<tarih>_<git-hash>_n16_p{1,2}.json`; her kapsam için ayrı `OlcumSerisi`. **Ortalama değil dağılım raporlanır**: p50 / p95 / p99 / maks ve jitter (maks−min). FPGA'da jitter **yapısı gereği sıfırdır** (3.728.217 çevrim, her seferinde); CPU ve GPU'da kuyruk vardır. Gerçek zamanlı bir denetim döngüsünde önemli olan en kötü durumdur — ek ölçüm değil, aynı veriden farklı bir tablo (bkz. [neden-fpga.md §2.3](../../docs/neden-fpga.md))
 - [ ] T045 [US2] HLS tahminiyle karşılaştır (p=2 için **37,28 ms**) ve sapmayı **gizlemeden** kaydet; nedeni araştır, bulunamazsa **bulunamadığı yazılır** (FR-014). `T_yazma`'nın CPU tarafında **karşılığı olmadığı** ayrıca not edilir
 
 **Checkpoint**: Gecikme ekseni ölçüldü; US3 olmadan da yayımlanabilir.
@@ -273,6 +273,32 @@ netleşir.
 
 ---
 
+## Phase 6C: Sayısal genişlik Pareto eğrisi — **FPGA'ya özgü katkı**
+
+**Neden**: Bu, projenin GPU'da **karşılığı olmayan** tek sonucudur. 18 bit,
+iki bağımsız kısıtın tam kesişimidir — yukarıdan doğruluk (H eşiğini geçen en
+dar format Q1.17), aşağıdan donanım (BRAM36'nın azami kelime genişliği 36 bit,
+re+im = 2×18 tam oturuyor, sıfır israf). GPU'da ne 18 bitlik reel vardır ne de
+"bellek kelimesine hizalama" diye bir kavram. Gerekçe:
+[neden-fpga.md §2.2b](../../docs/neden-fpga.md).
+
+**Elde olan**: fidelity × genişlik tablosu (Q1.13…Q1.23, `format_fidelity.py`).
+**Eksik olan**: her genişlikte **donanım maliyeti**.
+
+⚠️ **Kübit sayısına DOKUNULMAZ.** Süpürülen tek şey `real_t` genişliğidir;
+`N_QUBITS` hep 16 kalır. ("18 bit" hassasiyettir, kübit sayısı değil.)
+
+**Bağımlılık**: yok — kart **gerekmez**, GPU tabanıyla (Phase 6B) paralel koşar.
+
+- [ ] T070 `hls/src/qir_types.hpp`'de genişliği derleme zamanı parametresi yap: `QIR_REAL_BITS` (varsayılan **18**). Türev tipler birlikte ölçeklenir: `acc_t` = `ap_fixed<2*W, 2>`, `sum_t` buna göre. ⚠️ `phase_t` **bağımsızdır** (TUR çözünürlüğü, ayrı karar) — dokunulmaz. ⛔ **Kapı**: varsayılan genişlikte üretilen ikili bugünküyle **bit bit aynı** sonuç vermeli; `ci_fidelity_gate.py` 4/4 geçmeli. Geçmezse refaktör bozuktur, süpürme başlamaz
+- [ ] T071 Her genişlik için (14, 16, **18**, 20, 24) trig LUT'u yeniden üret (`gen_trig_lut.py` 18 bite göre yazılmış) ve **C-sim koş**. Ölçülen fidelity, `format_fidelity.py`'nin sayısal modeliyle uyuşmalı. ⛔ **Uyuşmayan genişliğin donanım rakamı çizilmez** — bozuk bir tasarımın maliyetini raporlamak, eğriyi tamamen değersizleştirir
+- [ ] T072 Her genişlikte `csynth` koş ve topla: **BRAM_18K, DSP, LUT, FF, II, toplam çevrim, tahmini periyot**. Damgalı JSON: `docs/measurements/genislik-pareto_<tarih>_<git-hash>.json`. ⚠️ HLS'in LUT tahmini **2× şişik** (ölçülen oran 0,39–0,50× ve **sabit değil**) — eğride LUT sütunu *tahmin* olarak etiketlenir, gerçek sayı yalnız implementasyondan gelir
+- [ ] T073 Pareto figürünü üret (`docs/figures/`) ve `docs/neden-fpga.md` §2.2b'yi **ölçülmüş** tabloyla güncelle. Anlatı: dirseğin 18 bitte olması ve o noktanın GPU'da **seçilemez** olması. ⛔ "18 bit fp16'dan daha doğru" **yazılmaz** — iddia doğruluk üstünlüğü değil, ifade edilebilirlik ve sığmadır
+
+**Checkpoint**: Projenin FPGA'ya özgü katkısı ölçülmüş bir eğriyle ortada.
+
+---
+
 ## Phase 7: Faz kapanışı ve çapraz kesen işler
 
 - [ ] T056 [P] `docs/olculen-degerler.md`'ye Faz 5 ölçümlerini işle — tez/makale için **tek referans** orası
@@ -297,6 +323,7 @@ netleşir.
 - **Phase 5 (US3)**: US1 + INA219'a bağlı; **US2'yi beklemez**
 - **Phase 6 (US4)**: US2 + US3'e bağlı
 - **Phase 6B (GPU tabanı)**: US4'e bağlı; **kart gerekmez**, US1–US3 ile paralel koşabilir
+- **Phase 6C (genişlik Pareto)**: bağımlılık **yok**; kart gerekmez, her an koşabilir
 - **Phase 7**: Hepsine bağlı
 
 ### Kullanıcı hikâyesi bağımlılıkları

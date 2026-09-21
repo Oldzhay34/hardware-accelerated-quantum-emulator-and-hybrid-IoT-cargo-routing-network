@@ -74,6 +74,9 @@ python scripts/ci_fidelity_gate.py "docs/measurements/csim-fidelity_*.json"
 
 **Donanımsız CI** (`.github/workflows/csim-regression.yml`, kapsam **M**): her push'ta C-sim'i n=8/12/16 için koşar ve fidelity'yi [baseline-fidelity.json](docs/measurements/baseline-fidelity.json)'a karşı denetler. ⚠️ Testbench yalnızca **M eşiğinde** (0,99) başarısız olur; asıl regresyon kapısı `ci_fidelity_gate.py`'dir (tolerans 1e-7).
 
+**Savunma**: [docs/neden-fpga.md](docs/neden-fpga.md) — *"GPU varken neden FPGA?"*
+sorusunun cevabı; hangi argümanların kullanılacağı ve **hangilerinin kullanılmayacağı**.
+
 **Tez/makale yazarken tek referans**: [docs/olculen-degerler.md](docs/olculen-degerler.md) — bütün ölçülen değerler, deney koşulları, ne iddia edilebilir/edilemez, ve yanlışlanan hipotezler.
 
 ## Kalıcı hafıza dosyaları

@@ -122,7 +122,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 
 ---
 
-## Faz 5 görev haritası (63 görev)
+## Faz 5 görev haritası (73 görev — 63 + GPU tabanı + Pareto)
 
 | Faz | Öbek | Görev | Durum |
 |---|---|---|---|
@@ -135,6 +135,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
+| 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | bekliyor — kart gerekmez, bağımlılık yok |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 
 **MVP**: T001–T038 → *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve

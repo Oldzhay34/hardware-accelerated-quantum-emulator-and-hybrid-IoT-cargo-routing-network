@@ -11,3 +11,4 @@
 | `runbooks/` | Operasyonel prosedürler (geri yükleme, felaket provası, demo kurulumu) | 0.5, 12.4 |
 
 Kök seviyedeki dosyalar (`risk-register.md`, `repo-conventions.md`, `cost.md`, `secrets-audit.md`, `data-governance.md`, `backup.md`, `siradaki-standardi.md`, `faz-sonu-kontrol.md`) Faz 0 alt dallarının çıktılarıdır ve tek dosya olarak kalır.
+- [neden-fpga.md](neden-fpga.md) — *"GPU varken neden FPGA?"* savunması; kullanılacak ve **kullanılmayacak** argümanlar
