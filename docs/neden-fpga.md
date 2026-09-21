@@ -287,6 +287,8 @@ başarısızlığı değil, tam da varlık sebebidir.
 
 ## İlgili belgeler
 
+- [mimari-gerekce.md](mimari-gerekce.md) — **derin teknik gerekçelendirme**: çevrim başına
+  ayrıştırma, bellek-portu kanıtı, 18-bit silikon tanecikliği. Hakem/jüri seviyesi.
 - [sistem-mimarisi.md](sistem-mimarisi.md) — **uçtan uca mimari**; FPGA'nın sistemdeki gerçek rolü
 - [olculen-degerler.md](olculen-degerler.md) — ölçülen her değer, ne iddia
   edilebilir/edilemez

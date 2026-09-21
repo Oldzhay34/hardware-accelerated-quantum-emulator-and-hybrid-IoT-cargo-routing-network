@@ -77,6 +77,8 @@ python scripts/ci_fidelity_gate.py "docs/measurements/csim-fidelity_*.json"
 **Sistem mimarisi**: [docs/sistem-mimarisi.md](docs/sistem-mimarisi.md) — FPGA **merkezî
 çözücüdür, araçta değildir**; Railway kayıt sistemi + kargo sayısı tablosu, hesap taşması değil.
 
+**Mimari gerekçe (derin)**: [docs/mimari-gerekce.md](docs/mimari-gerekce.md)
+
 **Savunma**: [docs/neden-fpga.md](docs/neden-fpga.md) — *"GPU varken neden FPGA?"*
 sorusunun cevabı; hangi argümanların kullanılacağı ve **hangilerinin kullanılmayacağı**.
 
