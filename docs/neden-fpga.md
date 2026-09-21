@@ -86,24 +86,52 @@ Bunların her biri kulağa makul gelir ve her biri ilk soruda çöker.
 
 ## 2. Kullanılacak argümanlar
 
-### 2.1 Dağıtım zarfı — en güçlü argüman
+### 2.1 Sistem rolü: FPGA merkezî çözücü **ve** G/Ç göbeği
 
-Soru *"hangisi daha hızlı"* değil, **"bu zarfa ne sığar"**dır.
+> ⛔ **2026-09-21 DÜZELTME.** Bu bölüm önce *"FPGA kargo aracının içinde"*
+> diye yazılmıştı. **Yanlıştı** ve savunmada çökerdi. FPGA araçta değil;
+> **merkezî bir düğüm** olarak, ana bilgisayar gibi davranır. Aşağısı gerçek
+> mimariye göre yeniden yazıldı.
 
-Proje bir **hibrit IoT kargo rotalama ağıdır**. Optimize edici uçta koşar:
-araçta, depo dolabında, saha kabininde. Oranın kısıtları:
+**Gerçek mimari:**
 
-| | PYNQ-Z2 (XC7Z020) | RTX 4060 Laptop |
+```
+        FPGA (PYNQ-Z2) — merkezî çözücü düğüm
+        ≥60 kargo rotası, servis bölgelerine göre bölümlenir
+        bölgeler arası pipeline burada kurulur
+                 │
+       ┌─────────┴─────────┐
+       │                   │
+  donanım yeterse     yetmezse
+  DOĞRUDAN            Railway sunucusuna gönderir
+       │                   │
+       ▼                   ▼
+   servislerdeki ESP32'ler ◄┘
+```
+
+Buradan çıkan üç argüman — ve hiçbiri "araca sığar mı" değil:
+
+**(a) Sürekli çalışan bir servis düğümü.** Bu bir pil ömrü meselesi değil,
+**7/24 işletme maliyeti** meselesi. PYNQ-Z2 ~5 W sürekli ≈ 44 kWh/yıl. Aynı
+işi yapan bir GPU + konak sistem 150–300 W bandındadır. Görev döngüsü sürekli
+olduğu için enerji argümanı zayıflamaz, **şekil değiştirir**.
+
+**(b) FPGA aynı zamanda G/Ç göbeğidir.** Kartın kendi ARM'ı Linux koşuyor;
+Ethernet, I2C, GPIO, UART üstünde. ESP32'lerle **doğrudan** konuşabiliyor.
+GPU bunu yapamaz — G/Ç'si yoktur, bir konak makine şarttır. Yani gerçek
+karşılaştırma *"FPGA vs GPU"* değil:
+
+| | Tek PYNQ-Z2 kutusu | GPU çözümü |
 |---|---|---|
-| Güç | ~2–5 W, 12 V/2 A adaptör | 50–115 W |
-| Konak | **gerekmez** — kartın kendi ARM'ı Linux koşuyor | bir bilgisayar şart |
-| Soğutma | pasif/küçük fan | aktif, hacimli |
-| Çevre birimi | I2C/GPIO doğrudan üstünde (INA219'u kart kendi okuyor) | ayrı arayüz donanımı |
-| Maliyet (düğüm başına) | ~200 $, tek seferlik | GPU + konak sistem |
+| Çözücü | ✅ PL'de | ✅ |
+| İşletim sistemi / ağ | ✅ kart üstündeki ARM | konak makine gerekir |
+| ESP32 ile doğrudan G/Ç | ✅ Ethernet/I2C/UART | konak üzerinden |
+| Sürekli güç | ~5 W | 150–300 W |
 
-Bu bir hız tartışması değil, **konuşlandırılabilirlik** tartışmasıdır. RTX
-4060'ı bir kargo aracına koyamazsınız. Argüman yapısaldır, sonradan
-uydurulmuş bir gerekçe değil.
+**(c) Uygulamanın ölçütü tek atış gecikmesi değil, verimdir.** ≥60 rota
+bölgelere bölünüp bir **pipeline**'dan geçiyor. Anlamlı sayı tek bir çözümün
+37,28 ms'si değil, **tam turun süresi**: 60 × 37,28 ms ≈ **2,24 s**. Boru
+hattı zaten FPGA'nın doğal işidir.
 
 ### 2.2 Sıfır çip-dışı bellek trafiği — mimari argüman
 
@@ -168,7 +196,10 @@ sığma**: bu nokta GPU'da seçilemez, GPU'nun seçebildikleri de bu çipe sığ
 zamanlama) ölçüp fidelity ile yan yana koymak — Pareto eğrisi. Faz 5
 Phase 6C, T070–T073.
 
-### 2.3 Belirlenimci gecikme
+### 2.3 Belirlenimci gecikme — **yalnız artımlı yolda geçerli**
+
+> ⚠️ **Kapsam**: Sistem iki kipte çalışıyor ([sistem-mimarisi.md §3](sistem-mimarisi.md)). **Gecelik toplu işte jitter'ın hiçbir önemi yoktur** — gece boyunca zaman var. Bu argüman yalnız **adres değişikliği** yolunda, kullanıcı beklerken anlamlıdır. Her yere yayılırsa zayıflar.
+
 
 FPGA'da gecikme çevrim cinsinden sabittir: p=2 için **3.728.217 çevrim**, her
 seferinde. Kuyruk yok, işletim sistemi araya girmiyor, sürücü zamanlaması
@@ -244,17 +275,19 @@ başarısızlığı değil, tam da varlık sebebidir.
 
 ## 5. Tek paragrafta savunma
 
-> Bu projede amaç en hızlı statevector simülatörünü yapmak değildi; 16
-> kübitlik bir QAOA emülasyonunu **bir uç cihaz zarfına** — birkaç watt,
-> konak bilgisayarsız, çip-dışı belleğe hiç dokunmadan — sığdırmanın mümkün
-> olup olmadığını ve bedelinin ne olduğunu ölçmekti. GPU bu hesabı daha hızlı
-> yapar; ölçtük ve raporluyoruz. Ama GPU bir kargo aracının kabinine
-> girmiyor. Bizim ölçtüğümüz şey, girenin ne kadara mal olduğudur.
-
----
+> Bu projede amaç en hızlı statevector simülatörünü yapmak değildi. FPGA
+> burada **merkezî çözücü ve G/Ç göbeği** olarak duruyor: ≥60 kargo rotasını
+> bölgelere bölüp bir boru hattından geçiriyor ve servislerdeki ESP32'lerle
+> doğrudan konuşuyor — tek kutu, ~5 W, sürekli çalışıyor, konak bilgisayar
+> yok, çip-dışı belleğe hiç dokunmuyor. GPU tek bir çözümü daha hızlı yapar;
+> ölçtük ve raporluyoruz. Ama GPU'nun G/Ç'si yoktur, bir konak makine ister
+> ve sürekli görev döngüsünde iki kat büyüklük daha fazla güç çeker. Bizim
+> ölçtüğümüz şey, bu işi **tek bir düşük güçlü düğümde** yapmanın kapasitesi
+> ve bedelidir — ve o kapasitenin nerede yetmeyip Railway'e devrettiğidir.
 
 ## İlgili belgeler
 
+- [sistem-mimarisi.md](sistem-mimarisi.md) — **uçtan uca mimari**; FPGA'nın sistemdeki gerçek rolü
 - [olculen-degerler.md](olculen-degerler.md) — ölçülen her değer, ne iddia
   edilebilir/edilemez
 - [risk-register.md](risk-register.md) — GK-01 (sürücü çökmeleri)
