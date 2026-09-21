@@ -27,10 +27,13 @@ değeri ÖLÇEKLİ Hamiltonyen üzerinden ölçer; `* S` ile ham birime dönül�
 
 C tarafındaki karşılığı: `hls/tb/tb_kernel.cpp::tura_cevir`.
 """
-from __future__ import annotations
+# PYTHON 3.6 UYUMU ZORUNLU -- bu modul KARTTA da iceri aktariliyor.
+# PYNQ 2.5'te Python 3.6.5 var; `dataclasses` ve `from __future__ import
+# annotations` 3.7+ ile geldi ve kartta SyntaxError / ModuleNotFoundError
+# verir. Bu yuzden duz sinif kullaniliyor. Konak tarafinda 3.13 kosuyor;
+# ayni kod ikisinde de calismak ZORUNDA.
 
 import math
-from dataclasses import dataclass, field
 from typing import Sequence
 
 # --- Çekirdek sabitleri (hls/src/qir_types.hpp ile birebir) ---------------
@@ -255,24 +258,36 @@ def beta_dizileri(betalar: Sequence[float]):
 # =========================================================================
 # Bir koşumun tam kodlaması
 # =========================================================================
-@dataclass
-class KodlanmisKosum:
+class KodlanmisKosum(object):
     """Karta yazılacak her şey + geri dönüş için gereken defter.
 
     Madde H-1: `olcek` kaydedilir — yoksa `beklenen_deger_ham` yorumlanamaz.
     Madde H-6: ham ve ölçek geri uygulanmış değerler **ayrı** saklanır.
+
+    ⚠️ `@dataclass` DEĞİL — kartta Python 3.6 var (bkz. modül başlığı).
     """
-    cost: list                 # 272 word
-    phases: list               # 816 word
-    cos_beta: list             # 3 word
-    sin_beta: list             # 3 word
-    p: int
-    olcek: float               # S  (madde H-1)
-    h_ham: list = field(default_factory=list)
-    J_ham: list = field(default_factory=list)
-    gammalar: list = field(default_factory=list)
-    betalar: list = field(default_factory=list)
-    doyma_uyarilari: list = field(default_factory=list)
+
+    __slots__ = ("cost", "phases", "cos_beta", "sin_beta", "p", "olcek",
+                 "h_ham", "J_ham", "gammalar", "betalar", "doyma_uyarilari")
+
+    def __init__(self, cost, phases, cos_beta, sin_beta, p, olcek,
+                 h_ham=None, J_ham=None, gammalar=None, betalar=None,
+                 doyma_uyarilari=None):
+        self.cost = cost                    # 272 word
+        self.phases = phases                # 816 word
+        self.cos_beta = cos_beta            # 3 word
+        self.sin_beta = sin_beta            # 3 word
+        self.p = p
+        self.olcek = olcek                  # S  (madde H-1)
+        self.h_ham = [] if h_ham is None else h_ham
+        self.J_ham = [] if J_ham is None else J_ham
+        self.gammalar = [] if gammalar is None else gammalar
+        self.betalar = [] if betalar is None else betalar
+        self.doyma_uyarilari = [] if doyma_uyarilari is None else doyma_uyarilari
+
+    def __repr__(self):
+        return "KodlanmisKosum(p={}, olcek={!r}, yazma={}, doyma={})".format(
+            self.p, self.olcek, self.yazma_sayisi, len(self.doyma_uyarilari))
 
     @property
     def yazma_sayisi(self) -> int:
@@ -283,6 +298,7 @@ class KodlanmisKosum:
     def ham_bekleneni_coz(self, beklenen_deger_ham: float) -> float:
         """Madde H-6: kartın döndürdüğü ölçekli değeri ham birime çevirir."""
         return beklenen_deger_ham * self.olcek
+
 
 
 def kosum_kodla(h: Sequence[float],

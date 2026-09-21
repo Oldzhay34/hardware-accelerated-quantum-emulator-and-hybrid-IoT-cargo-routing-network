@@ -18,11 +18,14 @@ bir izdüşümdür; hepsi birden statevector'e dair bağımsız kısıtlar kurar
 yeşil yandığı için fark edilmez. Bağımsızlık üreticinin sorumluluğudur ve
 `agent/tests/test_encoder.py` ile sabitlenir.
 """
-from __future__ import annotations
+# PYTHON 3.6 UYUMU ZORUNLU -- bu modul KARTTA da iceri aktariliyor.
+# PYNQ 2.5'te Python 3.6.5 var; `dataclasses` ve `from __future__ import
+# annotations` 3.7+ ile geldi ve kartta SyntaxError / ModuleNotFoundError
+# verir. Bu yuzden duz sinif kullaniliyor. Konak tarafinda 3.13 kosuyor;
+# ayni kod ikisinde de calismak ZORUNDA.
 
 import math
 import random
-from dataclasses import dataclass, field
 from typing import List
 
 from .encoder import N_QUBITS
@@ -37,16 +40,27 @@ ALT, UST = -1.0, 1.0
 BAGIMLILIK_ESIGI = 0.30
 
 
-@dataclass
-class IzdusumSerisi:
-    """Üretilen vektör kümesi + yeniden üretilebilirlik defteri (madde H-7)."""
-    tohum: int
-    vektorler: List[dict] = field(default_factory=list)   # {"h": [...], "J": [[...]]}
-    elenen: int = 0
-    en_buyuk_benzerlik: float = 0.0
+class IzdusumSerisi(object):
+    """Üretilen vektör kümesi + yeniden üretilebilirlik defteri (madde H-7).
 
-    def __len__(self) -> int:
+    ⚠️ `@dataclass` DEĞİL — kartta Python 3.6 var (bkz. modül başlığı).
+    """
+
+    __slots__ = ("tohum", "vektorler", "elenen", "en_buyuk_benzerlik")
+
+    def __init__(self, tohum, vektorler=None, elenen=0, en_buyuk_benzerlik=0.0):
+        self.tohum = tohum
+        self.vektorler = [] if vektorler is None else vektorler
+        self.elenen = elenen
+        self.en_buyuk_benzerlik = en_buyuk_benzerlik
+
+    def __len__(self):
         return len(self.vektorler)
+
+    def __repr__(self):
+        return "IzdusumSerisi(tohum={}, vektor={}, elenen={})".format(
+            self.tohum, len(self.vektorler), self.elenen)
+
 
 
 def _duzlestir(h, J) -> List[float]:
