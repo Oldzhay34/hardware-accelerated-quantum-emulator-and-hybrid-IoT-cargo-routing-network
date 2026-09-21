@@ -192,6 +192,88 @@ gecikmenin gerçekten önemli olduğu tek yol orası.
 
 ---
 
+## 7.5 Paralellik katmanları — nerede var, nerede yok, neden gerekmiyor
+
+*"Neden paralelleştirmediniz?"* sorusunun hazır cevabı. Üç ayrı katman var ve
+üçünün durumu farklı.
+
+| Katman | Paralellik | Durum | Neden |
+|---|---|---|---|
+| **Çekirdek içi** | var, II=2 | ✅ **tavanda** | Bellek portu, ölçümle kapandı |
+| **Alt problemler arası** | problemde var | ❌ kullanılamıyor | BRAM %67, ikinci örnek sığmaz |
+| **Optimize edici** | yok | ❌ yapısal | COBYLA sıralı |
+
+### Katman 1 — çekirdek içi: **zaten paralel, ve sınırında**
+
+Karıştırıcı boru hattında **II=2** çalışıyor (iki çevrimde bir genlik çifti),
+`sv` dizisi `cyclic factor 2` ile bankalanmış, köşegen katmanın iç tablo
+döngüleri açılmış (`UNROLL`).
+
+Daha fazlası **ölçümle denendi ve kapandı**
+([ADR 0009](../docs/decisions/0009-paralellik-turu-kapatildi.md),
+[faz2-sentez.md Tur 17](measurements/faz2-sentez.md)):
+
+| Bankalama | Çevrim | LUT |
+|---|---:|---:|
+| cyclic 2 | 5.375.327 | %84 |
+| cyclic **4** | 5.375.327 | %86 |
+| cyclic **8** | 5.375.328 | %90 |
+
+Bankayı dörde katlamak **sıfır** kazanç verdi (fark: bir çevrim), LUT'u %84'ten
+%90'a çıkardı.
+
+**Mekanizma**: yerinde kelebek, çift başına **dört** bellek erişimi ister
+(`oku i`, `oku i′`, `yaz i`, `yaz i′`). BRAM'in **iki** portu var →
+`II = 4/2 = 2`. Bu donanımsal tabandır. Bankalama en kötü durumu düzeltmez,
+çünkü `2ᵏ ≥ F` olan her kübitte iki erişim **aynı bankaya** düşer ve boru
+hattı II'si en kötü *k*'ye göre belirlenir. Yalnız **port** eklemek düzeltir —
+ve BRAM'de ikiden fazla port yoktur.
+
+> `RAM_2P` → `RAM_T2P` (basit çift port → gerçek çift port) tek kelimelik
+> değişiklikle II'yi 3'ten 2'ye, gecikmeyi **%22,6** düşürdü ve **bedeli
+> sıfırdı**. Satın alınabilir tek paralellik buydu ve alındı.
+
+### Katman 2 — alt problemler arası: problem paralel, **çip değil**
+
+60 alt problem birbirinden tamamen bağımsızdır — *utanç verici derecede
+paralel* bir iş yükü. Eşzamanlı koşturmak için birden fazla çekirdek örneği
+gerekir ve **sığmaz**:
+
+```
+tek n=16 statevector  : 2,36 Mbit  →  BRAM %67 (tablolarla birlikte)
+ikinci örnek          : → %134.  SIĞMAZ.
+```
+
+LUT %43 ve DSP %15'te boşta durduğu hâlde bağlayıcı kaynak **BRAM**'dir ve
+orada yer yoktur. Bu çipte alt problemler **sırayla** koşar.
+
+### Katman 3 — optimize edici: yapısal olarak sıralı
+
+COBYLA her adımda bir öncekinin sonucuna bakar; 99 iterasyon zorunlu olarak
+ardışıktır. Gradyan tabanlı bir yönteme geçilse sonlu fark hesapları
+paralelleşebilirdi — ama paralel koşturacak ikinci bir örnek yok (katman 2).
+
+### Neden hiçbiri gerekmiyor
+
+```
+60 alt problem × 3,69 s = 221 s ≈ 3,7 dakika / gece
+kart günün %99,7'sinde BOŞTA
+```
+
+Gecelik toplu iş için paralellik **olmayan bir problemi çözer**. Sığsaydı bile
+kazanç *"3,7 dakika yerine 1,8 dakika"* olurdu.
+
+Tek bedava kazanç, PL hesaplarken ARM'ın bir sonraki alt problemin 1.095
+word'ünü hazırlaması olurdu — ama yazma ~1 ms, hesap 37 ms: **%3**. Uğraşmaya
+değmez.
+
+> **Savunmadaki ifade**: *"Paralellik çekirdeğin içinde mevcut ve ölçülmüş
+> tavanındadır; tavanı belirleyen bellek portudur, banka sayısı değil. Alt
+> problem düzeyinde paralellik BRAM kapasitesiyle sınırlıdır ve iş yükü
+> profili (gecelik toplu iş) onu zaten gereksiz kılmaktadır."*
+
+---
+
 ## 8. Dürüst uyarı: QAOA'nın çözüm kalitesi ayrı bir iddiadır
 
 Referans koşumda:
