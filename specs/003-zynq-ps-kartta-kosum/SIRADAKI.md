@@ -17,21 +17,19 @@
 > T064–T077 (GPU tabanı, Pareto, sıcak başlangıç) **MVP'den sonra**.
 > İyi bir fikir çıkarsa tasks.md'ye yazılır ama **başlanmaz**.
 
-**Hedef (tek cümle)**: **Öbek 4 — T026'dan başla.** İlk iş: `agent/encoder.py`
-ve `agent/cost_vectors.py`'yi **Python 3.6 uyumlu** hâle getirmek (kartta 3.6.5
-var; `dataclasses` ve `from __future__ import annotations` 3.7+ — kartta içeri
-aktarılamazlar).
+**Hedef (tek cümle)**: **T032** — bitstream'i karta yükle ve `ap_idle`
+okunabildiğini doğrula; ardından **T033/G3** (20 izdüşüm bit bit tutmalı).
+⚠️ Önce **ağ** çözülmeli: bitstream 3,86 MB, seri porttan ~12 dk sürer.
 
-**Dokunulacak dosyalar**: `agent/encoder.py`, `agent/cost_vectors.py`
-(3.6 uyumu), `agent/board.py` (yok, T026 yazacak),
-`artifacts/bitstream/qir_20260920_d350605.{bit,hwh}` (hazır)
+**Dokunulacak dosyalar**: `artifacts/bitstream/qir_20260920_d350605.{bit,hwh}`,
+`agent/` (karta kopyalanacak), `artifacts/izdusum_{vektorleri,beklenen}.json`
 
-**Bilinen tuzak**: Konak kodu FCLK'yi **doğrulamalı**
-(`from pynq.ps import Clocks; Clocks.fclk0_mhz`) — 100 MHz ölçüldü ama bu boot
-varsayılanı, bitstream garantisi değil. `import pynq` **root** ister (sudo
-artık parolasız). Register haritası: IP paketindeki `xqir_kernel_hw.h`.
+**Bilinen tuzak**: Konak kodu `sudo` ile koşar (`import pynq` root ister) ve
+FCLK'yi **doğrular** (`board.Kart.yukle()` %1'den saparsa istisna atar).
+Bir sapma görülürse **ilk şüpheli GÜÇ** olmalı, mantık değil — bkz. donanım
+tablosundaki JP5 notu.
 
-**Son güncelleme**: 2026-09-21, Faz 5.4 (kapsam donduruldu; öbek 4 sırada)
+**Son güncelleme**: 2026-09-21, Faz 5.5 (T026–T031 bitti; T032 kart bekliyor)
 
 ---
 
@@ -89,7 +87,7 @@ Ayrıca **`192.168.2.99`** (USB ethernet gadget). Üç yoldan doğrulandı: seri
 | `import pynq` | ✅ root altında çalışıyor — PYNQ **2.5**, `Overlay`/`Bitstream`/`MMIO` erişilebilir |
 | FCLK0 | **100,0 MHz** ölçüldü (boot varsayılanı) — bitstream'in zamanlama hedefiyle aynı. Yine de konak kodu **doğrulamalı**, varsaymamalı |
 | Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
-| Besleme | **Adaptör**, **JP5 = REG** — ⚠️ DEĞİŞTİRİLMEYECEK (enerji ölçümü buna bağlı) |
+| Besleme | ⚠️ **JP5 şu an `USB`** (21 Eyl: kart adaptörsüz açıldı → REG olamaz). Daha önce bu satır "REG" diyordu, **yanlıştı**.<br>⚠️ USB 2,5 W verir; PL %43 LUT + %67 BRAM @100 MHz bunu zorlayabilir. Gerilim düşerse **sessiz yanlış sonuç** verir ve mantık hatası sanılır.<br>**Öneri**: T032 öncesi kartı kapat → JP5 = **REG** → adaptör + USB + ethernet.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
 | INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
 | Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
@@ -112,7 +110,12 @@ fidelity ≥0,99997 · cosim PASS (**n=8 ve n=16**)
 **CPU** (2026-09-19 temiz ölçüm, prizde, 7474 koşum, plato oturdu):
 turbo **32,75 ms** · plato **41,93 ms** · enerji **0,644 J/koşum**
 
-**Karşılaştırma: gecikmede BAŞABAŞ.** 37,28 ms, CPU'nun turbo ve plato
+⛔ **"BAŞABAŞ" SONUCU GEÇERSİZ** (21 Eyl) — o taban Qiskit Aer'di ve ~10× adil değildi.
+Aynı kod konak CPU'da **3,273 ms** (CPU 11,4× hızlı); kart üstü ARM'da **84,13 ms**
+(**FPGA 2,26× hızlı** ← geçerli olan bu). Bkz. [§22](../../docs/measurements/faz2-sentez.md),
+[hizlandirici-kiyas-gunlugu.md](../../docs/hizlandirici-kiyas-gunlugu.md).
+
+Eski metin: 37,28 ms, CPU'nun turbo ve plato
 değerlerinin arasına düşüyor. Tezin sonucu **enerji ekseninde** belirlenecek —
 kaba hesap FPGA lehine 3,5–5,8× ama **ölçülmedi**.
 
@@ -141,7 +144,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 2 | 1 — `fpga/` + belgeler | T008–T012 | ✅ **BİTTİ** |
 | 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
 | 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
-| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ⬅️ **sıradaki** (önce sudo) |
+| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | 🔵 **T026–T031 BİTTİ**, T032 kart bekliyor |
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | bekliyor |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
@@ -156,6 +159,31 @@ doğrulandı"* — tek başına savunulabilir.
 **Kartsız ilerleyebilen**: öbek 1 (belgeler) ve öbek 3 (kodlayıcı, T019–T025).
 Öbek 3 **kesinlikle** öbek 4'ten önce bitmeli ki kartta çıkacak uyuşmazlık
 donanıma izole olsun.
+
+---
+
+## ⚠️ AĞ SORUNU — T032'den önce çözülmeli
+
+Kart açıkken (21 Eyl) ölçülen durum:
+
+| | |
+|---|---|
+| `carrier` | **1** — kablo takılı, link var |
+| DHCP | kira **vermedi**; kart statik yedeğe düştü (`192.168.2.99`) |
+| Elle verilen `192.168.1.50` | Wi-Fi'daki laptop'tan **görünmüyor** |
+| Seri port | ✅ çalışıyor — 73 KB'ı 19 sn'de aktardı (3,8 KB/s) |
+
+**Neden önemli**: bitstream **3,86 MB**. Seri porttan sıkıştırılmış ~2 MB
+→ base64 ~2,7 MB → **~12 dakika**, ve her denemede tekrarlanır.
+
+**Deneme sırası**:
+1. `sudo dhclient -v eth0` (bir kez daha, kart tam boot ettikten sonra)
+2. Kabloyu router'ın **başka bir portuna** al
+3. Kartı laptop'ın ethernet portuna **doğrudan** bağla, iki tarafa statik IP
+4. Son çare: seri porttan aktar (çalışır, sadece yavaş)
+
+⛔ microSD'yi çıkarıp kopyalamak **son çaredir** — 19 Eylül'de SD yuvası iki
+saat kaybettirdi (risk DT-03).
 
 ---
 

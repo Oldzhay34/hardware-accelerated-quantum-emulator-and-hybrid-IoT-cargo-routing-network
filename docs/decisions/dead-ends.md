@@ -196,3 +196,65 @@ hızlı, bilimsel olarak eşdeğer (aynı RTL, testbench ve uyaran). Betik:
 yanlıştı ve ikisi de ölçümle çürütüldü — ikincisi, koşu zaten yerel diskteyken
 aynı eğriyi çizerek. Bir hipotez çürütüldüğünde **onu yazan yorum satırı da
 güncellenmeli**; güncellenmeyen yorum bir sonraki turu aynı yanlış yola sokuyor.
+
+### Faz 2'nin CPU tabanı olarak Qiskit Aer — 2026-09-21, Faz 5
+
+**Neden denendi**: Doğal seçim; altın referans zaten Aer ve "CPU'da ne kadar
+sürüyor" sorusunun en kolay cevabı.
+
+**Neden olmadı**: Aer, RZZ'yi CX-RZ-CX olarak ayrıştırıyor ve p=2'de **384
+kapı** uyguluyor; bizim çekirdek köşegen operatörün tamamını **32 geçişe**
+füzyonluyor. **12× algoritmik fark** — donanım farkı değil.
+
+Ölçüldü ([adil-cpu-tabani](../measurements/adil-cpu-tabani_20260921_c504294.json)):
+aynı çekirdek kodu konak CPU'da **3,273 ms**, Aer 32,75 ms. Yani Faz 2'nin
+*"gecikmede başabaş"* sonucu bir **taban artefaktıydı**; adil tabanla dizüstü
+CPU FPGA'dan **11,4× hızlı**.
+
+**Tekrar denenmeli mi**: Hayır. Gecikme karşılaştırmasında taban, **aynı
+algoritmanın** aynı platformdaki hâli olmalı. `hls/tb/bench_kernel.cpp` bunun
+için var.
+
+### FPGA'yı "gerekli" kılmak için gereksinim aramak — 2026-09-21, Faz 5
+
+**Neden denendi**: *"GPU varken neden FPGA?"* sorusuna uygulama tarafından
+cevap bulmak.
+
+**Neden olmadı — sırayla elendi:**
+
+| Yol | Neden düştü |
+|---|---|
+| **n'i büyütmek** | BRAM tavanı. 16 kübitte %67'deyiz, 17 sığmıyor |
+| **Daha çok paralellik** | [ADR 0009](0009-paralellik-turu-kapatildi.md): bankayı 4'e katlamak sıfır kazanç, bellek portu bağlıyor |
+| **Çoklu eşzamanlı örnek** | İkinci n=16 statevector BRAM'e sığmaz (%134). LUT %43'te boşta ama bağlayıcı kaynak BRAM |
+| **Bulut bağlantısızlık** | Kaba kuvvet de çevrimdışı ve ~85.000× hızlı çalışıyor — gerekçelendirmiyor |
+| **n=9'a inip mikrosaniye sınıfı** | **Kötüleşiyor**: 4 şehir = 6 tur, daha da trivial. Küçük N emülasyonu daha saçma kılar |
+
+**Kök sebep** (yapısal, düzeltilemez): statevector `2^((N-1)²)`, çözüm uzayı
+`(N-1)!`. Emülatör, **emüle edebildiği her boyutta**, aynı TSP'yi kaba
+kuvvetle çözmekten üstel olarak pahalıdır. N=5'te 65.536 genlik, 24 tur için.
+Ölçüldü: kaba kuvvet **43,2 µs** (kesin) vs QAOA yolu 3,69 s — **~85.000×**
+([kaba-kuvvet-kiyas](../measurements/kaba-kuvvet-kiyas_20260921_c504294.json)).
+
+**Tekrar denenmeli mi**: Hayır, ve arama **kapatıldı**. Hiçbir *uygulama*
+gereksinimi bu iş yükü için hızlandırıcıyı gerekçelendiremez. Gerekçe
+uygulamada değil, **emülatörün kendisindedir** — proje bir rota optimizasyonu
+ürünü değil, bir donanım emülasyon çalışmasıdır
+([CLAUDE.md tez çerçevesi](../../CLAUDE.md), [neden-fpga.md §0.5](../neden-fpga.md)).
+
+### ARM tabanını `ap_fixed_mock` ile ölçmek — 2026-09-21, Faz 5
+
+**Neden denendi**: Donanımla **aynı** aritmetiği (Q1.17) koşturuyor; en adil
+taban gibi görünüyordu.
+
+**Neden olmadı**: Taklit sınıf her işlemi `double`'da yapıp kuantalıyor ve
+Cortex-A9'un NEON'u **çift duyarlık desteklemiyor**. Ölçüldü: ARM'da Q1.17
+taklidi **1579 ms**, yerel float **84,1 ms** — **18,8× fark**, ve bu fark bir
+mimari gerçek değil taklit sınıfın artefaktı.
+
+Yalnız taklidi ölçseydik **"42× hızlanma"** raporlayacaktık; gerçek sayı
+**2,26×**.
+
+**Tekrar denenmeli mi**: Hayır. Taban, hedef platformda **yetkin bir
+gerçeklemenin** yapacağı şey olmalı. `QIR_REAL_FLOAT` bayrağı bunun için
+eklendi ve **sentezde kullanılmaz**.
