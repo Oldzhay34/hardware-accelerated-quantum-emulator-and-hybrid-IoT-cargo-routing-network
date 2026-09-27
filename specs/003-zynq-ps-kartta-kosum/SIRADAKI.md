@@ -15,20 +15,23 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **6C'yi bitir** — W=14 sentezini yeniden koş (rapor
-üretmedi), sonra **T073**: Pareto figürü + `neden-fpga.md` §2.2b'yi ölçümle
-**yeniden yaz** (eski "18 bit iki kısıtın kesişimi" anlatısı ÇÖKTÜ, aşağıda).
-Ardından öbek 6 (enerji) — lehim ve DC jak adaptörü gelince.
+**Hedef (tek cümle)**: **T073** — Pareto figürü + `neden-fpga.md` §2.2b'yi
+ölçümle **yeniden yaz** (eski "18 bit iki kısıtın kesişimi" anlatısı ÇÖKTÜ,
+aşağıda). T072 beş genişlikle **kapandı**. Ardından öbek 6 (enerji) — lehim
+ve DC jak adaptörü gelince.
 
-**Dokunulacak dosyalar**: `hls/genislik_sentez.sh` (W=14 için
-`QIR_GENISLIKLER=14`), `scripts/genislik_pareto.py`, `docs/figures/` (yeni
-figür), `docs/neden-fpga.md` §2.2b, `docs/olculen-degerler.md` §2.2
+**Dokunulacak dosyalar**: `docs/figures/` (yeni figür, girdi
+[genislik-pareto_20260927_924216e.json](../../docs/measurements/genislik-pareto_20260927_924216e.json)),
+`docs/neden-fpga.md` §2.2b (+ §0 tablosu), `docs/mimari-gerekce.md` özet
+cümlesi
 
-**Bilinen tuzak**: W=14 koşusu 3 sn'de "TAMAM" dedi ama **rapor yok** ve
-günlükte tek Vitis satırı yok — `run.sh` `vitis-run`'ın çıkış kodunu
-güveniyor, rapor varlığını denetlemiyor. W=16/18/20/24 normal (~40 sn/sentez;
-yalnız csynth bu kadar sürüyor). ⛔ **"18 bit fp16'dan daha doğru" yazılmaz**,
-⛔ **"18 bit H'yi geçen en dar format" artık yazılmaz** (16 da geçiyor).
+**Bilinen tuzak**: Figür **JSON'dan** çizilir, elle rakam yazılmaz. LUT/FF
+sütunu HLS tahmini — eksende "tahmin" diye etiketlenir ya da hiç çizilmez
+(BRAM ve fidelity asıl eksenler). ⛔ **"18 bit fp16'dan daha doğru"
+yazılmaz**, ⛔ **"18 bit H'yi geçen en dar format" artık yazılmaz** (16 da
+geçiyor). Pareto'yu yeniden üretmek gerekirse C-sim dökümleri repoda değil:
+önce `wsl -d Ubuntu -e bash hls/genislik_tarama.sh` (→ `hls/build/genislik`),
+sonra `scripts\genislik_pareto.py hls\build\genislik`.
 
 ## 🔬 6C DURUMU (27 Eyl) — genişlik taraması
 
@@ -36,21 +39,29 @@ yalnız csynth bu kadar sürüyor). ⛔ **"18 bit fp16'dan daha doğru" yazılma
 |---|---|
 | **T070** `QIR_REAL_BITS` parametresi | ✅ varsayılan 18'de 4 döküm **bit bit aynı**, CI kapısı 4/4, trig tablosu 8192/8192 ham bit aynı |
 | **T071** C-sim fidelity 14/16/18/20/24 | ✅ ön kayıtlı K1–K4 geçti; her 2 bit ~16× (kuramsal), 20→24'te ~1e-7 tabanı |
-| **T072** csynth | 🔵 16/18/20/24 **bitti**, **W=14 rapor yok** → yeniden koş. 18'in tarama koşusu asıl raporla **AYNI** |
+| **T072** csynth | ✅ beş genişlik. 18'in tarama koşusu asıl raporla **AYNI**. W=14 ilk koşuda sessizce boş döndü (aşağıda), tek başına yeniden koşunca normal |
 | **T073** figür + §2.2b | ⬜ |
 
 | W | BRAM_18K | DSP | LUT (HLS) | p=2 çevrim | Fidelity p=2 | Model |
 |---|---:|---:|---:|---:|---:|---:|
-| 14 | — (yeniden) | | | | 0,994508 | 0,978861 |
+| 14 | **152** | 36 | 44.472 | 3.728.217 | 0,994508 ❌H | 0,978861 |
 | 16 | **169** | 36 | 44.800 | 3.728.217 | **0,999656** ✅H | 0,998674 |
 | 18 | **187** | 36 | 45.131 | 3.728.217 | 0,999978 | 0,999917 |
 | 20 | **204** | 30 | 45.917 | 3.728.218 | 0,9999985 | 0,999995 |
 | 24 | **238** | 33 | 47.260 | 3.728.219 | 0,9999999 | 0,99999998 |
 
-Kayıt: [genislik-pareto](../../docs/measurements/genislik-pareto_20260927_29b253c.json)
-(W=14 satırı eksik). Betikler: `hls/genislik_tarama.sh` (C-sim),
-`hls/genislik_sentez.sh` (csynth, asıl projeye dokunmaz → `qir_hls_prj_W<n>`),
-`scripts/genislik_pareto.py` (toplama).
+Kayıt: [genislik-pareto_20260927_924216e](../../docs/measurements/genislik-pareto_20260927_924216e.json)
+(beş satır; eski `_29b253c` W=14'süz, tarihsel). Betikler:
+`hls/genislik_tarama.sh` (C-sim), `hls/genislik_sentez.sh` (csynth, asıl
+projeye dokunmaz → `qir_hls_prj_W<n>`), `scripts/genislik_pareto.py`
+(toplama). Statevector BRAM'i tam **8W** (112/128/144/160/192), geri kalanı
+40–46 blok.
+
+⚠️ **W=14 ilk koşusu**: `vitis-run` hiçbir şey yazmadan 0 döndü, proje
+dizini oluşmadı, döngü "TAMAM" dedi (tarama döngüsünün ilk koşusuydu).
+27 Eyl 23:09'da tek başına yeniden koşunca 74 sn'de normal bitti; **neden
+bulunamadı**. `genislik_sentez.sh` artık başarıyı **rapor varlığıyla**
+ölçüyor, çıkış koduyla değil.
 
 ### ⛔ Çöken anlatı — tezde düzeltilmeli
 
@@ -124,7 +135,7 @@ durum** (üçgen döngüler); **RTL simülasyonu 36,5464 ms**, kart 31 µs üst�
 kart RTL'i koşuyor. ⬜ Döngü döngü dağılım kapanmadı (manşeti değiştirmez).
 Ön kayıtlı **B7 tutmadı**. Kayıt: [olculen-degerler §5.1](../../docs/olculen-degerler.md).
 
-**Son güncelleme**: 2026-09-27, Faz 5.9 (öbek 5 kapandı; 6C T070–T071 bitti, T072 W=14 hariç bitti)
+**Son güncelleme**: 2026-09-27, Faz 5.9 (öbek 5 kapandı; 6C T070–T072 bitti, T073 kaldı)
 
 ---
 
@@ -244,7 +255,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
-| 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | 🔵 T070–T071 ✅, T072 W=14 hariç ✅, T073 ⬜ — ⛔ "18 kesişim" anlatısı **çöktü** |
+| 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | 🔵 T070–T072 ✅, T073 ⬜ — ⛔ "18 kesişim" anlatısı **çöktü** |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 

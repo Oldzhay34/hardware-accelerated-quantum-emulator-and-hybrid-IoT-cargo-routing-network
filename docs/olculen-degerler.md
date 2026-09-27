@@ -129,20 +129,21 @@ Koşum boyunca besleme (XADC): VCCINT ≥ 1,0151 V, VCCBRAM ≥ 1,0159 V — dü
 Aynı çekirdek `QIR_REAL_BITS` ile 5 genişlikte derlendi (C-sim + csynth).
 Sabit tutulan: n=16, `phase_t` 18 bit, trig indeksi 13 bit, 10 ns hedef,
 xc7z020clg400-1. Kayıt:
-[genislik-pareto_20260927_29b253c.json](measurements/genislik-pareto_20260927_29b253c.json).
+[genislik-pareto_20260927_924216e.json](measurements/genislik-pareto_20260927_924216e.json)
+(beş genişlik; önceki `_29b253c` W=14'süzdü).
 
 | W | Format | Fidelity p=2 | Fidelity p=1 | Model p=2 | BRAM_18K | DSP | LUT* | Periyot |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|
-| 14 | Q1.13 | 0,994507735 | 0,997262828 | 0,978861 | — | — | — | — |
+| 14 | Q1.13 | 0,994507735 ❌H | 0,997262828 | 0,978861 | **152** | 36 | 44.472 | 7,275 ns |
 | 16 | Q1.15 | **0,999656239** ✅H | 0,999827344 | 0,998674 | **169** | 36 | 44.800 | 7,278 ns |
 | 18 | Q1.17 | 0,999978179 | 0,999989167 | 0,999917 | **187** | 36 | 45.131 | 7,195 ns |
 | 20 | Q1.19 | 0,999998540 | 0,999999277 | 0,999995 | **204** | 30 | 45.917 | 7,209 ns |
 | 24 | Q1.23 | 0,999999892 | 0,999999946 | 0,99999998 | **238** | 33 | 47.260 | 7,220 ns |
 
 \* HLS tahmini (bu projede ~2× şişik). Çevrim sayısı genişlikten
-bağımsız: p=2 için hepsinde ~3.728.217; II 2/1 hepsinde. W=14 csynth
-raporu üretilmedi (koşu hatası, yeniden koşulacak). W=18 tarama koşusu
-asıl sentez raporuyla **birebir aynı** — tarama altyapısı tutarlı.
+bağımsız: p=2 için hepsinde ~3.728.217; II 2/1 hepsinde. W=18 tarama
+koşusu asıl sentez raporuyla **birebir aynı** — tarama altyapısı tutarlı.
+Statevector BRAM'i tam **8W** (112/128/144/160/192); gerisi 40–46 blok.
 
 **Ne gösteriyor**:
 * Her 2 bit hatayı ~16× düşürüyor (kuramsal 4²); 24 bitte ~1e-7 tabanı

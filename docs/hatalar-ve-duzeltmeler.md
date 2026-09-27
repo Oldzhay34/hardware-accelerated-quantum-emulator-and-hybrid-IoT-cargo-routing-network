@@ -346,6 +346,7 @@ kesişimidir."* Genişlik gerçekten tarandığında (aynı çekirdek, 14–24 b
 
 | W | Fidelity p=2 (çekirdek) | Model | BRAM_18K (toplam) | Statevector BRAM |
 |---:|---:|---:|---:|---:|
+| 14 | 0,994508 ❌ H | 0,978861 ❌ | 152 | 112 |
 | 16 | **0,999656** ✅ H | 0,998674 ❌ | 169 | 128 |
 | 18 | 0,999978 | 0,999917 | 187 | 144 |
 | 20 | 0,9999985 | 0,999995 | 204 | 160 |
@@ -363,7 +364,7 @@ süpürüp her noktayı sentezlemek. Kriterler (K1–K4) koşudan **önce** yaz�
    olarak tek 36-bit kelimeye paketlendiğini varsaydı. Sentez raporunun
    bellek tablosu başka bir şey gösteriyor: statevector **4 ayrı bellek ×
    32.768 kelime × W bit** (re ve im ayrı), her biri **2W** blok →
-   statevector BRAM'i tam **8W** (128/144/160/192). Kelimeye hizalama hiç
+   statevector BRAM'i tam **8W** (112/128/144/160/192). Kelimeye hizalama hiç
    devreye girmiyor; maliyet bit başına doğrusal, uçurum yok. DSP48'in 18-bit
    B portu argümanı da tutmadı (DSP 36/36/30/33).
 
@@ -378,7 +379,7 @@ cümlesi kararı kullanıcıda. İlginç yan bulgu (doğrulanmadı): HLS BRAM'in
 parite bitlerini kullanmıyor; 18 bitte 1K×18 düzeni 144 yerine 128 blok
 verebilirdi.
 
-**Kanıt**: [genislik-pareto_20260927_29b253c.json](measurements/genislik-pareto_20260927_29b253c.json),
+**Kanıt**: [genislik-pareto_20260927_924216e.json](measurements/genislik-pareto_20260927_924216e.json),
 `qir_hls_prj_W<n>/solution1/syn/report/qir_kernel_csynth.rpt` (Memory
 tablosu), [olculen-degerler.md §2.2, §8 #5–6](olculen-degerler.md).
 
