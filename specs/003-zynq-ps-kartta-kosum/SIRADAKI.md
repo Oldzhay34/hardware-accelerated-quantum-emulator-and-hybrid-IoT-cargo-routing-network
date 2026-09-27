@@ -15,30 +15,26 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **T045** — ölçülen `T_cekirdek`'in HLS modelinden
-~%2 **düşük** çıkmasının nedenini çevrim düzeyinde açıkla (p=2 −70.428,
-p=1 −42.599 çevrim → katman başına ~27.800, sabit ~14.800); bulunamazsa
-bulunamadığını yaz. Sonra öbek 5 kapanır.
+**Hedef (tek cümle)**: Öbek 5 **kapandı**; sıradaki **öbek 6 (enerji, T046–T050)**
+— INA219 **lehimlenince** ve vidalı klemensli DC jak adaptörleri gelince.
+Beklerken kartsız **6B** (GPU tabanı) veya **6C** (genişlik Pareto'su).
 
-**Dokunulacak dosyalar**: `hls/` csynth raporu (döngü bazında gecikme),
-`docs/measurements/faz2-sentez.md`, `docs/olculen-degerler.md` §5.1
+**Dokunulacak dosyalar**: öbek 6 → `agent/calibrate_ina219.py`,
+`agent/measure_energy.py` (yeni); 6B → `scripts/`, 6C → `hls/` varyantları
 
-**Bilinen tuzak**: Fark **iki p'de de** modelin altında ve p ile büyüyor —
-hem katman içinde hem sabit kısımda bir fazlalık var. `T_cekirdek` üst
-taraftan en fazla bir δ (~21,5 µs = ~2.150 çevrim) içerir; yani gerçek fark
-biraz daha **büyük** olabilir. HLS raporu `max` gecikmedir; aranacak yer
-değişken sınırlı döngüler ve boru hattı doldurma/boşaltma varsayımları.
+**Bilinen tuzak**: Öbek 6 besleme düzenini **değiştirir** (JP5 → REG,
+adaptör INA219'un içinden). Gecikme USB düzeninde ölçüldü; enerji serisinin
+düzeni ayrı kaydedilmeli. İlk iş kalibrasyon (T048, sapma < %5) — geçmeden
+hiçbir enerji rakamı sayılmaz.
 
-**Öbek 5 durumu (27 Eyl)**: ✅ T039 protokol v1.0 donduruldu · ✅ T040–T044
-ölçüldü (p=2 **36,578 ms**, p=1 **20,385 ms**, IQR ~15 µs, plato var,
-16.129 koşum, hepsi C-sim ile bit bit) · ✅ T045b **2,30×** (iki taraf ölçüm) ·
-⬜ T045 nedeni. Kayıt: [kart-gecikme p2](../../docs/measurements/kart-gecikme_20260927_201475a_n16_p2.json).
-Ön kayıtlı **B7 tutmadı** (kodlama uçtan ucun %22–27'si, domine etmiyor).
+**Öbek 5 sonucu (27 Eyl)**: ✅ protokol v1.0 donduruldu · ✅ p=2 **36,578 ms**,
+p=1 **20,385 ms** (IQR ~15 µs, plato var, 16.159 koşum, hepsi C-sim ile bit
+bit) · ✅ PS↔PL **2,30×** (iki taraf ölçüm) · ✅ T045: HLS modeli **en kötü
+durum** (üçgen döngüler); **RTL simülasyonu 36,5464 ms**, kart 31 µs üstünde →
+kart RTL'i koşuyor. ⬜ Döngü döngü dağılım kapanmadı (manşeti değiştirmez).
+Ön kayıtlı **B7 tutmadı**. Kayıt: [olculen-degerler §5.1](../../docs/olculen-degerler.md).
 
-**Paralel yol**: öbek 6 (enerji) **lehim + DC jak adaptörü** bekliyor. O
-sürede kartsız işler açık: 6B GPU tabanı, 6C genişlik Pareto'su.
-
-**Son güncelleme**: 2026-09-27, Faz 5.7 (öbek 5 ölçümleri bitti; sıradaki T045)
+**Son güncelleme**: 2026-09-27, Faz 5.8 (öbek 5 kapandı)
 
 ---
 
@@ -154,7 +150,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
 | 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
 | 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ✅ **BİTTİ — MVP (27 Eyl)**: p=1/p=2 20/20 bit bit |
-| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | 🔵 **T039–T044 + T045b BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×. Kalan: **T045 nedeni** |
+| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |

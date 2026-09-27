@@ -11,17 +11,17 @@ description: "Faz 5 görev listesi — Zynq PS + Kartta Koşum"
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: Öbek 4 (MVP) kartta geçti; sıradaki **T039** —
-ölçüm protokolünü ilk gecikme ölçümünden **önce** yaz ve dondur.
+**Hedef (tek cümle)**: Öbek 4 ve 5 kartta bitti; sıradaki **öbek 6 (enerji,
+T046–T050)** — INA219 lehimi ve DC jak adaptörü bekleniyor; beklerken
+kartsız 6B/6C.
 
-**Dokunulacak dosyalar**: `docs/measurements/kart-olcum-protokolu.md`,
-`agent/measure_latency.py`
+**Dokunulacak dosyalar**: `agent/calibrate_ina219.py`, `agent/measure_energy.py`
 
-**Bilinen tuzak**: FCLK0 overlay yüklenince 62,5 MHz'e düşüyor (kristal
-hatası); `board.py` ayarlayıp doğruluyor — doğrulanmamış saatte gecikme
-raporlanmaz. Ayrıntı ve donanım durumu: [SIRADAKI.md](SIRADAKI.md)
+**Bilinen tuzak**: Enerji düzeni JP5=REG + adaptör; gecikme USB düzeninde
+ölçüldü — düzen her seride kaydedilir. Ayrıntı ve donanım durumu:
+[SIRADAKI.md](SIRADAKI.md)
 
-**Son güncelleme**: 2026-09-27, Faz 5.6 (T026–T038 bitti)
+**Son güncelleme**: 2026-09-27, Faz 5.8 (T026–T045 bitti)
 
 Donanım durumu, ölçülmüş değerler ve onaylanan K1/K2/K3 kararları:
 [SIRADAKI.md](SIRADAKI.md)
@@ -187,7 +187,7 @@ yayılım raporlanır. Enerji düzeneği gerekmez.
 - [X] T042 [US2] `agent/measure_latency.py` — **termal plato doğrulaması** (CPU tarafındaki turbo/plato ayrımının kart karşılığı): ilk N koşum ile son N koşum **ayrı** raporlanır, platonun oturduğu gösterilir, koşum sırası kaydedilir. Isınma/kısılma ardışık koşumları yavaşlatabilir
 - [X] T043 [US2] `agent/measure_latency.py` — seri istatistiği: **medyan ve yayılım (IQR) birlikte**; `min`/`max` de saklanır. ⛔ `kosum_sayisi < 10` olan seri **serileştirilmesin, hata versin** (SC-004'ün kod düzeyindeki karşılığı). Tek koşum rakamı hiçbir yere yazılmaz
 - [X] T044 [US2] Ölçümleri koş (n=16, p=2 ve p=1, **≥30 tekrar**) → `docs/measurements/kart-gecikme_<tarih>_<git-hash>_n16_p{1,2}.json`; her kapsam için ayrı `OlcumSerisi`. **Ortalama değil dağılım raporlanır**: p50 / p95 / p99 / maks ve jitter (maks−min). FPGA'da jitter **yapısı gereği sıfırdır** (3.728.217 çevrim, her seferinde); CPU ve GPU'da kuyruk vardır. Gerçek zamanlı bir denetim döngüsünde önemli olan en kötü durumdur — ek ölçüm değil, aynı veriden farklı bir tablo (bkz. [neden-fpga.md §2.3](../../docs/neden-fpga.md))
-- [ ] T045 [US2] HLS tahminiyle karşılaştır (p=2 için **37,28 ms**) ve sapmayı **gizlemeden** kaydet; nedeni araştır, bulunamazsa **bulunamadığı yazılır** (FR-014). `T_yazma`'nın CPU tarafında **karşılığı olmadığı** ayrıca not edilir. 🔵 2026-09-27: **kıyas kaydedildi** — ölçülen modelin altında: p=2 **−70.428 çevrim (−%1,89)**, p=1 **−42.599 (−%2,05)**; katman başına ~27.800, sabit ~14.800 çevrim. ⬜ **Nedeni henüz çevrim düzeyinde açıklanmadı** — görev bu yüzden açık
+- [X] T045 [US2] HLS tahminiyle karşılaştır (p=2 için **37,28 ms**) ve sapmayı **gizlemeden** kaydet; nedeni araştır, bulunamazsa **bulunamadığı yazılır** (FR-014). `T_yazma`'nın CPU tarafında **karşılığı olmadığı** ayrıca not edilir. 🔵 2026-09-27: **kıyas kaydedildi** — ölçülen modelin altında: p=2 **−70.428 çevrim (−%1,89)**, p=1 **−42.599 (−%2,05)**; katman başına ~27.800, sabit ~14.800 çevrim. ✅ **Neden** (27 Eyl): model HLS raporunun **en kötü durum** gecikmesiydi — `apply_cost_layer` (295.184–598.288) ve `expectation_scaled` (318.289–368.465) değişken; kaynak **üçgen döngüler** (iç tur sayısı dış değişkene bağlı, HLS her turda en kötüsünü varsayıyor; belirlenimci). **RTL simülasyonu** (n=16 cosim, aynı kaynak) çağrıyı **36,5464 ms**'de bitiriyor; kart medyanı 36,5779 → fark 31 µs = ölçüm yükü. Kart RTL'i koşuyor; %2 fark rapor↔RTL arasında. ⬜ Kalan: raporun döngü formülleri katman başına 48.640 kazanç öngörüyor, ölçülen 27.829 — alt döngü çağrı maliyeti eksik sayılıyor olabilir, doğrulanmadı (manşeti değiştirmez). Ayrıntı: olculen-degerler.md §5.1
 
 - [X] T045b [US2] **PS↔PL tabanı — projenin adını belirleyen ölçüm.** Aynı hesabı kartın **kendi ARM'ında** (Cortex-A9, 650 MHz — bu oturumda ölçüldü) koş ve zamanla: `hls/src/qir_kernel.cpp`, `-DQIR_NO_VITIS` ile ARM üzerinde derlenir (C-sim yolunun aynısı). **≥10 tekrar**, T039 protokolünün aynısı, medyan + IQR. Sonuç `docs/measurements/ps-pl-hizlanma_<tarih>_<git-hash>.json`. ✅ ARM tarafı 21 Eyl (84,13 ms); FPGA tarafı 27 Eyl kartta ölçüldü (36,578 ms) → **2,30×** (iki taraf da ölçüm; 21 Eyl'deki 2,26× FPGA tahminiyle hesaplanmıştı)
 

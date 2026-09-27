@@ -211,9 +211,43 @@ Koşum sayısı: p=2 **6.102**, p=1 **10.027**; zaman aşımı 0. Yoklama periyo
 | 2 | 3.728.217 | 3.657.789 | **−70.428 (−%1,89)** |
 | 1 | 2.081.110 | 2.038.511 | **−42.599 (−%2,05)** |
 
-Ölçülen, modelin **altında** — HLS raporu `max` gecikmedir. İki p'nin
-farkından: katman başına ~27.800, sabit kısımda ~14.800 çevrim. ⬜ **Nedeni
-henüz çevrim düzeyinde açıklanmadı** (T045 açık).
+Ölçülen, modelin **altında**. İki p'nin farkından: katman başına ~27.800,
+sabit kısımda ~14.800 çevrim.
+
+**Neden (T045, 27 Eyl)** — model HLS raporunun **en kötü durum** gecikmesiydi;
+iki alt birimin gecikmesi raporda bir **aralık**:
+
+| Birim | min | max (modelde) |
+|---|---:|---:|
+| `apply_cost_layer` | 295.184 | 598.288 |
+| `expectation_scaled` | 318.289 | 368.465 |
+
+Değişkenliğin kaynağı **üçgen döngüler** (`for x … for y = x+1 …`): iç
+döngünün tur sayısı dış değişkene bağlı; HLS dış döngüyü açmadığı için her
+`x` için en kötüsünü (7 tur) varsayar. Gerçekte 7+6+…+0 = 28 tur, varsayılan
+8×7 = 56. **Belirlenimcidir** — veriye ve indekse bağlı değil; farklı `cost`
+vektörüyle sürenin değişmemesi (seri K, 2,3 µs) bununla uyumlu.
+
+**Çevrim düzeyinde kanıt — RTL simülasyonu**: 19 Eylül n=16 cosim'inde
+(aynı çekirdek kaynağı; `15931cc`→`4282956` arasında `hls/src` değişmedi)
+çekirdek çağrısı **125 ns'de başlayıp 36.546.545 ns'de bitiyor** →
+RTL ≤ **36,5464 ms**. Kart medyanı **36,5779 ms**: fark **31 µs**, yani
+ölçüm yükü mertebesinde (Python'dan `ap_start` yazımı + en fazla bir δ =
+21,5 µs yoklama). Kartın **en kısa** koşumu 36,5618 ms — RTL'in 15 µs
+üstünde, altında değil. **Kart, RTL'in çevrim sayısını koşuyor; %2'lik fark
+HLS raporu ile RTL arasında, kartla değil.**
+
+⬜ **Kapanmayan kısım**: raporun döngü formülleriyle (iç döngü II=1,
+derinlik 69) yapılan hesap üçgen döngülerden katman başına **48.640**
+çevrim kazanç öngörüyor; ölçülen **27.829**. Aradaki ~20.800 çevrim/katman,
+raporun alt döngü çağrılarının giriş/çıkış maliyetini eksik saymasından
+olabilir (4.096 çağrı × ~5 çevrim ≈ 20.500) — **doğrulanmadı**. Doğrulamak
+için RTL simülasyonunda alt birimlerin `ap_start`/`ap_done` zamanları
+izlenmeli (~16 dk cosim). Manşet sonucu değiştirmez.
+
+**Ders**: HLS'in gecikme tahmini değişken turlu döngülerde **tutucu**
+(burada %2); kaynak tahmini ise LUT'ta 2× fazla (§3). İkisi de "rapora göre"
+değil "ölçüme göre" kararı destekliyor.
 
 **Yapısal gözlemler**:
 - **Yayılım yok denecek kadar küçük**: IQR 15 µs, jitter (maks−min) 65 µs —
