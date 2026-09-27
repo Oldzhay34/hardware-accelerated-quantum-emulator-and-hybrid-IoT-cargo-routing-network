@@ -62,13 +62,18 @@ class SeriGecersiz(RuntimeError):
 # =========================================================================
 # Saf istatistik — kart gerekmez, konakta test edilir
 # =========================================================================
-def olcum_serisi(konfig, kapsam, sureler_s):
+def olcum_serisi(konfig, kapsam, sureler_s, kapsamlar=KAPSAMLAR,
+                 protokol_surumu=PROTOKOL_SURUMU):
     """`OlcumSerisi` (data-model §2) özeti. §8'deki alanların hepsi.
 
     ⛔ `kosum_sayisi < MIN_KOSUM` → **hata** (SC-004'ün kod karşılığı):
     tek koşum ya da kısa seri hiçbir yere yazılamaz.
+
+    `kapsamlar` / `protokol_surumu`: GPU tabanı protokolü (§8'i bu fonksiyonu
+    ÇAĞIRARAK aynen alır) kendi kapsam adlarını ve sürüm dizesini verir.
+    Varsayılanlar kart protokolü v1.0'dır — kart davranışı değişmez.
     """
-    if kapsam not in KAPSAMLAR:
+    if kapsam not in kapsamlar:
         raise ValueError("bilinmeyen kapsam: {!r}".format(kapsam))
     n = len(sureler_s)
     if n < MIN_KOSUM:
@@ -90,7 +95,7 @@ def olcum_serisi(konfig, kapsam, sureler_s):
         "p95_s": float(p95),
         "p99_s": float(p99),
         "jitter_s": float(a.max() - a.min()),
-        "protokol_surumu": PROTOKOL_SURUMU,
+        "protokol_surumu": protokol_surumu,
         "yuzdelik_yontemi": YUZDELIK_YONTEMI,
     }
 
@@ -121,8 +126,9 @@ def plato(pencere_listesi, adet=PLATO_PENCERE, tolerans=PLATO_TOLERANS):
             "tolerans": tolerans}
 
 
-def ilk_ve_son(konfig, kapsam, zamanlar_s, degerler):
-    """§8: ilk `ILK_N` koşum ile son `SON_S` saniye AYRI raporlanır."""
+def ilk_ve_son(konfig, kapsam, zamanlar_s, degerler, **serisi_kw):
+    """§8: ilk `ILK_N` koşum ile son `SON_S` saniye AYRI raporlanır.
+    `serisi_kw` olduğu gibi `olcum_serisi`'ne geçer (kapsamlar, sürüm)."""
     ilk = list(degerler[:ILK_N])
     t_son = zamanlar_s[-1] if zamanlar_s else 0.0
     son = [v for t, v in zip(zamanlar_s, degerler) if t >= t_son - SON_S]
@@ -130,7 +136,7 @@ def ilk_ve_son(konfig, kapsam, zamanlar_s, degerler):
     for ad, dilim in (("ilk_{}_kosum".format(ILK_N), ilk),
                       ("son_{:g}_sn".format(SON_S), son)):
         try:
-            sonuc[ad] = olcum_serisi(konfig, kapsam, dilim)
+            sonuc[ad] = olcum_serisi(konfig, kapsam, dilim, **serisi_kw)
         except ValueError as e:
             sonuc[ad] = {"uretilemedi": str(e)}
     return sonuc

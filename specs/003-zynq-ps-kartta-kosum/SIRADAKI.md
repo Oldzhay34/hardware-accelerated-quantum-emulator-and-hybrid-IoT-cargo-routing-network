@@ -15,13 +15,12 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B — T067 protokol **taslağı** yazıldı
-([gpu-taban-olcum-protokolu.md](../../docs/measurements/gpu-taban-olcum-protokolu.md));
-**kullanıcı onayı + K1 kararı** (WSL işlemci sayısı) bekleniyor, sonra
-dondurma → kodun protokole uydurulması (`cpu_load_loop.py`: ilk 3 koşum
-atılır, kart §8 fonksiyonları, pencere başına `nvidia-smi`, sonda bit bit
-kontrol, adında git hash, `protokol_surumu`) → temiz ağaçta A/B serileri.
-Paralel: T065b (CuPy).
+**Hedef (tek cümle)**: 6B — T067 protokolü 🔒 **v1.0 dondu** (28 Eyl),
+K1 = 16 işlemci uygulandı, kod protokole uyduruldu ve denendi. Sıradaki:
+**temiz ağaçta** `nohup bash scripts/aer_serileri.sh > /root/aer-serileri.log 2>&1 &`
+(WSL, ~40 dk, prizde, makineye dokunulmaz) → sonuçları protokol §3
+beklentileriyle (A1–A5) karşılaştır. Sonra T065b (CuPy) ve G serileri.
+⚠️ Ölçümler bitince `.wslconfig` `processors` 6'ya geri alınabilir (kullanıcı kararı).
 
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
 `services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
@@ -269,7 +268,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
-| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅, T066 Aer katmanı ✅, T067 protokol taslağı (28 Eyl, onay + K1 bekliyor) |
+| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅, T066 Aer katmanı ✅, T067 protokol 🔒 v1.0 (28 Eyl), seriler bekliyor |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |

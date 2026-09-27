@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanmadan ve dondurulmadan hiçbir GPU/Aer gecikme serisi koşulmaz |
-| **Sürüm** | v1.0 (taslak) — ölçüm kodu her çıktıya `gpu-taban-protokolu v1.0` yazar |
-| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Durum** | 🔒 **DONDURULDU — 2026-09-28**, kullanıcı onayıyla, **ilk GPU/Aer gecikme serisinden önce** |
+| **Sürüm** | **v1.0** — ölçüm kodu her çıktıya `gpu-taban-protokolu v1.0` yazar |
+| **Onaylanan metin** | commit `65b9169`, git içerik özeti `b4b96bd295b10e10c9ee99fcb8c1b3080e7988e1` (`git rev-parse 65b9169:docs/measurements/gpu-taban-olcum-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §11'deki K1 kararı (onayla birlikte verildi, ölçümden önce) değişti: `git diff 65b9169 -- <bu dosya>` bunu gösterir |
 | **Görev** | T067 (bu belge + ölçüm), T065b'nin ölçüm kısmı, T069'un gecikme sütunu |
 | **Dayanak** | FR-011, FR-012, FR-013, FR-014, SC-004, SC-009 · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (istatistik ölçütleri buradan **aynen** alınır) |
 
@@ -201,4 +201,4 @@ ham izde kalır.
 
 | # | Karar | Seçenekler | Öneri |
 |---|---|---|---|
-| **K1** | WSL'in gördüğü işlemci sayısı | (a) `.wslconfig`'te `processors=16` — ölçüm süresince, `wsl --shutdown` gerekir; bellek 8 GB kalır. (b) 6'da bırak, raporda yaz | **(a)**: ana makinede 16 mantıksal işlemci var, WSL 6 görüyor (16 Eyl'de Vitis bellek sorunu yüzünden sınırlandı). Aer CPU 6 iş parçacığıyla koşarsa CPU/GPU oranı **GPU lehine şişer** — ölçülen şey cihaz değil yapılandırma farkı olur. Katman 2'yi etkilemez |
+| **K1** ✅ **Karar: (a)** — 2026-09-28, onayla birlikte, ölçümden önce | WSL'in gördüğü işlemci sayısı | (a) `.wslconfig`'te `processors=16` — ölçüm süresince, `wsl --shutdown` gerekir; bellek 8 GB kalır. (b) 6'da bırak, raporda yaz | **(a)**: ana makinede 16 mantıksal işlemci var, WSL 6 görüyor (16 Eyl'de Vitis bellek sorunu yüzünden sınırlandı). Aer CPU 6 iş parçacığıyla koşarsa CPU/GPU oranı **GPU lehine şişer** — ölçülen şey cihaz değil yapılandırma farkı olur. Katman 2'yi etkilemez |
