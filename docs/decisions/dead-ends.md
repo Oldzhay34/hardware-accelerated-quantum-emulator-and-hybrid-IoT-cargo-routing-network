@@ -258,3 +258,25 @@ Yalnız taklidi ölçseydik **"42× hızlanma"** raporlayacaktık; gerçek sayı
 **Tekrar denenmeli mi**: Hayır. Taban, hedef platformda **yetkin bir
 gerçeklemenin** yapacağı şey olmalı. `QIR_REAL_FLOAT` bayrağı bunun için
 eklendi ve **sentezde kullanılmaz**.
+
+### GPU tabanında "aynı algoritma"yı Aer'in köşegen kapısıyla kurmak — 2026-09-27, Faz 5 (6B)
+
+**Neden denendi**: T065'in yazıldığı hâliyle GPU tabanı Qiskit Aer'in QAOA
+ayrıştırmasını koşar (p=2'de 384 kapı) — bu, hata kaydı #5'teki **zayıf
+taban** hatasının GPU'da tekrarı olurdu (bizim çekirdek maliyet katmanını tek
+köşegen geçişe füzyonluyor). Fikir: maliyet katmanını tek bir 16 kübitlik
+`Diagonal` kapısı (65.536 faz) + 16 RX olarak yazmak; aynı devre CPU ve GPU'da
+aynı kütüphaneyle koşar ve algoritma çekirdekle aynı olur.
+
+**Neden olmadı**: `qiskit-aer-gpu` 0.15.1 (PyPI'daki en yeni GPU tekeri) 16
+kübitlik köşegeni **GPU'da uygulayamıyor**: `std::bad_alloc:
+cudaErrorMemoryAllocation: out of memory` — köşegen yalnız 1 MB, GPU'da ~7 GB
+boş. Füzyon kapalı, cuStateVec açık ve ikisi birlikte: üçü de aynı hata. CPU
+yolunda aynı devre sorunsuz (`diagonal` tek işlem olarak kalıyor). Yoklama
+betiği repo dışında; tekrar için 16 kübitlik rastgele `Diagonal` + `rx` yeter.
+
+**Tekrar denenmeli mi**: Yalnız Aer'in daha yeni bir GPU tekeri PyPI'a
+gelirse (0.17+) ya da Aer CUDA ile kaynaktan derlenirse — ikisi de bu takvimde
+yok. "Aynı algoritma" GPU tabanı için geriye kalan yol, çekirdeğin
+algoritmasını doğrudan GPU'da yazmaktır (CPU'daki `bench_kernel.cpp` adil
+tabanının GPU karşılığı).

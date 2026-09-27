@@ -12,13 +12,13 @@ ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 > doğruladık ve karakterize ettik. Bu sınıf cihazın tutabildiği problem
 > boyutlarında emülasyon, klasik kesin çözümle rekabet etmez — ne kadar
 > etmediğini niceliksel olarak gösteriyoruz. Katkı, emülatörün tasarım uzayının
-> karakterizasyonudur: 18-bit hassasiyet noktası, bellek-portu bağlı II tabanı,
-> ve kuantum devre emülasyonunu 5 W zarfında koşturmanın ölçülmüş gecikme/enerji
-> bedeli.**
+> karakterizasyonudur: ölçülmüş genişlik–doğruluk–alan eğrisi, bellek-portu
+> bağlı II tabanı, ve kuantum devre emülasyonunu 5 W zarfında koşturmanın
+> ölçülmüş gecikme/enerji bedeli.**
 
-⚠️ **27 Eyl (6C)**: *"18-bit hassasiyet noktası"* ifadesinin dayanağı düştü —
-16 bit de H'yi geçiyor, BRAM doğrusal (8W), dirsek yok. Cümle **kullanıcı
-kararını bekliyor**; ayrıntı [hatalar #10](docs/hatalar-ve-duzeltmeler.md).
+*(27 Eyl: "18-bit hassasiyet noktası" → "genişlik–doğruluk–alan eğrisi";
+eski ifadenin dayanağı 6C'de düştü — [hatalar #10](docs/hatalar-ve-duzeltmeler.md),
+[neden-fpga §2.2b](docs/neden-fpga.md).)*
 
 **İsim**: *"Donanım hızlandırmalı"* ifadesi **ölçülmüş** bir dayanağa sahiptir —
 ama yalnız doğru tabana karşı: çekirdeği **PS'ten PL'e** taşımak **2,30×**

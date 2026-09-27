@@ -15,22 +15,26 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **6C kapandı** (T070–T073); kart gerektirmeyen
-sıradaki iş **6B — GPU tabanı** (T064: WSL2'de `qiskit-aer-gpu` kurulup
-`available_devices()`'ta `GPU` görünmeli). Öbek 6 (enerji) lehim ve DC jak
-adaptörü gelince.
+**Hedef (tek cümle)**: 6B — T064 ✅, yöntem kararı ✅
+([ADR 0010](../../docs/decisions/0010-gpu-tabani-iki-katman.md): Aer + aynı
+algoritma, ikisi birden), T065 ✅ (`--device`). Sıradaki **T066**: Aer
+GPU/CPU statevector'ünü altın referansa karşı doğrula — önce yükleme
+döngüsünün devresinin (tohum 42 parametreler) referans dosyasıyla aynı devre
+olup olmadığı kontrol edilmeli. Sonra **T065b** (CuPy, aynı algoritma).
 
-**Dokunulacak dosyalar**: 6B → WSL ortamı (T064), `scripts/cpu_load_loop.py`
-(`--device`, T065 — ⛔ ayrı betik yazılmaz)
+**Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
+`services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
+çekirdek betiği. Ortam: `/root/qir-gpu-venv` (repo dışı), runbook
+[gpu-aer-wsl.md](../../docs/runbooks/gpu-aer-wsl.md).
 
-**Bilinen tuzak**: GK-01 — makine `nvlddmkm.sys` yüzünden günde ~1 çöküyor;
-GPU yükü bunu tetikleyebilir → ölçüm serisi **koşum başına** diske yazılmalı.
-`qiskit-aer-gpu` Linux tekeri; kurulamazsa **uydurma yok**, `dead-ends.md`'ye
-yazılıp öbek durur. ⛔ GPU sonucu ne çıkarsa çıksın raporlanır.
+**Bilinen tuzak**: `qiskit-aer-gpu` en fazla **0.15.1** → Qiskit **1.x**;
+Windows `.venv` 2.5.2/0.17.2 → CPU tarafı da WSL venv'inde yeniden ölçülür.
+Aer katmanı FPGA'yla **kıyaslanmaz** (585 kapı → transpile sonrası 336 CX +
+168 RZ; hata #5). Ölçüm **temiz ağaçta**. GK-01: iz pencere başına diske.
+⛔ GPU sonucu ne çıkarsa çıksın raporlanır.
 
-**Kullanıcı kararı bekleyen**: CLAUDE.md tez cümlesindeki *"18-bit hassasiyet
-noktası"* (dayanağı 6C'de düştü). Öneri: *"ölçülmüş genişlik–doğruluk–alan
-eğrisi"*.
+**Tez cümlesi güncellendi** (27 Eyl, kullanıcı onayı): *"18-bit hassasiyet
+noktası"* → *"ölçülmüş genişlik–doğruluk–alan eğrisi"* (CLAUDE.md).
 
 ## ✅ 6C KAPANDI (27 Eyl) — genişlik taraması
 
@@ -100,8 +104,7 @@ Eski iddia ⛔ ile işaretlendi: `neden-fpga.md` (§0 tablo + §2.2b),
 maliyet/doğruluk eğrisi olan **serbest bir tasarım parametresi** — GPU'da
 menü sabit (fp16/bf16/fp32). Eğride "dirsek" yok; 18 bir **seçim**,
 zorunluluk değil. 16 bit, H'yi ~3× paya geçip BRAM'de %10 tasarruf ederdi.
-CLAUDE.md tez cümlesindeki *"18-bit hassasiyet noktası"* ifadesi
-**kullanıcı kararı bekliyor** (değiştirilmedi).
+CLAUDE.md tez cümlesi buna göre değiştirildi (27 Eyl, kullanıcı onayı).
 
 ## Bu oturumda (27 Eyl) yapılanlar — özet
 
@@ -128,8 +131,8 @@ CLAUDE.md tez cümlesindeki *"18-bit hassasiyet noktası"* ifadesi
    girişi ve adaptör fişi ölçüsü birlikte kontrol edilecek
 3. **Form 4203T**: tarih/imza; 17:34 sürümünde bir şey eklediyse söylemek.
    Son teslim **02.10.2026**
-4. **Tez cümlesi kararı**: "18-bit hassasiyet noktası" ifadesi kalsın mı
-   (6C bulgusu)?
+4. ~~**Tez cümlesi kararı**~~ — ✅ verildi: "ölçülmüş genişlik–doğruluk–alan
+   eğrisi"
 
 ## Öbek 6 için hatırlatma
 
@@ -264,7 +267,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
-| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
+| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅ (27 Eyl), ADR 0010 (iki katman); sıradaki T066 |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
