@@ -26,7 +26,12 @@ for W in $GENISLIKLER; do
         -Ihls/src -Ihls/tb hls/tb/tb_kernel.cpp hls/tb/qir_kernel_debug.cpp \
         hls/src/qir_kernel.cpp -o "$exe"
     for R in "$R2" "$R1"; do
+        # Ham statevector de dökülür: fidelity tek sayıdır; uygulama düzeyi
+        # ölçütler (optimum rota olasılığı, beklenen enerji) buradan hesaplanır
+        # (scripts/genislik_uygulama.py).
+        p="$(basename "$R" | grep -o '_p[0-9]*_' | tr -d _)"
         "$exe" --reference "$R" --git-hash "$GIT_HASH" --n 16 --out-dir "$D" \
+            --dump "$D/sv_n16_$p.npy" \
             | grep -E 'Format|Kubit|Fidelity' | tr '\n' ' '
         echo
     done

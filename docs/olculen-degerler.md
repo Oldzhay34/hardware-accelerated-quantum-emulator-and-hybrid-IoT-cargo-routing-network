@@ -159,6 +159,38 @@ Statevector BRAM'i tam **8W** (112/128/144/160/192); gerisi 40–46 blok.
   geçip 18 blok BRAM (%10) daha az kullanırdı. 18 bir **seçim**
   (Faz 2'de modele göre yapıldı), ölçülmüş bir zorunluluk değil.
 
+**Uygulama düzeyi — genişlik QAOA çıktısını değiştiriyor mu?** (27 Eyl)
+Fidelity tek sayıdır; tek bir çıktının olasılığı göreli olarak büyük
+sapabilir (sınır yalnız TVD ≤ √(1−F)). Bu yüzden her genişliğin ham
+statevector'ünden, altın referansın **kendi tanımlarıyla** ölçüldü
+(referansın `optimal_probability` değeri yeniden üretilerek doğrulandı).
+p=2 (p=1 aynı eğilim, JSON'da):
+
+| W | TVD | Optimum rota olasılığı, bağıl hata | ⟨E⟩ bağıl hata | En olası geçerli tur | 24 turun sıralaması |
+|---:|---:|---:|---:|:---:|:---:|
+| 14 | 3,4·10⁻² | +4,9 % | +8,1·10⁻⁴ | aynı | farklı |
+| 16 | 8,6·10⁻³ | +1,9 % | −2,5·10⁻⁴ | aynı | farklı (2 takas) |
+| **18** | **2,2·10⁻³** | **−0,96 %** | **−1,6·10⁻⁵** | **aynı** | **1 takas** (17.↔18. sıra) |
+| 20 | 5,5·10⁻⁴ | +0,075 % | −2,1·10⁻⁷ | aynı | aynı |
+| 24 | 1,4·10⁻⁴ | +0,067 % | −2,1·10⁻⁶ | aynı | aynı |
+
+Kayıt: [genislik-uygulama_20260927_3df6a60.json](measurements/genislik-uygulama_20260927_3df6a60.json)
+(`scripts/genislik_uygulama.py`; dökümler `hls/genislik_tarama.sh --dump`).
+
+* **Genişlik görünür**: 18 bitte optimum rota olasılığı %1 sapıyor ve 24
+  turun sıralamasında bir takas var — referans olasılıkları zaten yalnız
+  %1,4 farklı iki düşük olasılıklı tur (7,24·10⁻⁶ / 7,14·10⁻⁶). 20 bitte
+  takas yok.
+* **Ama uygulama açısından küçük**: en olası geçerli tur **14 bitten 24 bite
+  her genişlikte** referansla aynı. Optimum olasılığını **p**'nin değiştirmesi
+  (p=1 → p=2: 8,56·10⁻⁶ → 2,38·10⁻⁵, **2,8×**) genişliğin 18 bitteki
+  etkisinden (%1) ~180× büyük.
+* **24 bit, 20'ye göre uygulama düzeyinde bir şey kazandırmıyor**: optimum
+  olasılığı hatası 7,5·10⁻⁴ → 6,7·10⁻⁴, ⟨E⟩ hatası 2,1·10⁻⁷ → 2,1·10⁻⁶
+  (daha kötü) — taban artık faz (18 bit) ve trig tablosunda (13 bit).
+* ⚠️ Yan bulgu: p=1'de optimum olasılığı (8,56·10⁻⁶) düzgün dağılımın
+  (1/65536 = 1,53·10⁻⁵) **altında** — QAOA p=1'de rastgele tahminden kötü.
+
 ---
 
 ## 3. Kaynak kullanımı — HLS TAHMİNİ vs GERÇEK

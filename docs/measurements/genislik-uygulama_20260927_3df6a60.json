@@ -1,0 +1,194 @@
+{
+ "ne": "Genislik taramasi, uygulama duzeyi olcutler (6C eki)",
+ "damga": {
+  "stamped_at": "2026-09-27T20:50:22.506410+00:00",
+  "git_hash": "3df6a60",
+  "git_dirty": true,
+  "config": {
+   "kaynak_dizin": "hls\\build\\genislik"
+  }
+ },
+ "tanimlar": "Olasiliklar normlanmis |a|^2. Optimum ve gecerli tur tanimi services/reference/qaoa_reference.py ile ayni; referansin kendi optimal_probability degeri yeniden uretilerek dogrulandi.",
+ "referans": {
+  "p1": {
+   "dosya": "reference_20260915_c6ad872_p1_n5.npy",
+   "norm2": 0.9999999999999969,
+   "p_optimum": 8.561201452144891e-06,
+   "p_gecerli_toplam": 0.0010200277281511223,
+   "beklenen_enerji": 25503.86709064357,
+   "en_olasi_gecerli_tur_idx": 4680
+  },
+  "p2": {
+   "dosya": "reference_20260915_c6ad872_p2_n5.npy",
+   "norm2": 1.000000000000004,
+   "p_optimum": 2.3802750800159437e-05,
+   "p_gecerli_toplam": 0.0006094731701090124,
+   "beklenen_enerji": 31352.562761057372,
+   "en_olasi_gecerli_tur_idx": 16770
+  }
+ },
+ "optimum_tur": [
+  0,
+  1,
+  2,
+  4,
+  3
+ ],
+ "gecerli_tur_sayisi": 24,
+ "sonuclar": {
+  "p1": [
+   {
+    "genislik_bit": 14,
+    "fidelity": 0.997262827628874,
+    "sqrt_1_eksi_F_TVD_siniri": 0.05231799280482795,
+    "TVD": 0.022420953316323294,
+    "norm2": 1.003403216600418,
+    "p_optimum": 7.143148851490074e-06,
+    "p_optimum_bagil_hata": -0.16563710229006967,
+    "p_gecerli_toplam": 0.0010122926017917275,
+    "p_gecerli_bagil_hata": -0.007583251068493224,
+    "beklenen_enerji": 25526.840402128983,
+    "beklenen_enerji_bagil_hata": 0.000900777572427014,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": false
+   },
+   {
+    "genislik_bit": 16,
+    "fidelity": 0.9998273440851817,
+    "sqrt_1_eksi_F_TVD_siniri": 0.013139859771637528,
+    "TVD": 0.005621704641518728,
+    "norm2": 1.0001472597941756,
+    "p_optimum": 8.611603027154645e-06,
+    "p_optimum_bagil_hata": 0.005887208155477719,
+    "p_gecerli_toplam": 0.0010226697628197938,
+    "p_gecerli_bagil_hata": 0.0025901596552286854,
+    "beklenen_enerji": 25504.075453486374,
+    "beklenen_enerji_bagil_hata": 8.169852911521502e-06,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": false
+   },
+   {
+    "genislik_bit": 18,
+    "fidelity": 0.999989167396954,
+    "sqrt_1_eksi_F_TVD_siniri": 0.003291292002545229,
+    "TVD": 0.0014147203357507462,
+    "norm2": 1.0000787745811976,
+    "p_optimum": 8.518194780442308e-06,
+    "p_optimum_bagil_hata": -0.005023438817901904,
+    "p_gecerli_toplam": 0.0010208005267706177,
+    "p_gecerli_bagil_hata": 0.0007576251097567432,
+    "beklenen_enerji": 25504.278685292746,
+    "beklenen_enerji_bagil_hata": 1.6138519218111824e-05,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": true
+   },
+   {
+    "genislik_bit": 20,
+    "fidelity": 0.9999992766236152,
+    "sqrt_1_eksi_F_TVD_siniri": 0.000850515364230696,
+    "TVD": 0.0003644672918499994,
+    "norm2": 1.0000384536542697,
+    "p_optimum": 8.549794540735882e-06,
+    "p_optimum_bagil_hata": -0.0013323960979976235,
+    "p_gecerli_toplam": 0.0010200441359203276,
+    "p_gecerli_bagil_hata": 1.6085610961891206e-05,
+    "beklenen_enerji": 25503.564150372666,
+    "beklenen_enerji_bagil_hata": -1.1878209285942631e-05,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": true
+   },
+   {
+    "genislik_bit": 24,
+    "fidelity": 0.9999999459300496,
+    "sqrt_1_eksi_F_TVD_siniri": 0.00023252946137190995,
+    "TVD": 9.791369078922199e-05,
+    "norm2": 1.0000020965937182,
+    "p_optimum": 8.562830468657386e-06,
+    "p_optimum_bagil_hata": 0.00019027896044732096,
+    "p_gecerli_toplam": 0.0010200645863436496,
+    "p_gecerli_bagil_hata": 3.6134500573048456e-05,
+    "beklenen_enerji": 25503.6090137306,
+    "beklenen_enerji_bagil_hata": -1.0119128681651546e-05,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": true
+   }
+  ],
+  "p2": [
+   {
+    "genislik_bit": 14,
+    "fidelity": 0.9945077350099804,
+    "sqrt_1_eksi_F_TVD_siniri": 0.07410981709611518,
+    "TVD": 0.03415255953050279,
+    "norm2": 1.0083360970020294,
+    "p_optimum": 2.4974770309697504e-05,
+    "p_optimum_bagil_hata": 0.04923882619189612,
+    "p_gecerli_toplam": 0.0005955522150774019,
+    "p_gecerli_bagil_hata": -0.0228409644826868,
+    "beklenen_enerji": 31377.885198061304,
+    "beklenen_enerji_bagil_hata": 0.0008076672135837182,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": false
+   },
+   {
+    "genislik_bit": 16,
+    "fidelity": 0.9996562386332516,
+    "sqrt_1_eksi_F_TVD_siniri": 0.018540802753613646,
+    "TVD": 0.008568203215622376,
+    "norm2": 1.0014813812449574,
+    "p_optimum": 2.4250175023780665e-05,
+    "p_optimum_bagil_hata": 0.01879716455369662,
+    "p_gecerli_toplam": 0.0006115941196213046,
+    "p_gecerli_bagil_hata": 0.0034799719106797244,
+    "beklenen_enerji": 31344.60674334016,
+    "beklenen_enerji_bagil_hata": -0.0002537597254121948,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": false
+   },
+   {
+    "genislik_bit": 18,
+    "fidelity": 0.9999781792433725,
+    "sqrt_1_eksi_F_TVD_siniri": 0.004671269273708016,
+    "TVD": 0.0021559187777425814,
+    "norm2": 1.0000064988271333,
+    "p_optimum": 2.357540464899772e-05,
+    "p_optimum_bagil_hata": -0.009551255359955824,
+    "p_gecerli_toplam": 0.0006107650585875366,
+    "p_gecerli_bagil_hata": 0.002119680638760668,
+    "beklenen_enerji": 31352.06857841891,
+    "beklenen_enerji_bagil_hata": -1.576211304399333e-05,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": false
+   },
+   {
+    "genislik_bit": 20,
+    "fidelity": 0.9999985395774876,
+    "sqrt_1_eksi_F_TVD_siniri": 0.0012084794215737023,
+    "TVD": 0.0005528823795180444,
+    "norm2": 0.9999515572235396,
+    "p_optimum": 2.3820692850673636e-05,
+    "p_optimum_bagil_hata": 0.0007537805468298409,
+    "p_gecerli_toplam": 0.0006093395490949678,
+    "p_gecerli_bagil_hata": -0.00021924019070551637,
+    "beklenen_enerji": 31352.55618060552,
+    "beklenen_enerji_bagil_hata": -2.0988561300061548e-07,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": true
+   },
+   {
+    "genislik_bit": 24,
+    "fidelity": 0.9999998922373203,
+    "sqrt_1_eksi_F_TVD_siniri": 0.0003282722645436413,
+    "TVD": 0.00014319919469847576,
+    "norm2": 0.9999993829814287,
+    "p_optimum": 2.381874581916868e-05,
+    "p_optimum_bagil_hata": 0.0006719819546712191,
+    "p_gecerli_toplam": 0.0006095242809582581,
+    "p_gecerli_bagil_hata": 8.38607042155104e-05,
+    "beklenen_enerji": 31352.495528170904,
+    "beklenen_enerji_bagil_hata": -2.144414381066717e-06,
+    "en_olasi_tur_ayni": true,
+    "tur_siralamasi_ayni": true
+   }
+  ]
+ }
+}

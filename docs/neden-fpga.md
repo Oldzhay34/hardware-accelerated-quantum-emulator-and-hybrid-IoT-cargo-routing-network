@@ -319,6 +319,31 @@ kaldık, çünkü bitstream ve bütün kart ölçümleri 18 bitle yapıldı. 16'
 hata payından vazgeçer. Bu kazanç, yeni bir implementasyon ve bütün ölçümlerin
 tekrarı maliyetine değmiyor."*
 
+**Jüri sorarsa — "Grafikte yer var; daha fazla bit daha iyi olmaz mı?"**
+Her maddenin kanıt düzeyi ayrı yazılmıştır — **ölçülen** ile **çıkarım**
+karıştırılmaz:
+
+| İddia | Kanıt | Düzey |
+|---|---|---|
+| Hata 18/20/24 bitte 2,2·10⁻⁵ / 1,5·10⁻⁶ / 1,1·10⁻⁷ | C-sim, Qiskit'e karşı ([genislik-pareto](measurements/genislik-pareto_20260927_dfe3eff.json)) | ölçülen |
+| H eşiğine pay 46× / ~690× / ~9300× | 10⁻³ / (1−F) | hesap (ölçülenden) |
+| BRAM 187 / 204 / 238 (%67 / %73 / %85) | csynth; 18 bitte Vivado P&R ile aynı | ölçülen (20/24 csynth) |
+| Gecikme değişmez | HLS çevrim sayısı 3.728.217 / 218 / 219 | **HLS tahmini** — kartta yalnız 18 bit ölçüldü (36,58 ms) |
+| 20/24 bitte 100 MHz tutar mı | 18 bitte HLS 7,195 → post-route 9,122 ns (pay 0,88 ns) | **denenmedi** — risk, iddia değil |
+| Fazla bit uygulama çıktısında görünür mü | 18 bitte optimum olasılığı −%0,96, bir sıra takası; 20 bitte takas yok ([genislik-uygulama](measurements/genislik-uygulama_20260927_3df6a60.json)) | ölçülen — **görünür ama küçük** |
+| QAOA'nın kalitesini genişlik değil p belirler | p=1→2 optimum olasılığını 2,8× değiştiriyor, genişlik (18 bit) %1 | ölçülen |
+| En olası tur genişlikten bağımsız | 14–24 bitin hepsinde referansla aynı | ölçülen |
+| 24 bit 20'ye göre bir şey kazandırmaz | optimum hatası 7,5·10⁻⁴ → 6,7·10⁻⁴, ⟨E⟩ hatası kötüleşiyor | ölçülen |
+| Boş BRAM hıza çevrilemez | hız bellek portuyla sınırlı ([ADR 0009](decisions/0009-paralellik-turu-kapatildi.md)); statevector'ün ikinci kopyası 187 + 144 = 331 > 280 blok | ölçülen + hesap |
+| Değiştirmek pahalı | yeni bitstream, kart doğrulaması (§2.1) ve gecikme serisi (protokol v1.0) yeniden | süreç |
+
+Cevap: *"Daha fazla bit ölçülebilir bir fark yaratıyor — 18'den 20'ye
+optimum rota olasılığındaki hata %1'den %0,08'e iniyor ve düşük olasılıklı
+iki turun sırası düzeliyor. Ama en olası tur zaten her genişlikte aynı,
+QAOA'nın kalitesini p 180 kat daha fazla etkiliyor, gecikme değişmiyor ve
+24 bit 20'ye göre bir şey eklemiyor. Bu fark için bitstream'i ve bütün kart
+ölçümlerini yenilemeye değmez."*
+
 ### 2.3 Belirlenimci gecikme — **yalnız artımlı yolda geçerli**
 
 > ⚠️ **Kapsam**: Sistem iki kipte çalışıyor ([sistem-mimarisi.md §3](sistem-mimarisi.md)). **Gecelik toplu işte jitter'ın hiçbir önemi yoktur** — gece boyunca zaman var. Bu argüman yalnız **adres değişikliği** yolunda, kullanıcı beklerken anlamlıdır. Her yere yayılırsa zayıflar.

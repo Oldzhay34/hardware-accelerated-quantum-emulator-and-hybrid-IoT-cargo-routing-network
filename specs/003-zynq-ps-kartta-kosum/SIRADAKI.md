@@ -54,6 +54,7 @@ sonra `scripts\genislik_pareto.py hls\build\genislik`, sonra
 | **T071** C-sim fidelity 14/16/18/20/24 | ✅ ön kayıtlı K1–K4 geçti; her 2 bit ~16× (kuramsal), 20→24'te ~1e-7 tabanı |
 | **T072** csynth | ✅ beş genişlik. 18'in tarama koşusu asıl raporla **AYNI**. W=14 ilk koşuda sessizce boş döndü (aşağıda), tek başına yeniden koşunca normal |
 | **T073** figür + §2.2b | ✅ figür (a: BRAM×(1−F), b: BRAM×W ile Faz 2 hesabı yan yana), §2.2b + §0 tablosu + mimari-gerekçe özeti yeniden yazıldı |
+| **Ek** uygulama düzeyi | ✅ "fazla bit daha iyi olmaz mı" ölçüldü: 18 bitte optimum rota olasılığı −%0,96, 24 turun sırasında 1 takas (20 bitte yok); en olası tur 14–24 hepsinde aynı; p'nin etkisi ~180× büyük; 24 bit 20'ye göre bir şey katmıyor → 18'de kalındı. [genislik-uygulama](../../docs/measurements/genislik-uygulama_20260927_3df6a60.json), neden-fpga §2.2b jüri tablosu (kanıt düzeyleriyle) |
 
 | W | BRAM_18K | DSP | LUT (HLS) | p=2 çevrim | Fidelity p=2 | Model |
 |---|---:|---:|---:|---:|---:|---:|
