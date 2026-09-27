@@ -15,8 +15,10 @@
 # ⚠️ O dosyada UC ayri I2C var ve yanlisini secmek sessiz bir donanim hatasidir:
 #
 #   IIC_1                 U9 / T9    -> KART UZERINDEKI SES KODEKI (ADAU1761).
-#                                        Disariya acik DEGIL. Buraya baglamak
-#                                        kodekle veri yolu cakismasi demektir.
+#                                        Disariya acik DEGIL. Buraya atamak
+#                                        I2C'yi kodege goturur; Arduino
+#                                        basligina takilan INA219'a hic
+#                                        ulasilamaz.
 #   hdmi_in_ddc           U14 / U15  -> HDMI DDC. Bizim isimiz degil.
 #   arduino_direct_iic    P15 / P16  -> Arduino baslinin ozel SDA/SCL hatti.
 #                                        ✅ Disariya acik olan bu.

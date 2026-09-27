@@ -33,7 +33,7 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 5 | 21 Eyl | CPU tabanı **farklı algoritma** (Qiskit Aer, 12× kapı) | ölçüm yöntemi | aynı kodu CPU'da zamanlamak | *"başabaş"* sonucu |
 | 6 | 21 Eyl | ARM tabanı **taklit aritmetikle** 18,8× şişik | ölçüm yöntemi | float varyantını da ölçmek | **sahte 42× hızlanma** |
 | 7 | 19 Eyl | cosim'in 13 saat sürmesi — **iki kez yanlış teşhis** | araç zinciri | süreç tablosu (hangi süreç CPU yiyor) | n=16 RTL eşdeğerliği hiç gösterilemezdi |
-| 8 | 20 Eyl | INA219 **ses kodeğinin** I2C hattına bağlanacaktı | donanım tasarımı | kart kısıt dosyasını satır satır okumak | kodekle veri yolu çakışması, bozuk enerji verisi |
+| 8 | 20 Eyl | I2C pinleri (INA219 için) **ses çipinin** pinlerine atanacaktı — kâğıt üzerinde | donanım tasarımı (pin ataması) | kart kısıt dosyasını satır satır okumak | sensöre hiç ulaşılamaz; yeni bitstream + bütün ölçümlerin tekrarı |
 | 9 | 27 Eyl | besleme gerilimi **"0,0 V"** göründü | ölçüm yorumu | dört rayın aynı anda 0 olması | yanlış "USB beslemesi yetmiyor" sonucu |
 
 **Desen**: 9 hatanın **5'i ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9),
@@ -273,22 +273,31 @@ güncellenmeyen yorum bir sonraki turu aynı yanlış yola sokar.*
 
 ---
 
-## 8. INA219 ses kodeğinin I2C hattına bağlanacaktı (2026-09-20, Faz 5 öbek 2)
+## 8. I2C pinleri ses çipinin pinlerine atanacaktı (2026-09-20, Faz 5 öbek 2)
 
-**Belirti**: Yok — derlemeden **önce** yakalandı.
+⚠️ **Fiziksel bir bağlantı hatası DEĞİLDİR.** INA219 o tarihte (ve bu kayıt
+yazılırken) karta hiç takılmamıştı. Hata, bitstream'in **pin tanımında**,
+kâğıt üzerinde yakalandı.
 
-**Nasıl yakalandı**: Kartın ana kısıt dosyası satır satır okunurken:
-dosyada **üç ayrı I2C** var.
+**Belirti**: Yok — bitstream üretilmeden **önce** yakalandı.
 
-**Kök neden**: Adı en doğal görünen `IIC_1` (pinler U9/T9) kartın
-**üzerindeki ses kodeğine** (ADAU1761) gidiyor. Güç sensörü için doğru hat
-Arduino başlığının özel SDA/SCL'si (`arduino_direct_iic`, P15/P16).
+**Nasıl yakalandı**: Blok tasarım için FPGA'nın I2C sinyallerinin hangi
+fiziksel pinlerden çıkacağı seçilirken, PYNQ-Z2'nin resmî pin dosyası
+(`base.xdc`) satır satır okundu: dosyada **üç ayrı I2C pin çifti** var.
 
-**Yakalanmasaydı**: Sensör kodekle aynı veri yoluna bağlanırdı —
-sessiz bir donanım hatası; enerji ölçümü (US3) bozuk veya hiç gelmezdi ve
-bu bitstream'le yapılan **bütün** ölçümler yeni bitstream'le tekrarlanırdı.
+**Kök neden**: Adı en doğal görünen `IIC_1` (pinler U9/T9) kartın devresinde
+**üzerine lehimli ses çipine** (ADAU1761) gidiyor; dışarıdan erişilebilir
+değil. Sensörün takılacağı yer Arduino başlığının SDA/SCL'si
+(`arduino_direct_iic`, P15/P16).
 
-**Düzeltme**: EMIO I2C0 → P15/P16. Seçim ve gerekçesi kısıt dosyasında.
+**Yakalanmasaydı**: Bitstream I2C denetleyicisini ses çipine yönlendirirdi.
+INA219 Arduino başlığına takıldığında FPGA onu **hiç göremezdi** — ve bu,
+bugün değil, enerji ölçümüne (US3) geçilen gün ortaya çıkardı. Düzeltmek yeni
+bir bitstream, yeni bitstream de karar K2 gereği o güne kadar bu bitstream'le
+alınmış **bütün** ölçümlerin tekrarı demekti.
+
+**Düzeltme**: EMIO I2C0 → P15/P16. Seçim, kaynak dosya ve gerekçe kısıt
+dosyasının başlığında.
 
 **Kanıt**: [fpga/bd/qir_constraints.xdc](../fpga/bd/qir_constraints.xdc)
 (başlık yorumu).

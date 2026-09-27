@@ -89,7 +89,7 @@ Ayrıca **`192.168.2.99`** (eth0 statik yedeği) |
 | Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
 | Besleme | **JP5 = `USB`** (kullanıcı teyidi 2026-09-27; adaptörsüz). USB kaynağı — dizüstü portu mu şarj aleti mi — **kaydedilmedi**; enerji ölçümünden (öbek 6) önce yazılmalı. US1 bu düzende koşuldu.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
-| INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
+| INA219 | **HW-831B modülü, I2C tarafı bağlı** (27 Eyl): VCC→3.3V (ölçüldü 3,32 V), GND, SCL/SDA → Arduino başlığının sol ucu (P15/P16). **T047 geçti** (`0x40`, yapılandırma `0x399F`). ⚠️ Pin başlığı ve klemens **LEHİMSİZ** — temas aralıklı (240 denemede 7). VIN+/VIN− boş. **T046 öncesi**: lehim + vidalı klemensli DC jak adaptörleri (dişi/erkek) + JP5=REG, adaptör 12 V 2,5 A |
 | Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
 
 **Kart boot etmezse**: kırmızı LED yanıp **yeşil DONE sönükse ve konsol
