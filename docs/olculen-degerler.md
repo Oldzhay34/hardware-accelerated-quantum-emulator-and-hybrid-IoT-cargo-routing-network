@@ -39,6 +39,7 @@ kullanılmamıştır.
 | n=16, p=1 (TSP, 5 durak) | **0,999989167** | ✅ | ✅ |
 | n=12, p=2 (sentetik) | **0,999998860** | ✅ | ✅ |
 | n=8, p=2 (sentetik) | **0,999999871** | ✅ | ✅ |
+| Aer CPU/GPU (WSL, 0.15.1), p=1/p=2 — GPU tabanının kendisi (T066) | **1,000000000000000** (1−F < 10⁻¹⁵) | ✅ | ✅ |
 
 Format taraması — **SAYISAL MODEL** (`format_fidelity.py`, p=2). ⚠️ Bu tablo
 **çekirdeğin değil modelin** çıktısıdır; model her kapıdan sonra yuvarladığı

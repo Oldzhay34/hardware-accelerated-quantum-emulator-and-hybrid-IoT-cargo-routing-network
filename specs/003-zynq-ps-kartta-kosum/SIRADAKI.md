@@ -15,12 +15,11 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B — T064 ✅, yöntem kararı ✅
-([ADR 0010](../../docs/decisions/0010-gpu-tabani-iki-katman.md): Aer + aynı
-algoritma, ikisi birden), T065 ✅ (`--device`). Sıradaki **T066**: Aer
-GPU/CPU statevector'ünü altın referansa karşı doğrula — önce yükleme
-döngüsünün devresinin (tohum 42 parametreler) referans dosyasıyla aynı devre
-olup olmadığı kontrol edilmeli. Sonra **T065b** (CuPy, aynı algoritma).
+**Hedef (tek cümle)**: 6B — T064 ✅, ADR 0010 ✅, T065 ✅, **T066 Aer
+katmanı ✅** (CPU ve GPU, p=1/2, fidelity 1 − 4·10⁻¹⁶). Sıradaki: **T067
+protokolünü ölçümden ÖNCE yaz** (FR-011; CPU Aer protokolüyle aynı ölçütler),
+sonra temiz ağaçta Aer CPU+GPU serileri. Paralel: **T065b** (CuPy, aynı
+algoritma) + kendi T066 doğrulaması.
 
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
 `services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
@@ -268,7 +267,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
-| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅ (27 Eyl), ADR 0010 (iki katman); sıradaki T066 |
+| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅, T066 Aer katmanı ✅ (27 Eyl), ADR 0010; sıradaki T067 protokolü / T065b |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |

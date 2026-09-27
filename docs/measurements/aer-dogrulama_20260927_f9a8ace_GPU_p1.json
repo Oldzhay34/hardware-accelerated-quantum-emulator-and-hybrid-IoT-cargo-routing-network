@@ -1,0 +1,57 @@
+{
+  "ne": "Aer statevector, altin referansa karsi (T066)",
+  "damga": {
+    "stamped_at": "2026-09-27T20:55:46.296540+00:00",
+    "git_hash": "f9a8ace",
+    "git_dirty": true,
+    "config": {
+      "device": "GPU",
+      "p": 1
+    }
+  },
+  "ortam": {
+    "qiskit": "1.4.6",
+    "qiskit_aer": "0.15.1",
+    "python": "3.12.3",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "device_istenen": "GPU",
+    "device_metadata": "GPU",
+    "precision": "double",
+    "cuStateVec_enable": false,
+    "fusion": {
+      "applied": true,
+      "time_taken": 0.001951134,
+      "cost_factor": 1.8,
+      "parallelization": 1,
+      "max_fused_qubits": 5,
+      "method": "unitary",
+      "threshold": 14,
+      "enabled": true
+    },
+    "gpu": {
+      "ad": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "surucu": "616.92",
+      "guc_siniri": "[N/A]",
+      "baslangic_sicaklik_C": "74"
+    }
+  },
+  "kapi": 301,
+  "transpile_sonrasi": {
+    "cx": 168,
+    "rz": 84,
+    "u2": 16,
+    "r": 16,
+    "save_statevector": 1
+  },
+  "dogrulama": {
+    "referans": "reference_20260915_c6ad872_p1_n5.json",
+    "referans_backend": "aer_simulator_statevector/0.17.2",
+    "fidelity": 1.0000000000000002,
+    "bir_eksi_F": -2.220446049250313e-16,
+    "max_genlik_farki": 4.8323804253902894e-17,
+    "p_optimum_referans": 8.561201452144864e-06,
+    "p_optimum_bu_kosum": 8.561201452144852e-06,
+    "esik": 0.999,
+    "gecti": true
+  }
+}
