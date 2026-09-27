@@ -24,7 +24,7 @@
   "neden": "fpga/bd/qir_bd.tcl kristali 33,333 MHz verdi; PYNQ-Z2'ninki 50 MHz. Vivado IO PLL'i 1600 MHz sanip FCLK0 bolenlerini 4x4 secti; PYNQ Overlay yuklerken bu bolenleri kartin gercek 1000 MHz IO PLL'ine uyguladi -> 62,5. SLCR yazmaclariyla dogrulandi: IO FBDIV=20, ARM 26, DDR 21 (x50 MHz = 1000/1300/1050). agent/board.py artik Clocks.fclk0_mhz=100 yazip dogruluyor (bolenler 1x10). PL mantigi ve zamanlama kapanisi etkilenmez."
  },
  "besleme": {
-  "jp5": "TEYIT BEKLIYOR - 21 Eyl kaydi: USB (adaptorsuz)",
+  "jp5": "USB (adaptorsuz; USB kaynagi kaydedilmedi) - kullanici teyidi 2026-09-27, olcumden sonra eklendi",
   "xadc_kosum_boyunca": {
    "ornek": 78988,
    "yeniden_programlama_ornegi": 10,

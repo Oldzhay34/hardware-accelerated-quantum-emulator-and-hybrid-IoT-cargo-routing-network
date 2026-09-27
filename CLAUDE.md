@@ -120,6 +120,7 @@ sorusunun cevabı; hangi argümanların kullanılacağı ve **hangilerinin kulla
 
 - [docs/decisions/](docs/decisions/) — kesinleşmiş kararlar, ADR biçiminde. Şablon: `ADR-TEMPLATE.md`.
 - [docs/decisions/dead-ends.md](docs/decisions/dead-ends.md) — denenip elenen yollar. Boş kalıyorsa yanlış kullanılıyordur.
+- [docs/hatalar-ve-duzeltmeler.md](docs/hatalar-ve-duzeltmeler.md) — yanlış sonuç üreten hatalar ve düzeltmeleri (**bitirme raporu için**). Hata **bulunduğu gün** eklenir.
 - Her `specs/<faz>/tasks.md` bir **SIRADAKİ** bloğuyla başlar — standart: [docs/siradaki-standardi.md](docs/siradaki-standardi.md).
 - Faz bitince: [docs/faz-sonu-kontrol.md](docs/faz-sonu-kontrol.md) — kararlar ADR'ye yazıldı mı, SIRADAKİ güncellendi mi.
 

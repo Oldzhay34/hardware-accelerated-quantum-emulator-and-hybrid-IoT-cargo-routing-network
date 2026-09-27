@@ -14,4 +14,5 @@ Kök seviyedeki dosyalar (`risk-register.md`, `repo-conventions.md`, `cost.md`, 
 - [neden-fpga.md](neden-fpga.md) — *"GPU varken neden FPGA?"* savunması; kullanılacak ve **kullanılmayacak** argümanlar
 - [sistem-mimarisi.md](sistem-mimarisi.md) — uçtan uca mimari, iki çalışma kipi, kapasite ve gerçek sınır (alt problem başına 4 durak)
 - [mimari-gerekce.md](mimari-gerekce.md) — hızlandırıcı seçiminin derin teknik gerekçesi; her iddia [Ö]/[T]/[?] etiketli
+- [hatalar-ve-duzeltmeler.md](hatalar-ve-duzeltmeler.md) — **bitirme raporu için**: yanlış sonuç üreten/üretecek 9 hata; belirti, nasıl yakalandı, kök neden, düzeltme, ders. Yeni hata bulunduğu gün buraya yazılır
 - [hizlandirici-kiyas-gunlugu.md](hizlandirici-kiyas-gunlugu.md) — 21 Eylül kıyas turunun **akışı**: soru zinciri, üç taban/üç cevap, düşen varsayımlar

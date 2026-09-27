@@ -15,8 +15,9 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **T039** — ölçüm protokolünü (`kart-olcum-protokolu.md`)
-yaz ve **ilk gecikme ölçümünden ÖNCE dondur**; ardından T040–T044.
+**Hedef (tek cümle)**: **T039** — [protokol taslağı](../../docs/measurements/kart-olcum-protokolu.md)
+yazıldı (2026-09-27), **kullanıcı onayı bekliyor**; onaylanınca v1.0 olarak
+dondurulur, ardından T040–T044. ⛔ Onaysız ölçüm alınmaz.
 
 **Dokunulacak dosyalar**: `docs/measurements/kart-olcum-protokolu.md` (yeni),
 `agent/measure_latency.py` (yeni), `agent/board.py` (`kosum()` zamanlaması)
@@ -86,7 +87,7 @@ Ayrıca **`192.168.2.99`** (eth0 statik yedeği) |
 | `import pynq` | ✅ root altında çalışıyor — PYNQ **2.5**, `Overlay`/`Bitstream`/`MMIO` erişilebilir |
 | FCLK0 | Boot'ta **100,0 MHz** — ama ⚠️ **overlay yüklenince 62,5 MHz** oluyor (2026-09-27, T032). Sebep: `qir_bd.tcl` kristali **33,333** verdi, PYNQ-Z2'ninki **50 MHz**; Vivado IO PLL'i 1600 sanıp bölenleri 4×4 seçti, kartın IO PLL'i 1000 MHz. SLCR'den doğrulandı (IO/ARM/DDR FBDIV 20/26/21 ×50 MHz). `board.py` artık **ayarlayıp doğruluyor** (bölenler 1×10 → 100,000). PL ve zamanlama kapanışı **etkilenmez** |
 | Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
-| Besleme | ⚠️ **JP5 konumu 27 Eyl'de TEYİT EDİLMEDİ** (21 Eyl kaydı: `USB`, adaptörsüz). Kullanıcıya sorulacak ve buraya yazılacak.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
+| Besleme | **JP5 = `USB`** (kullanıcı teyidi 2026-09-27; adaptörsüz). USB kaynağı — dizüstü portu mu şarj aleti mi — **kaydedilmedi**; enerji ölçümünden (öbek 6) önce yazılmalı. US1 bu düzende koşuldu.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
 | INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
 | Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
