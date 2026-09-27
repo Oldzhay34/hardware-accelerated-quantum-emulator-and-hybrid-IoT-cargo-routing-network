@@ -23,7 +23,7 @@ karışmaları çok kolay. Geliştirme sırasında iki kez karıştı; jüride d
 |---|---|---|---|
 | **16** kübit | Problem boyutu → 2¹⁶ = 65.536 genlik | Prensip III tavanı → 5 şehirlik TSP, (5−1)² = 16 | `N_QUBITS` |
 | **16** banka | `cyclic` bölümlenme faktörü | 65536'yı tam böler, parçalanma uçurumu F > 64'te | `BANKS` |
-| **18** bit | Her **reel sayının** hassasiyeti | Q1.17 — bir **seçim** (~~doğruluk ve BRAM kelimesinin kesişimi~~, 27 Eyl ölçümle düştü, §2.2b) | `real_t` |
+| **18** bit | Her **reel sayının** hassasiyeti | Q1.17 — ölçülmüş bir eğri üzerinde bir **seçim**; 14–24 bit tarandı, 16 da H'yi geçiyor (§2.2b) | `real_t` |
 | **18** bit | Faz çözünürlüğü (TUR cinsinden) | Ayrı ve **bağımsız** karar | `phase_t` |
 
 ### "18 bit" kübit sayısı değildir
@@ -235,59 +235,89 @@ zorundadır.
 Bu, Anayasa madde III'ün (çip-içi bellek zorunluluğu) bir kısıt değil bir
 **tasarım tercihi** olduğunu gösterir.
 
-### 2.2b Sayısal genişlik — GPU'nun ifade edemediği tasarım noktası
+### 2.2b Sayısal genişlik — GPU'da seçilemeyen, ölçülmüş bir tasarım ekseni
 
 > ⚠️ **"18 bit" kübit sayısı değil, her reel sayının hassasiyetidir.**
 > Ayrıntı ve diğer sayı çakışmaları: [§0](#0-aynı-sayı-farklı-anlam--önce-bunu-netleştirin).
 
-> ⛔ **27 Eyl 2026 — bu bölümün ana iddiası ÖLÇÜMLE DÜŞTÜ (6C).** Aşağıdaki
-> metin tarihsel kayıttır; T073'te ölçülmüş tabloyla yeniden yazılacak.
-> Çekirdeğin kendi taramasında **Q1.15 = 0,999656, H'yi geçiyor** (aşağıdaki
-> 0,998674 modelin değeri); BRAM 16/18/20/24 bitte **169/187/204/238** —
-> 19. bitte uçurum yok, statevector tam **8W** blok (re/im ayrı bellekler,
-> 36-bit kelimeye paketleme yok). Kalan savunulabilir iddia: genişlik GPU'da
-> seçilemeyen, ölçülmüş maliyet eğrisi olan **serbest bir parametre**; 18 bir
-> seçim. Ayrıntı: [olculen-degerler.md §2.2](olculen-degerler.md),
-> [hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+> 📝 **27 Eyl 2026 — bu bölüm ölçümle yeniden yazıldı (Faz 5, 6C).** Eski
+> sürüm *"18, iki bağımsız kısıtın tam kesişimidir"* diyordu; iki yarısı da
+> ölçümle düştü. Neden düştüğü: [hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+> Eski metin git geçmişinde (`dfe3eff`).
 
-~~**Bulgu: 18, iki bağımsız kısıtın tam kesişimidir.**~~
+**Ne ölçüldü.** Aynı çekirdek tek bir derleme bayrağıyla (`QIR_REAL_BITS`)
+beş genlik genişliğinde derlendi; her biri C-sim ile Qiskit'e karşı
+doğrulandı ve sentezlendi. Başka hiçbir şey değişmedi: n=16, faz 18 bit, trig
+indeksi 13 bit, 100 MHz hedef.
 
-**Yukarıdan — doğruluk.** H eşiğini (≥0,999) geçen en dar format Q1.17'dir;
-Q1.15 kalır ([olculen-degerler.md](olculen-degerler.md)):
+![Genişlik Pareto figürü](figures/genislik-pareto_20260927_dfe3eff.svg)
 
-| bit | format | fidelity | H |
-|---|---|---|---|
-| 16 | Q1.15 | 0,998674120 | ❌ |
-| **18** | **Q1.17** | **0,999917032** | ✅ |
+| W | Format | 1 − F (p=2) | H | BRAM_18K | Statevector | DSP | Periyot (ns) |
+|---:|---|---:|:---:|---:|---:|---:|---:|
+| 14 | Q1.13 | 5,5·10⁻³ | ❌ | 152 | 112 | 36 | 7,275 |
+| 16 | Q1.15 | 3,4·10⁻⁴ | ✅ | 169 | 128 | 36 | 7,278 |
+| **18** | **Q1.17** | **2,2·10⁻⁵** | ✅ | **187** | **144** | 36 | 7,195 |
+| 20 | Q1.19 | 1,5·10⁻⁶ | ✅ | 204 | 160 | 30 | 7,209 |
+| 24 | Q1.23 | 1,1·10⁻⁷ | ✅ | 238 | 192 | 33 | 7,220 |
 
-**Aşağıdan — donanım.** Zynq'teki BRAM36 bloğunun **azami kelime genişliği
-36 bittir**. Bir genlik re+im = 2 × 18 = **tam 36 bit**, yani bir kelimeye
-sıfır israfla oturur ([memory-budget.md](memory-budget.md)):
+Kaynak: [genislik-pareto_20260927_dfe3eff.json](measurements/genislik-pareto_20260927_dfe3eff.json),
+ayrıntı [olculen-degerler.md §2.2](olculen-degerler.md). BRAM ve DSP csynth
+değeridir; 18 bitte Vivado P&R ile aynı (BRAM 187). **Çevrim sayısı
+genişlikten bağımsızdır** (p=2 için 3.728.217) — genişlik gecikmeyi değil,
+yalnız alanı ve doğruluğu değiştirir.
 
-| Hassasiyet | bit/genlik | Kelime | İsraf |
-|---|---|---|---|
-| 16 bit | 32 | sığıyor | 4 bit boşta — **ve fidelity kalıyor** |
-| **18 bit** | **36** | **tam oturuyor** | **0** ✅ |
-| 19 bit | 38 | ❌ taşıyor | **ikinci blok → BRAM ikiye katlanır** |
-| 32 bit (fp32) | 64 | ❌ | ping-pong'da %162 → **sığmıyor** |
+**Ne gösteriyor.**
 
-Altında doğruluk yetmiyor, üstünde bellek iki katına çıkıyor. İki bağımsız
-kısıtın aynı sayıya düşmesi bu tasarımın ana bulgusudur.
+1. **Eğride dirsek yok.** Her 2 bit hatayı ~16× düşürüyor (kuramsal 4²),
+   her bit ~8–9 BRAM bloğu ekliyor (statevector tam **8W**: re ve im ayrı
+   belleklerde, 36-bit kelimeye paketleme yok). Doğruluk üstel iyileşiyor,
+   maliyet doğrusal artıyor; ikisi de pürüzsüz. 24 bitte hata ~10⁻⁷'de
+   tabana oturuyor — orada artık faz (18 bit) ve trig tablosu (13 bit) baskın.
+2. **18 bir seçimdir, zorunluluk değil.** 16 bit H eşiğini ~3× payla geçiyor
+   ve 18'den 18 blok (%10) az BRAM harcıyor. Aralıktaki her nokta çipe sığıyor
+   (en genişi 238/280).
+3. **Faz 2'nin sayısal modeli hatayı ~3,8× fazla tahmin ediyor** (grafikte
+   kesikli çizgi). Model her kapıdan sonra yuvarlıyor, çekirdek çift
+   genişlikli akümülatörde biriktirip bir kez yuvarlıyor. 18 bit bu modele
+   göre seçilmişti.
 
-**GPU'da bu nokta yoktur.** Menü sabittir: fp16 / bf16 / fp32 / fp64 / int8.
-18 bitlik reel sayı yoktur; "36 bitlik bellek kelimesine hizalamak" diye bir
-kavram yoktur. Ve GPU'nun doğal formatı fp32, bu çipe **sığmaz**.
+**GPU'da bu eksen yoktur.** GPU'da genişlik bir menüdür: fp16 / bf16 / fp32
+/ fp64 / int8. "Bir bit daha doğruluk satın almak" diye bir işlem yoktur;
+bir sonraki basamak fp16 → fp32'dir ve belleği ikiye katlar. FPGA'da
+genişlik bir derleme bayrağıdır ve her noktanın bedeli ölçülmüştür: bit
+başına ~8–9 BRAM bloğu, **sıfır ek çevrim**. Tasarımcı doğruluk hedefini
+seçip ona tam yetecek genişliği alır:
 
-> Yani bu tasarım, **18 bit seçilebildiği için var olabiliyor**.
+| Hedef hata (1 − F) | Yeten en dar genişlik (ölçülen) | BRAM_18K |
+|---|---:|---:|
+| 10⁻³ (H) | 16 bit | 169 |
+| 10⁻⁴ | 18 bit | 187 |
+| 10⁻⁵ | 20 bit | 204 |
+| 10⁻⁶ | 24 bit | 238 |
 
-⚠️ **Aşırı iddia etmeyin**: "18 bit fp16'dan daha doğru" **denmez**. Kayan
-noktanın üssü vardır; küçük genliklerde fp16 bizden iyi bile çıkabilir.
-Savunulabilir iddia doğruluk üstünlüğü değil, **ifade edilebilirlik ve
-sığma**: bu nokta GPU'da seçilemez, GPU'nun seçebildikleri de bu çipe sığmaz.
+Savunulabilir iddia budur: **genişlik FPGA'da sürekli ve bedeli ölçülmüş
+bir eksen, GPU'da ayrık ve sabit bir menü.**
 
-**Ölçüm görevi**: her genişlikte donanım maliyetini (BRAM/DSP/LUT/gecikme/
-zamanlama) ölçüp fidelity ile yan yana koymak — Pareto eğrisi. Faz 5
-Phase 6C, T070–T073.
+⚠️ **Aşırı iddia etmeyin**:
+- "18 bit fp16'dan daha doğru" **denmez**. Kayan noktanın üssü vardır;
+  küçük genliklerde fp16 bizden iyi bile çıkabilir. İddia doğruluk
+  üstünlüğü değil, **eksenin kendisi**.
+- "fp32 bu çipe sığmaz" **ölçülmedi**. 8W kuralını 32 bite uzatmak
+  statevector için 256 blok, geri kalanla ~300 blok verir (> 280) — bu bir
+  **ekstrapolasyondur**; kayan nokta aritmetiğinin DSP/LUT maliyeti de ayrıca
+  farklıdır. Söylenecekse "ekstrapolasyonla" diye söylenir.
+- ⛔ Artık kullanılmayacak cümleler: *"18, iki kısıtın kesişimi"*, *"18, H'yi
+  geçen en dar format"*, *"19. bitte BRAM ikiye katlanır"*, *"18 bit
+  silikonun doğal birimi"* (DSP48'in 18-bit portu: DSP 36/36/30/33, sıçrama
+  yok).
+
+**Jüri sorarsa — "Neden 16 değil de 18?"** Dürüst cevap: *"Format Faz 2'de
+sayısal modele göre seçildi; model 16 biti eşiğin altında gösteriyordu.
+Sonradan genişliği gerçekten taradık ve 16'nın da geçtiğini gördük. 18'de
+kaldık, çünkü bitstream ve bütün kart ölçümleri 18 bitle yapıldı. 16'ya geçmek
+%10 BRAM kazandırır ama gecikmeyi değiştirmez (çevrim sayısı aynı) ve ~16×
+hata payından vazgeçer. Bu kazanç, yeni bir implementasyon ve bütün ölçümlerin
+tekrarı maliyetine değmiyor."*
 
 ### 2.3 Belirlenimci gecikme — **yalnız artımlı yolda geçerli**
 

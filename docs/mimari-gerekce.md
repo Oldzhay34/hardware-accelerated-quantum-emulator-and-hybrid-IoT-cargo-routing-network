@@ -502,11 +502,13 @@ Savunmanın sağlamlığı, neyi iddia etmediğini bilmesinden gelir.
 > ölçerek gösterdik. Tasarımın bağlayıcı kısıtı aritmetik değil **bellek
 > portudur**: bankalama faktörünü dörde katlamak sıfır kazanç verirken,
 > bellek tipini gerçek çift porta çevirmek tek kelimeyle %22,6 kazandırmıştır.
-> ~~Aynı bellek-merkezli mantık sayısal genişliği de belirlemiştir: 18 bit,
-> doğruluk eşiğini geçen en dar format olmakla kalmaz, BRAM36'nın 36-bit
-> kelimesine iki genlik bileşeni hâlinde **sıfır israfla** oturur.~~
-> ⛔ *(27 Eyl: ölçümle düştü — [hatalar #10](hatalar-ve-duzeltmeler.md).
-> Özet cümlesi yeniden yazılacak.)* Katkımız
+> Aynı ölçüm disiplini sayısal genişliğe de uygulandı: genişlik 14–24 bit
+> arasında tarandığında hata her 2 bitte ~16× düşerken BRAM bit başına
+> doğrusal (~8–9 blok) artıyor ve gecikme hiç değişmiyor; 18 bit bu pürüzsüz
+> eğri üzerinde bir **seçimdir** ([neden-fpga.md §2.2b](neden-fpga.md)).
+> *(27 Eyl'e kadar burada duran "18 bit, eşiği geçen en dar format ve 36-bit
+> kelimeye sıfır israfla oturur" cümlesi ölçümle düştü —
+> [hatalar #10](hatalar-ve-duzeltmeler.md).)* Katkımız
 > bir hız rekoru değil — hız rekorunun **neden mümkün olmadığının** ölçülmüş
 > ve modellenmiş açıklamasıdır.
 

@@ -379,7 +379,10 @@ cümlesi kararı kullanıcıda. İlginç yan bulgu (doğrulanmadı): HLS BRAM'in
 parite bitlerini kullanmıyor; 18 bitte 1K×18 düzeni 144 yerine 128 blok
 verebilirdi.
 
-**Kanıt**: [genislik-pareto_20260927_924216e.json](measurements/genislik-pareto_20260927_924216e.json),
+**Kanıt**: [genislik-pareto_20260927_dfe3eff.json](measurements/genislik-pareto_20260927_dfe3eff.json)
+(`BRAM_statevector` alanı), figür
+[genislik-pareto_20260927_dfe3eff.svg](figures/genislik-pareto_20260927_dfe3eff.svg)
+— panel (b) Faz 2 hesabını ölçümün yanında gösterir,
 `qir_hls_prj_W<n>/solution1/syn/report/qir_kernel_csynth.rpt` (Memory
 tablosu), [olculen-degerler.md §2.2, §8 #5–6](olculen-degerler.md).
 

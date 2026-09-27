@@ -129,8 +129,11 @@ Koşum boyunca besleme (XADC): VCCINT ≥ 1,0151 V, VCCBRAM ≥ 1,0159 V — dü
 Aynı çekirdek `QIR_REAL_BITS` ile 5 genişlikte derlendi (C-sim + csynth).
 Sabit tutulan: n=16, `phase_t` 18 bit, trig indeksi 13 bit, 10 ns hedef,
 xc7z020clg400-1. Kayıt:
-[genislik-pareto_20260927_924216e.json](measurements/genislik-pareto_20260927_924216e.json)
-(beş genişlik; önceki `_29b253c` W=14'süzdü).
+[genislik-pareto_20260927_dfe3eff.json](measurements/genislik-pareto_20260927_dfe3eff.json)
+(beş genişlik + statevector BRAM'i; önceki `_29b253c` W=14'süz, `_924216e`
+statevector alanısız). Figür:
+[genislik-pareto_20260927_dfe3eff.svg](figures/genislik-pareto_20260927_dfe3eff.svg)
+(`scripts/genislik_figur.py`, JSON'dan üretilir).
 
 | W | Format | Fidelity p=2 | Fidelity p=1 | Model p=2 | BRAM_18K | DSP | LUT* | Periyot |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|

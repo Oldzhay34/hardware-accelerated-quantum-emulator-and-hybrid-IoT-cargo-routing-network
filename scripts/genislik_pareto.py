@@ -63,12 +63,28 @@ def _rpt_cevrimler(rpt: Path) -> dict:
             "katman": (int(katman.group(1)), int(katman.group(2))) if katman else None}
 
 
-def sentez(rapor: Path) -> dict:
+def _statevector_bram(rpt: Path, w: int) -> int:
+    """Üst modülün Memory tablosu = statevector. `sv` bir amp_t{re,im} dizisi,
+    cyclic 2 bölünmüş; HLS yapıyı re/im'e ayırınca 4 bellek × 32768 kelime × W
+    bit çıkar. Tablo bundan saparsa sessizce toplamak yerine dur."""
+    metin = rpt.read_text(encoding="utf-8", errors="replace")
+    blok = metin.split("* Memory:", 1)[1].split("\n\n", 1)[0]
+    satirlar = [s.split("|") for s in blok.splitlines() if s.strip().startswith("|")]
+    bellekler = [s for s in satirlar
+                 if len(s) > 9 and s[1].strip() not in ("Memory", "Total")]
+    assert len(bellekler) == 4, f"statevector 4 bellek bekleniyordu: {len(bellekler)}"
+    for s in bellekler:
+        assert (int(s[7]), int(s[8])) == (32768, w), f"beklenmeyen bellek: {s[1].strip()}"
+    return sum(int(s[3]) for s in bellekler)
+
+
+def sentez(rapor: Path, w: int = 18) -> dict:
     ust = _xml(rapor / "qir_kernel_csynth.xml")
     c = _rpt_cevrimler(rapor / "qir_kernel_csynth.rpt")
     init, bd, kat = c["init"][1], c["beklenen_deger"], c["katman"]
     return {
         "BRAM_18K": int(_bul(ust, "BRAM_18K")),
+        "BRAM_statevector": _statevector_bram(rapor / "qir_kernel_csynth.rpt", w),
         "DSP": int(_bul(ust, "DSP")),
         "LUT_hls_tahmini": int(_bul(ust, "LUT")),
         "FF_hls_tahmini": int(_bul(ust, "FF")),
@@ -108,7 +124,7 @@ def main(argv: list[str]) -> int:
         if not (rapor / "qir_kernel_csynth.xml").exists():
             print(f"W={w}: sentez raporu YOK ({rapor})")
             continue
-        s = sentez(rapor)
+        s = sentez(rapor, w)
         f = fidelity(fdir, w)
         s.update({"genislik_bit": w, "format": f"Q1.{w - 1}", "bit_per_genlik": 2 * w,
                   "BRAM36_kelimesine_sigar": 2 * w <= 36,
@@ -120,15 +136,16 @@ def main(argv: list[str]) -> int:
     # 18 bit tutarlılık: tarama koşusu asıl projenin raporuyla aynı mı?
     asil = sentez(KOK / "qir_hls_prj" / "solution1" / "syn" / "report")
     s18 = next((s for s in satirlar if s["genislik_bit"] == 18), None)
-    alanlar = ("BRAM_18K", "DSP", "LUT_hls_tahmini", "FF_hls_tahmini",
+    alanlar = ("BRAM_18K", "BRAM_statevector", "DSP", "LUT_hls_tahmini", "FF_hls_tahmini",
                "cevrim_p3_ust_max", "II_rx_dyn_pair_loop", "II_cost_amp_loop")
     tutarlilik = ({a: (s18[a], asil[a]) for a in alanlar if s18[a] != asil[a]}
                   if s18 else {"hata": "W=18 yok"})
 
-    print(f"{'W':>3} {'BRAM':>5} {'DSP':>4} {'LUT*':>7} {'FF*':>7} {'per ns':>7} "
+    print(f"{'W':>3} {'BRAM':>5} {'SV':>4} {'DSP':>4} {'LUT*':>7} {'FF*':>7} {'per ns':>7} "
           f"{'II rx/cost':>10} {'p2 cevrim':>10} {'F p2':>11} {'model':>11}")
     for s in satirlar:
-        print(f"{s['genislik_bit']:>3} {s['BRAM_18K']:>5} {s['DSP']:>4} {s['LUT_hls_tahmini']:>7} "
+        print(f"{s['genislik_bit']:>3} {s['BRAM_18K']:>5} {s['BRAM_statevector']:>4} "
+              f"{s['DSP']:>4} {s['LUT_hls_tahmini']:>7} "
               f"{s['FF_hls_tahmini']:>7} {s['tahmini_periyot_ns']:>7.3f} "
               f"{s['II_rx_dyn_pair_loop']:>4}/{s['II_cost_amp_loop']:<5} {s['cevrim_p2_hls_max']:>10} "
               f"{s['fidelity_p2'] or 0:>11.9f} {s['model_fidelity_p2'] or 0:>11.9f}")
@@ -146,6 +163,8 @@ def main(argv: list[str]) -> int:
                           "saat_hedefi_ns": 10.0, "part": "xc7z020clg400-1"},
         "uyari": ("LUT/FF HLS tahminidir (bu projede 2x sisik, oran sabit degil). "
                   "Cevrimler HLS en kotu durumu (max); kartta 18 bit %1,9 alti olculdu."),
+        "BRAM_statevector_tanimi": ("ust modulun Memory tablosu: sv (amp_t{re,im}, cyclic 2) "
+                                    "-> 4 bellek x 32768 kelime x W bit"),
         "fidelity_kaynagi": "C-sim (hls/genislik_tarama.sh), Qiskit altin referansina karsi",
         "model_kaynagi": mdl_dosya,
         "implementasyon_18_bit": IMPL_18,
