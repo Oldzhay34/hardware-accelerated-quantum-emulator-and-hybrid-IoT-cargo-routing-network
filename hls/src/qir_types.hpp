@@ -52,6 +52,22 @@ static_assert(N_QUBITS % 2 == 0,
 //                göstermedi, çünkü emülasyon başlangıç durumunu kuantalamıyor;
 //                donanım ise onu belleğe YAZAR. Sarmanın hata kipi sessiz ve
 //                ölümcül, doyurmanınki 7,6e-6'lık bir sapma.
+// ⚙️ QIR_REAL_BITS — genlik genişliği, YALNIZCA 6C Pareto taraması için
+// (görev T070–T073). Varsayılan 18 = Q1.17: ölçümle seçilen ve bitstream'de
+// olan format. `-DQIR_REAL_BITS=W` ile tek bir reel sayının genişliği değişir;
+// KÜBİT SAYISI DEĞİŞMEZ ("18 bit" hassasiyettir, kübit değil).
+// Türevler birlikte ölçeklenir: acc_t = <2W, 2>, sum_t = <W+30, 8>
+// (qir_kernel.hpp). W=18'de ikisi de önceki sabit değerleriyle aynıdır.
+// Üst sınır 26: C-sim taklidi (`ap_fixed_mock`) aritmetiği double'da yapar
+// ve iki W-bitlik çarpımın 53-bit mantise TAM sığması gerekir (2W <= 53).
+// Alt sınır 10: başlangıç genliği 2^-8 tam temsil edilmeli.
+#ifndef QIR_REAL_BITS
+#define QIR_REAL_BITS 18
+#endif
+constexpr int REAL_BITS = QIR_REAL_BITS;
+static_assert(REAL_BITS >= 10 && REAL_BITS <= 26,
+              "QIR_REAL_BITS 10..26 araliginda olmali (bkz. ustteki not)");
+
 // ⚙️ QIR_REAL_FLOAT — YALNIZCA PS↔PL taban ölçümü için (görev T045b).
 // ARM'da adil bir taban gerekiyor: `ap_fixed_mock` her işlemi double'da yapıp
 // kuantalar ve Cortex-A9'un NEON'u çift duyarlık DESTEKLEMEZ. O kodu ARM'da
@@ -62,15 +78,15 @@ static_assert(N_QUBITS % 2 == 0,
 #ifdef QIR_REAL_FLOAT
 using real_t = float;
 #else
-using real_t = ap_fixed<18, 1, AP_RND_CONV, AP_SAT>;
+using real_t = ap_fixed<REAL_BITS, 1, AP_RND_CONV, AP_SAT>;
 #endif
 
 // Ara sonuç: iki Q1.17 değerinin çarpımı Q2.34'tür; RX'te iki çarpım toplanır,
-// büyüklük 2'yi aşmaz -> 2 tam sayı biti yeter.
+// büyüklük 2'yi aşmaz -> 2 tam sayı biti yeter. Genel W için Q2.(2W-2).
 #ifdef QIR_REAL_FLOAT
 using acc_t = float;
 #else
-using acc_t = ap_fixed<36, 2, AP_RND_CONV, AP_SAT>;
+using acc_t = ap_fixed<2 * REAL_BITS, 2, AP_RND_CONV, AP_SAT>;
 #endif
 
 // --- Faz temsili: TUR (turn) cinsinden ---------------------------------------

@@ -33,6 +33,17 @@ if {![file exists $REPO/hls/src/qir_kernel.cpp]} {
 set QIR_N 16
 if {[info exists ::env(QIR_N)]} { set QIR_N $::env(QIR_N) }
 
+# --- Genlik genisligi: 6C Pareto taramasi (T072) ---------------------------
+#
+# QIR_REAL_BITS ortam degiskeni verilirse -DQIR_REAL_BITS ile derlenir ve
+# proje AYRI dizine yazilir (qir_hls_prj_W<n>). NEDEN AYRI: open_project
+# -reset ve open_solution -reset asil projeyi -- bitstream'in geldigi --
+# silerdi, W=18 taramasi dahil. Verilmezse varsayilan 18 ve asil proje.
+#
+#   QIR_REAL_BITS=16 vitis-run --mode hls --tcl hls/tcl/csynth.tcl
+set QIR_W ""
+if {[info exists ::env(QIR_REAL_BITS)]} { set QIR_W $::env(QIR_REAL_BITS) }
+
 # --- Hedef ----------------------------------------------------------------
 # PYNQ-Z2 = XC7Z020, clg400 paket, -1 hiz sinifi.
 set PART        {xc7z020clg400-1}
@@ -47,6 +58,7 @@ set CLOCK_NS    10
 set PROJ        $REPO/qir_hls_prj
 # n != 16 AYRI proje dizini kullanir: n=16 sentez sonuclari ezilmesin.
 if {$QIR_N != 16} { set PROJ ${PROJ}_n$QIR_N }
+if {$QIR_W ne ""} { set PROJ ${PROJ}_W$QIR_W }
 set SOLUTION    solution1
 set TOP         qir_kernel
 
@@ -55,6 +67,7 @@ set TOP         qir_kernel
 # Vitis'siz g++ yolu icindir ve bu iki yolun AYNI sonucu verip vermedigi
 # T040'in konusudur -- csim ciktisi WSL sonucuyla karsilastirilarak sinanir.
 set CFLAGS      "-std=c++17 -DQIR_N_QUBITS=$QIR_N -I$REPO/hls/src -I$REPO/hls/tb"
+if {$QIR_W ne ""} { append CFLAGS " -DQIR_REAL_BITS=$QIR_W" }
 
 # --- Altin referans (en yenisi) -------------------------------------------
 # n=16 icin gercek TSP referansi (Faz 1); digerleri icin sentetik referans

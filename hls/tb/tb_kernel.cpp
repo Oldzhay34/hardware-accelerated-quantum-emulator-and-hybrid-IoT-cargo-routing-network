@@ -318,7 +318,8 @@ int main(int argc, char** argv) {
 
         std::printf("Referans        : %s\n", ref_taban.c_str());
         std::printf("Kubit / p       : %d / %d   (sira: %s)\n", n, p, kubit_sirasi.c_str());
-        std::printf("Format          : Q1.17 (ap_fixed<18,1,AP_RND_CONV,AP_SAT>)\n");
+        std::printf("Format          : Q1.%d (ap_fixed<%d,1,AP_RND_CONV,AP_SAT>)\n",
+                    qir::REAL_BITS - 1, qir::REAL_BITS);
         std::printf("Fidelity        : %.9f\n", f);
         std::printf("Buyukluk sapmasi: %.3e\n", buyukluk_sapmasi);
         std::printf("M (>=0,99)      : %s\n", gecti_M ? "GECTI" : "KALDI");
@@ -345,7 +346,8 @@ int main(int argc, char** argv) {
               << "  \"kubit_konvansiyonu\": \"" << kubit_sirasi << "\",\n"
               << "  \"n_qubits\": " << n << ",\n"
               << "  \"p\": " << p << ",\n"
-              << "  \"format\": \"Q1.17\",\n"
+              << "  \"format\": \"Q1." << (qir::REAL_BITS - 1) << "\",\n"
+              << "  \"real_bits\": " << qir::REAL_BITS << ",\n"
               << "  \"phase_bits\": " << qir::PHASE_BITS << ",\n"
               << "  \"banks\": " << qir::BANKS << ",\n"
               << "  \"gecti_M\": " << (gecti_M ? "true" : "false") << ",\n"

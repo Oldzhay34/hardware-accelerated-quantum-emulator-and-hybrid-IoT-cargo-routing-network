@@ -16,6 +16,12 @@ Tasarim:
     (Cift duyarlikli birim de 8 BRAM_18K kullaniyordu; BRAM acisindan bedava.)
   - Faz cozunurlugu 2^-13 tur. Olculen etki: 12 bit -> 0,999950,
     14 bit -> 0,999998 (docs/measurements/faz-bit-genisligi_*.json).
+  - ⚠️ GENISLIKTEN BAGIMSIZ (T070, 6C taramasi): degerler Q1.17'ye ONCEDEN
+    yuvarlanmaz; tam double olarak (17 anlamli basamak) yazilir ve kuantalama
+    derleme zamaninda `real_t` donusumune (AP_RND_CONV + AP_SAT) birakilir.
+    Boylece ayni dosya her QIR_REAL_BITS icin dogru tabloyu verir. Onceki
+    surum Python'da Q1.17'ye yuvarliyordu; AP_RND_CONV = yarim ise cifte =
+    Python round, yani varsayilan 18 bitte tablo BIT BIT ayni kalir.
 
 Kullanim:
     .venv/Scripts/python.exe scripts/gen_trig_lut.py
@@ -44,18 +50,22 @@ def main() -> None:
     kok = Path(__file__).resolve().parents[1]
     yol = kok / "hls" / "src" / "trig_lut.hpp"
 
-    degerler = [q1_17(math.sin(2.0 * math.pi * i / N)) for i in range(N)]
-    azami_hata = max(abs(d - math.sin(2.0 * math.pi * i / N))
-                     for i, d in enumerate(degerler))
+    tam = [math.sin(2.0 * math.pi * i / N) for i in range(N)]
+    # Yalniz rapor icin: varsayilan Q1.17'deki kuantalama hatasi.
+    azami_hata = max(abs(q1_17(x) - x) for x in tam)
 
     satirlar = []
-    for i in range(0, N, 8):
-        parca = ", ".join(f"{d: .8f}" for d in degerler[i:i + 8])
+    for i in range(0, N, 4):
+        parca = ", ".join(f"{d: .17g}" for d in tam[i:i + 4])
         satirlar.append(f"    {parca},")
 
     icerik = f"""// URETILMIS DOSYA -- ELLE DUZENLEME. Uretici: scripts/gen_trig_lut.py
 //
-// Sabit-nokta sinus tablosu. {N} girdi (13 bit indeks), Q1.17.
+// Sabit-nokta sinus tablosu. {N} girdi (13 bit indeks).
+//
+// Degerler TAM (double) yazilir; kuantalama `real_t`'ye donusumde derleme
+// zamaninda olur (AP_RND_CONV + AP_SAT), yani tablo her QIR_REAL_BITS icin
+// dogrudur. Varsayilan 18 bitte (Q1.17) onceki surumle bit bit aynidir (T070).
 //
 // Ilk sentez raporu `std::cos/sin`'in cift duyarlikli bir transandantal birim
 // olarak sentezlendigini gosterdi (tek ornek 85 DSP + 6.364 LUT) ve tasarim
@@ -65,7 +75,7 @@ def main() -> None:
 // TEK tablo: cos(x) = sin(x + ceyrek periyot) oldugu icin kosinus ayni
 // tablodan indeks kaydirmayla okunur.
 //
-// Tablo kuantalama hatasi (azami): {azami_hata:.3e}  (1 LSB = {1.0/OLCEK:.3e})
+// Q1.17'de tablo kuantalama hatasi (azami): {azami_hata:.3e}  (1 LSB = {1.0/OLCEK:.3e})
 #pragma once
 
 #include "qir_types.hpp"
@@ -84,7 +94,7 @@ static const real_t TRIG_SIN[TRIG_LUT_N] = {{
     io.open(yol, "w", encoding="ascii", newline="\n").write(icerik)
     print(f"Yazildi: {yol}")
     print(f"  girdi        : {N} ({LUT_BITS} bit indeks)")
-    print(f"  bit/girdi    : 18 (Q1.17)")
+    print(f"  bit/girdi    : QIR_REAL_BITS (varsayilan 18 = Q1.17; kuantalama derlemede)")
     print(f"  toplam       : {N * 18:,} bit = {N * 18 / 18432:.0f} BRAM_18K")
     print(f"  azami hata   : {azami_hata:.3e}  (1 LSB = {1.0 / OLCEK:.3e})")
     print(f"  dosya boyutu : {yol.stat().st_size / 1024:.0f} KB")
