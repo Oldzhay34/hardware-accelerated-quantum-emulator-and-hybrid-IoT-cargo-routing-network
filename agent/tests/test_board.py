@@ -113,3 +113,62 @@ def test_beklenen_deger_bit_deseni_korunur():
     ham = 0xBEE28271                      # cosim'de olculen deger
     deger = struct.unpack("<f", struct.pack("<I", ham))[0]
     assert abs(deger - (-0.442401439)) < 1e-9
+
+
+# =========================================================================
+# FCLK ayarı — 2026-09-27 T032'de kartta yaşanan 62,5 MHz durumu
+# =========================================================================
+class _SahteSaatler(object):
+    """`pynq.ps.Clocks` yerine: yalnız `fclk0_mhz` özniteliğini tutar."""
+    fclk0_mhz = None
+
+
+@pytest.fixture
+def sahte_pynq(monkeypatch):
+    import sys
+    import types
+
+    def _hazirla(baslangic_mhz):
+        _SahteSaatler.fclk0_mhz = baslangic_mhz
+        ps = types.ModuleType("pynq.ps")
+        ps.Clocks = _SahteSaatler
+        paket = types.ModuleType("pynq")
+        paket.ps = ps
+        monkeypatch.setitem(sys.modules, "pynq", paket)
+        monkeypatch.setitem(sys.modules, "pynq.ps", ps)
+        return _SahteSaatler
+    return _hazirla
+
+
+def test_fclk_sapmissa_ayarlanir_ve_kaydedilir(sahte_pynq):
+    """Kartta ölçülen durum: yüklemeden sonra 62,5 MHz → 100'e getirilmeli."""
+    saat = sahte_pynq(62.5)
+    k = board.Kart("x.bit")
+    k.fclk_ayarla()
+    assert k.fclk_yukleme_sonrasi == 62.5          # ayar ÖNCESİ değer kayıtta
+    assert k.fclk_ayarlandi is True
+    assert saat.fclk0_mhz == board.FCLK_HEDEF_MHZ
+    assert k.fclk_dogrula() == board.FCLK_HEDEF_MHZ
+
+
+def test_fclk_dogruysa_yazilmaz(sahte_pynq):
+    """Tolerans içindeyse saate dokunulmaz — gereksiz yazma bölenleri oynatır.
+
+    100,5 seçildi: kod yazsaydı değer 100,0'a dönerdi ve test yakalardı.
+    """
+    saat = sahte_pynq(100.5)
+    k = board.Kart("x.bit")
+    k.fclk_ayarla()
+    assert k.fclk_ayarlandi is False
+    assert saat.fclk0_mhz == 100.5
+
+
+def test_fclk_ayar_tutmazsa_hata(sahte_pynq):
+    """Ayardan sonra da sapma varsa sessiz geçilmez."""
+    sahte_pynq(62.5)
+    k = board.Kart("x.bit")
+    k.fclk_ayarla()
+    _SahteSaatler.fclk0_mhz = 62.5                 # PLL hedefi veremedi
+    with pytest.raises(board.KartHatasi) as e:
+        k.fclk_dogrula()
+    assert "tutmadi" in str(e.value)

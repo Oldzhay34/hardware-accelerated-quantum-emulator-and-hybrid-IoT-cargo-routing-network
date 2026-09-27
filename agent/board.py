@@ -15,12 +15,18 @@ Register kaynağı: IP paketindeki `drivers/qir_kernel_v0_1/src/xqir_kernel_hw.h
    `pynq` **tembel** içe aktarılır: modül, kart olmadan da (testler için)
    içe aktarılabilir olmak zorunda.
 
-2. **FCLK doğrulanmadan koşulmaz.** Blok tasarımdaki 100 MHz bir
-   *implementasyon zamanı* kısıtıdır; çalışma zamanında PL saatini kartın
-   boot'taki `ps7_init`'i belirler ve PYNQ `.bit` indirirken PS'i yeniden
-   yapılandırmaz. Yanlış saatte koşan çekirdek **doğru sonuç verir ama
-   gecikme ölçümleri sessizce yanlış çıkar** — ve "makul" göründüğü için
-   fark edilmez.
+2. **FCLK ayarlanıp doğrulanmadan koşulmaz.** Blok tasarımdaki 100 MHz bir
+   *implementasyon zamanı* kısıtıdır. PYNQ `Overlay` yüklerken PLL'lere
+   dokunmaz (onları boot'taki `ps7_init` kurar) ama FCLK **bölenlerini**
+   `.hwh`'den yazar. Bölenler başka bir PLL frekansına göre hesaplanmışsa
+   PL yanlış saatte koşar: çekirdek **doğru sonuç verir ama gecikme
+   ölçümleri sessizce yanlış çıkar** — ve "makul" göründüğü için fark edilmez.
+
+   Bu **yaşandı** (2026-09-27, T032): `qir_bd.tcl` kristali 33,333 MHz
+   verdi, PYNQ-Z2'ninki **50 MHz**. Vivado IO PLL'i 1600 MHz sanıp bölenleri
+   4×4 seçti; kartın gerçek IO PLL'i 1000 MHz → FCLK0 = **62,5 MHz**. Bu
+   yüzden `yukle()` frekansı önce **ayarlar** (`Clocks.fclk0_mhz`, PYNQ
+   bölenleri gerçek PLL'den hesaplar), sonra **doğrular**.
 """
 # PYTHON 3.6 UYUMU ZORUNLU (yukarı bakın)
 import struct
@@ -122,6 +128,8 @@ class Kart(object):
         self.mmio = None
         self._dizi = None          # numpy uint32 gorunumu (varsa)
         self.olculen_fclk = None
+        self.fclk_yukleme_sonrasi = None   # ayardan ONCEKI deger (kayit icin)
+        self.fclk_ayarlandi = False
 
     # ----------------------------------------------------------------- yükleme
     def yukle(self):
@@ -148,6 +156,7 @@ class Kart(object):
             self.mmio = pynq.MMIO(int(self.taban), MMIO_UZUNLUK)
 
         self._dizi = getattr(self.mmio, "array", None)
+        self.fclk_ayarla()
         self.fclk_dogrula()
         return self
 
@@ -159,6 +168,20 @@ class Kart(object):
         raise KartHatasi(
             "Overlay'in ip_dict'inde qir_kernel yok: {}".format(
                 list((overlay.ip_dict or {}).keys())))
+
+    def fclk_ayarla(self):
+        """FCLK0'ı hedefe getirir; yüklemeden hemen sonraki değeri KAYDEDER.
+
+        Sapma yoksa hiçbir şey yazmaz. Kayıt ölçüm dosyasına girer: hangi
+        koşumun ayar gerektirdiği sonradan görülebilsin.
+        """
+        from pynq.ps import Clocks
+        self.fclk_yukleme_sonrasi = float(Clocks.fclk0_mhz)
+        sapma = abs(self.fclk_yukleme_sonrasi - self.fclk_mhz) / self.fclk_mhz
+        if sapma > FCLK_TOLERANS:
+            Clocks.fclk0_mhz = self.fclk_mhz
+            self.fclk_ayarlandi = True
+        return self.fclk_yukleme_sonrasi
 
     def fclk_dogrula(self):
         """⚠️ Bu kontrol atlanamaz — modül başlığındaki 2. tuzak.
@@ -172,10 +195,13 @@ class Kart(object):
         sapma = abs(self.olculen_fclk - self.fclk_mhz) / self.fclk_mhz
         if sapma > FCLK_TOLERANS:
             raise KartHatasi(
-                "FCLK0 = {:.3f} MHz, beklenen {:.3f} MHz (sapma %{:.2f}). "
-                "Gecikme ölçümleri geçersiz olurdu. Düzeltmek için: "
-                "`from pynq.ps import Clocks; Clocks.fclk0_mhz = {}`".format(
-                    self.olculen_fclk, self.fclk_mhz, sapma * 100, self.fclk_mhz))
+                "FCLK0 = {:.3f} MHz, beklenen {:.3f} MHz (sapma %{:.2f}); "
+                "yuklemeden sonra {} MHz idi, ayar {}. Gecikme olcumleri "
+                "gecersiz olurdu. PLL'ler hedefi bolenlerle veremiyor olabilir: "
+                "`pll`/SLCR yazmaclarini kontrol et.".format(
+                    self.olculen_fclk, self.fclk_mhz, sapma * 100,
+                    self.fclk_yukleme_sonrasi,
+                    "denendi ama tutmadi" if self.fclk_ayarlandi else "denenmedi"))
         return self.olculen_fclk
 
     # ------------------------------------------------------------- alt seviye

@@ -28,6 +28,15 @@ def _yukle(yol):
         return json.load(f)
 
 
+def test_devre_ozeti_kararli_ve_p_ye_duyarli():
+    """T038: devre parmak izi aynı girdide aynı, `p` değişince farklı olmalı."""
+    phases, cb, sb = [1, 2, 3], [4, 5], [6, 7]
+    a = run_board.devre_ozeti(phases, cb, sb, 2)
+    assert a == run_board.devre_ozeti(phases, cb, sb, 2)
+    assert len(a["sha256"]) == 64
+    assert a["sha256"] != run_board.devre_ozeti(phases, cb, sb, 1)["sha256"]
+
+
 def test_devreyi_kodla_c_dokumuyle_ayni():
     """Koşucunun kurduğu devre, C-sim'in kurduğuyla **bit bit** aynı olmalı."""
     ref = _yukle(REFERANS)

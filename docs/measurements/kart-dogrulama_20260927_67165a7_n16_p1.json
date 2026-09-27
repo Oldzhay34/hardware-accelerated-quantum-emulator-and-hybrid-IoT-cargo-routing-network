@@ -1,0 +1,443 @@
+{
+ "tarih": "2026-09-27T18:04:54+03:00",
+ "tarih_kaynagi": "dizustu saati (kartin saati ~3 saat geride, NTP yok)",
+ "git_hash": "67165a7",
+ "calisma_agaci": "KIRLI - commit bekliyor: agent/board.py (FCLK ayarla+dogrula), agent/run_board.py (T038 alanlari), agent/kart_testleri.py (yeni), agent/xadc_izle.py (yeni), fpga/bd/qir_bd.tcl (yalniz yorum)",
+ "kart": {
+  "model": "PYNQ-Z2 (XC7Z020-CLG400-1)",
+  "pynq": "2.5",
+  "linux": "4.19.0-xilinx-v2019.1",
+  "python": "3.6.5",
+  "ag": "192.168.1.6 (DHCP), ssh anahtarla"
+ },
+ "bitstream": {
+  "ad": "qir_20260920_d350605.bit",
+  "sha256": "d4ca4522265253a7a9660e78657ec488443357524915867954bf4d40eb070f6f",
+  "hwh_sha256": "b216737ceccca3141dfd625e1918bb027113388911e6f7ad4655cd35f2b56ff4",
+  "kaynak_commit": "d350605",
+  "karta_aktarim": "scp; kartta sha256 birebir ayni dogrulandi"
+ },
+ "fclk": {
+  "boot_mhz": 100.0,
+  "overlay_yuklendikten_sonra_mhz": 62.5,
+  "ayardan_sonra_mhz": 100.0,
+  "neden": "fpga/bd/qir_bd.tcl kristali 33,333 MHz verdi; PYNQ-Z2'ninki 50 MHz. Vivado IO PLL'i 1600 MHz sanip FCLK0 bolenlerini 4x4 secti; PYNQ Overlay yuklerken bu bolenleri kartin gercek 1000 MHz IO PLL'ine uyguladi -> 62,5. SLCR yazmaclariyla dogrulandi: IO FBDIV=20, ARM 26, DDR 21 (x50 MHz = 1000/1300/1050). agent/board.py artik Clocks.fclk0_mhz=100 yazip dogruluyor (bolenler 1x10). PL mantigi ve zamanlama kapanisi etkilenmez."
+ },
+ "besleme": {
+  "jp5": "TEYIT BEKLIYOR - 21 Eyl kaydi: USB (adaptorsuz)",
+  "xadc_kosum_boyunca": {
+   "ornek": 78988,
+   "yeniden_programlama_ornegi": 10,
+   "sure_s": 50.0,
+   "vccint": {
+    "min": 1.0151,
+    "max": 1.0239,
+    "ort": 1.0203
+   },
+   "vccbram": {
+    "min": 1.0159,
+    "max": 1.0247,
+    "ort": 1.021
+   },
+   "vccaux": {
+    "min": 1.7959,
+    "max": 1.8083,
+    "ort": 1.8023
+   },
+   "vccpint": {
+    "min": 1.0144,
+    "max": 1.0225,
+    "ort": 1.0187
+   }
+  },
+  "yorum": "50 s boyunca (T034+T036, T033 p=2, T037 p=1) VCCINT en az 1,0151 V, VCCBRAM en az 1,0159 V; XC7Z020 calisma araligi 0,95-1,05 V. Gerilim dususu YOK. 'yeniden_programlama_ornegi' = bitstream yuklenirken XADC'nin 0 okudugu pencere (3 yukleme), cokme degil."
+ },
+ "uyari_gecikme": "kosumlar[].t_cekirdek_s bir GECIKME OLCUMU DEGILDIR: yoklama dongusuyle alinmis, tek cagri basina. Gecikme US2'de (T039-T045) protokolle olculur.",
+ "ne": "US1 kart dogrulamasi, p=1: G3/SC-003 (T037)",
+ "sonuc": {
+  "T037_G3_p1": "GECTI - 20/20 izdusum C-sim ile bit bit ayni, sapan 0"
+ },
+ "csim_beklenen_kaynagi": "artifacts/izdusum_beklenen_p1.json - hls/tb/izdusum_ref.cpp guncel kaynaktan yeniden derlendi; ayni arac p=2 beklenenini 20/20 bit bit yeniden uretti (arac dogrulamasi)",
+ "izdusum_serisi": {
+  "ne": "Kartta izdusum dogrulamasi (G3 / SC-003)",
+  "bitstream": "qir_20260920_d350605.bit",
+  "bitstream_sha256": "d4ca4522265253a7a9660e78657ec488443357524915867954bf4d40eb070f6f",
+  "devre": {
+   "p": 1,
+   "phases_word": 816,
+   "cos_beta": [
+    "0x2178B",
+    "0x00000",
+    "0x00000"
+   ],
+   "sin_beta": [
+    "0x36687",
+    "0x00000",
+    "0x00000"
+   ],
+   "sha256": "6a45be9f9de1f5ba2884a77ffb49029bb769659a6e1d8570f4831872d7ecf67c"
+  },
+  "erisim_yolu": "A",
+  "fclk_mhz": 100.0,
+  "fclk_yukleme_sonrasi_mhz": 62.5,
+  "fclk_ayarlandi": true,
+  "n_qubits": 16,
+  "p": 1,
+  "tohum": 42,
+  "izdusum_sayisi": 20,
+  "bagimlilik_esigi": 0.3,
+  "en_buyuk_benzerlik": 0.24388564659198023,
+  "kosumlar": [
+   {
+    "i": 0,
+    "olcek": 0.999855063951857,
+    "beklenen_deger_ham": 0.1412966549396515,
+    "bits": 1041281042,
+    "csim_bits": 1041281042,
+    "csim_deger": 0.1412967,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02033853530883789,
+    "t_yazma_s": 0.0014591217041015625,
+    "yazma_sayisi": 1095
+   },
+   {
+    "i": 1,
+    "olcek": 0.9995635017622786,
+    "beklenen_deger_ham": 1.2551400661468506,
+    "bits": 1067493486,
+    "csim_bits": 1067493486,
+    "csim_deger": 1.25514,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020343303680419922,
+    "t_yazma_s": 0.00035953521728515625,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 2,
+    "olcek": 1.0001873087260302,
+    "beklenen_deger_ham": 0.9655979871749878,
+    "bits": 1064776046,
+    "csim_bits": 1064776046,
+    "csim_deger": 0.965598,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02032637596130371,
+    "t_yazma_s": 0.00035953521728515625,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 3,
+    "olcek": 1.0008154726754368,
+    "beklenen_deger_ham": -0.574001133441925,
+    "bits": 3205689789,
+    "csim_bits": 3205689789,
+    "csim_deger": -0.5740011,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02033066749572754,
+    "t_yazma_s": 0.00035572052001953125,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 4,
+    "olcek": 0.9888240816658607,
+    "beklenen_deger_ham": -1.0071161985397339,
+    "bits": 3212896559,
+    "csim_bits": 3212896559,
+    "csim_deger": -1.007116,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02033710479736328,
+    "t_yazma_s": 0.00036835670471191406,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 5,
+    "olcek": 1.0001439785886574,
+    "beklenen_deger_ham": 0.07856090366840363,
+    "bits": 1033954442,
+    "csim_bits": 1033954442,
+    "csim_deger": 0.0785609,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02034926414489746,
+    "t_yazma_s": 0.0003571510314941406,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 6,
+    "olcek": 0.995846697758343,
+    "beklenen_deger_ham": 0.7591282725334167,
+    "bits": 1061312059,
+    "csim_bits": 1061312059,
+    "csim_deger": 0.7591283,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020345449447631836,
+    "t_yazma_s": 0.000354766845703125,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 7,
+    "olcek": 0.9953232259370072,
+    "beklenen_deger_ham": -0.020754646509885788,
+    "bits": 3165259174,
+    "csim_bits": 3165259174,
+    "csim_deger": -0.02075465,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020348310470581055,
+    "t_yazma_s": 0.00038170814514160156,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 8,
+    "olcek": 0.9887762096138752,
+    "beklenen_deger_ham": 0.3431987166404724,
+    "bits": 1051703230,
+    "csim_bits": 1051703230,
+    "csim_deger": 0.3431987,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02033686637878418,
+    "t_yazma_s": 0.0003497600555419922,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 9,
+    "olcek": 0.9698484666502176,
+    "beklenen_deger_ham": -0.44604381918907166,
+    "bits": 3202637787,
+    "csim_bits": 3202637787,
+    "csim_deger": -0.4460438,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02033543586730957,
+    "t_yazma_s": 0.00035381317138671875,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 10,
+    "olcek": 0.997297496741644,
+    "beklenen_deger_ham": 0.2349390983581543,
+    "bits": 1047565280,
+    "csim_bits": 1047565280,
+    "csim_deger": 0.2349391,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020354509353637695,
+    "t_yazma_s": 0.0003514289855957031,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 11,
+    "olcek": 1.0001892779566426,
+    "beklenen_deger_ham": -0.39960625767707825,
+    "bits": 3201079601,
+    "csim_bits": 3201079601,
+    "csim_deger": -0.3996063,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02034926414489746,
+    "t_yazma_s": 0.00035119056701660156,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 12,
+    "olcek": 0.9822127065974023,
+    "beklenen_deger_ham": 0.9658135771751404,
+    "bits": 1064779663,
+    "csim_bits": 1064779663,
+    "csim_deger": 0.9658136,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020336627960205078,
+    "t_yazma_s": 0.00034880638122558594,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 13,
+    "olcek": 0.9953379497831968,
+    "beklenen_deger_ham": -0.2540736496448517,
+    "bits": 3196196337,
+    "csim_bits": 3196196337,
+    "csim_deger": -0.2540736,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020342588424682617,
+    "t_yazma_s": 0.0003497600555419922,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 14,
+    "olcek": 0.9940464635202945,
+    "beklenen_deger_ham": -0.7848575115203857,
+    "bits": 3209227372,
+    "csim_bits": 3209227372,
+    "csim_deger": -0.7848575,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020348072052001953,
+    "t_yazma_s": 0.00035309791564941406,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 15,
+    "olcek": 1.000143158049659,
+    "beklenen_deger_ham": -0.8550533652305603,
+    "bits": 3210405063,
+    "csim_bits": 3210405063,
+    "csim_deger": -0.8550534,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020351171493530273,
+    "t_yazma_s": 0.0003554821014404297,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 16,
+    "olcek": 0.9905991648151996,
+    "beklenen_deger_ham": 0.6324014663696289,
+    "bits": 1059185936,
+    "csim_bits": 1059185936,
+    "csim_deger": 0.6324015,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020336627960205078,
+    "t_yazma_s": 0.00035452842712402344,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 17,
+    "olcek": 1.0007989042313101,
+    "beklenen_deger_ham": 0.26857635378837585,
+    "bits": 1049199319,
+    "csim_bits": 1049199319,
+    "csim_deger": 0.2685764,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020344972610473633,
+    "t_yazma_s": 0.0003809928894042969,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 18,
+    "olcek": 0.9996467851127673,
+    "beklenen_deger_ham": 0.1795138716697693,
+    "bits": 1043845756,
+    "csim_bits": 1043845756,
+    "csim_deger": 0.1795139,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.02034616470336914,
+    "t_yazma_s": 0.0003509521484375,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 19,
+    "olcek": 0.9868661908032627,
+    "beklenen_deger_ham": -0.2926027476787567,
+    "bits": 3197489159,
+    "csim_bits": 3197489159,
+    "csim_deger": -0.2926027,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.020349979400634766,
+    "t_yazma_s": 0.0003554821014404297,
+    "yazma_sayisi": 272
+   }
+  ],
+  "csim_degerleri": [
+   {
+    "i": 0,
+    "beklenen_deger": 0.1412967,
+    "bits": 1041281042
+   },
+   {
+    "i": 1,
+    "beklenen_deger": 1.25514,
+    "bits": 1067493486
+   },
+   {
+    "i": 2,
+    "beklenen_deger": 0.965598,
+    "bits": 1064776046
+   },
+   {
+    "i": 3,
+    "beklenen_deger": -0.5740011,
+    "bits": 3205689789
+   },
+   {
+    "i": 4,
+    "beklenen_deger": -1.007116,
+    "bits": 3212896559
+   },
+   {
+    "i": 5,
+    "beklenen_deger": 0.0785609,
+    "bits": 1033954442
+   },
+   {
+    "i": 6,
+    "beklenen_deger": 0.7591283,
+    "bits": 1061312059
+   },
+   {
+    "i": 7,
+    "beklenen_deger": -0.02075465,
+    "bits": 3165259174
+   },
+   {
+    "i": 8,
+    "beklenen_deger": 0.3431987,
+    "bits": 1051703230
+   },
+   {
+    "i": 9,
+    "beklenen_deger": -0.4460438,
+    "bits": 3202637787
+   },
+   {
+    "i": 10,
+    "beklenen_deger": 0.2349391,
+    "bits": 1047565280
+   },
+   {
+    "i": 11,
+    "beklenen_deger": -0.3996063,
+    "bits": 3201079601
+   },
+   {
+    "i": 12,
+    "beklenen_deger": 0.9658136,
+    "bits": 1064779663
+   },
+   {
+    "i": 13,
+    "beklenen_deger": -0.2540736,
+    "bits": 3196196337
+   },
+   {
+    "i": 14,
+    "beklenen_deger": -0.7848575,
+    "bits": 3209227372
+   },
+   {
+    "i": 15,
+    "beklenen_deger": -0.8550534,
+    "bits": 3210405063
+   },
+   {
+    "i": 16,
+    "beklenen_deger": 0.6324015,
+    "bits": 1059185936
+   },
+   {
+    "i": 17,
+    "beklenen_deger": 0.2685764,
+    "bits": 1049199319
+   },
+   {
+    "i": 18,
+    "beklenen_deger": 0.1795139,
+    "bits": 1043845756
+   },
+   {
+    "i": 19,
+    "beklenen_deger": -0.2926027,
+    "bits": 3197489159
+   }
+  ],
+  "sapan_izdusumler": [],
+  "gecti": true,
+  "toplam_sure_s": 0.4214487075805664,
+  "not": "Ilk cagri TAM (1095 yazma), sonrakiler kisa yol (272). Kisa yol GECIKME OLCUMUNDE kullanilmaz."
+ },
+ "uretim_komutlari": [
+  "sudo python3 -m agent.xadc_izle 50 xadc_us1.json &",
+  "sudo python3 -m agent.run_board --bit qir_20260920_d350605.bit --reference reference_20260915_c6ad872_p1_n5 --vektorler izdusum_vektorleri.json --beklenen izdusum_beklenen_p1.json --cikti kart-dogrulama-p1.json --p 1"
+ ]
+}

@@ -1,0 +1,513 @@
+{
+ "tarih": "2026-09-27T18:04:54+03:00",
+ "tarih_kaynagi": "dizustu saati (kartin saati ~3 saat geride, NTP yok)",
+ "git_hash": "67165a7",
+ "calisma_agaci": "KIRLI - commit bekliyor: agent/board.py (FCLK ayarla+dogrula), agent/run_board.py (T038 alanlari), agent/kart_testleri.py (yeni), agent/xadc_izle.py (yeni), fpga/bd/qir_bd.tcl (yalniz yorum)",
+ "kart": {
+  "model": "PYNQ-Z2 (XC7Z020-CLG400-1)",
+  "pynq": "2.5",
+  "linux": "4.19.0-xilinx-v2019.1",
+  "python": "3.6.5",
+  "ag": "192.168.1.6 (DHCP), ssh anahtarla"
+ },
+ "bitstream": {
+  "ad": "qir_20260920_d350605.bit",
+  "sha256": "d4ca4522265253a7a9660e78657ec488443357524915867954bf4d40eb070f6f",
+  "hwh_sha256": "b216737ceccca3141dfd625e1918bb027113388911e6f7ad4655cd35f2b56ff4",
+  "kaynak_commit": "d350605",
+  "karta_aktarim": "scp; kartta sha256 birebir ayni dogrulandi"
+ },
+ "fclk": {
+  "boot_mhz": 100.0,
+  "overlay_yuklendikten_sonra_mhz": 62.5,
+  "ayardan_sonra_mhz": 100.0,
+  "neden": "fpga/bd/qir_bd.tcl kristali 33,333 MHz verdi; PYNQ-Z2'ninki 50 MHz. Vivado IO PLL'i 1600 MHz sanip FCLK0 bolenlerini 4x4 secti; PYNQ Overlay yuklerken bu bolenleri kartin gercek 1000 MHz IO PLL'ine uyguladi -> 62,5. SLCR yazmaclariyla dogrulandi: IO FBDIV=20, ARM 26, DDR 21 (x50 MHz = 1000/1300/1050). agent/board.py artik Clocks.fclk0_mhz=100 yazip dogruluyor (bolenler 1x10). PL mantigi ve zamanlama kapanisi etkilenmez."
+ },
+ "besleme": {
+  "jp5": "TEYIT BEKLIYOR - 21 Eyl kaydi: USB (adaptorsuz)",
+  "xadc_kosum_boyunca": {
+   "ornek": 78988,
+   "yeniden_programlama_ornegi": 10,
+   "sure_s": 50.0,
+   "vccint": {
+    "min": 1.0151,
+    "max": 1.0239,
+    "ort": 1.0203
+   },
+   "vccbram": {
+    "min": 1.0159,
+    "max": 1.0247,
+    "ort": 1.021
+   },
+   "vccaux": {
+    "min": 1.7959,
+    "max": 1.8083,
+    "ort": 1.8023
+   },
+   "vccpint": {
+    "min": 1.0144,
+    "max": 1.0225,
+    "ort": 1.0187
+   }
+  },
+  "yorum": "50 s boyunca (T034+T036, T033 p=2, T037 p=1) VCCINT en az 1,0151 V, VCCBRAM en az 1,0159 V; XC7Z020 calisma araligi 0,95-1,05 V. Gerilim dususu YOK. 'yeniden_programlama_ornegi' = bitstream yuklenirken XADC'nin 0 okudugu pencere (3 yukleme), cokme degil."
+ },
+ "uyari_gecikme": "kosumlar[].t_cekirdek_s bir GECIKME OLCUMU DEGILDIR: yoklama dongusuyle alinmis, tek cagri basina. Gecikme US2'de (T039-T045) protokolle olculur.",
+ "ne": "US1 kart dogrulamasi, p=2: G3/SC-003 (T033), T034, T035, T036",
+ "sonuc": {
+  "T032_yukleme": "GECTI - ap_idle=1 (AP_CTRL=0x00000004), FCLK0 100,000 MHz",
+  "T033_G3": "GECTI - 20/20 izdusum C-sim ile bit bit ayni, sapan 0",
+  "T034_belirlenimcilik": "GECTI - 5 ardisik TAM cagri ayni bit deseni, C-sim ile ayni",
+  "T035_durumsuzluk": "GECTI - yeniden baslatma sonrasi 20/20 bit bit ayni",
+  "T036_p_siniri": "GECTI - p=0 ve p=4: 0x0050 degismedi, ap_vld kalkmadi"
+ },
+ "izdusum_serisi": {
+  "ne": "Kartta izdusum dogrulamasi (G3 / SC-003)",
+  "bitstream": "qir_20260920_d350605.bit",
+  "bitstream_sha256": "d4ca4522265253a7a9660e78657ec488443357524915867954bf4d40eb070f6f",
+  "devre": {
+   "p": 2,
+   "phases_word": 816,
+   "cos_beta": [
+    "0x21556",
+    "0x0607F",
+    "0x00000"
+   ],
+   "sin_beta": [
+    "0x36DBD",
+    "0x1F6D3",
+    "0x00000"
+   ],
+   "sha256": "c776b32a7a8b1fc9ac29b76d5de58a4e612f62a02c229f9dd2509ff83aa34860"
+  },
+  "erisim_yolu": "A",
+  "fclk_mhz": 100.0,
+  "fclk_yukleme_sonrasi_mhz": 62.5,
+  "fclk_ayarlandi": true,
+  "n_qubits": 16,
+  "p": 2,
+  "tohum": 42,
+  "izdusum_sayisi": 20,
+  "bagimlilik_esigi": 0.3,
+  "en_buyuk_benzerlik": 0.24388564659198023,
+  "kosumlar": [
+   {
+    "i": 0,
+    "olcek": 0.999855063951857,
+    "beklenen_deger_ham": -0.14121922850608826,
+    "bits": 3188759494,
+    "csim_bits": 3188759494,
+    "csim_deger": -0.1412192,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.036537885665893555,
+    "t_yazma_s": 0.0014119148254394531,
+    "yazma_sayisi": 1095
+   },
+   {
+    "i": 1,
+    "olcek": 0.9995635017622786,
+    "beklenen_deger_ham": -0.22491572797298431,
+    "bits": 3194376271,
+    "csim_bits": 3194376271,
+    "csim_deger": -0.2249157,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.036521196365356445,
+    "t_yazma_s": 0.00036215782165527344,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 2,
+    "olcek": 1.0001873087260302,
+    "beklenen_deger_ham": -0.2679966390132904,
+    "bits": 3196663515,
+    "csim_bits": 3196663515,
+    "csim_deger": -0.2679966,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652358055114746,
+    "t_yazma_s": 0.00035834312438964844,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 3,
+    "olcek": 1.0008154726754368,
+    "beklenen_deger_ham": 0.09353673458099365,
+    "bits": 1035964464,
+    "csim_bits": 1035964464,
+    "csim_deger": 0.09353673,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03653860092163086,
+    "t_yazma_s": 0.0003566741943359375,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 4,
+    "olcek": 0.9888240816658607,
+    "beklenen_deger_ham": -0.09821932762861252,
+    "bits": 3184076599,
+    "csim_bits": 3184076599,
+    "csim_deger": -0.09821933,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652524948120117,
+    "t_yazma_s": 0.00035119056701660156,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 5,
+    "olcek": 1.0001439785886574,
+    "beklenen_deger_ham": -0.09551014751195908,
+    "bits": 3183712979,
+    "csim_bits": 3183712979,
+    "csim_deger": -0.09551015,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.036545753479003906,
+    "t_yazma_s": 0.0003504753112792969,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 6,
+    "olcek": 0.995846697758343,
+    "beklenen_deger_ham": -0.04492634907364845,
+    "bits": 3174565041,
+    "csim_bits": 3174565041,
+    "csim_deger": -0.04492635,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652334213256836,
+    "t_yazma_s": 0.00035190582275390625,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 7,
+    "olcek": 0.9953232259370072,
+    "beklenen_deger_ham": -0.011599657125771046,
+    "bits": 3158183037,
+    "csim_bits": 3158183037,
+    "csim_deger": -0.01159966,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03653407096862793,
+    "t_yazma_s": 0.00035691261291503906,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 8,
+    "olcek": 0.9887762096138752,
+    "beklenen_deger_ham": -0.20044857263565063,
+    "bits": 3192734308,
+    "csim_bits": 3192734308,
+    "csim_deger": -0.2004486,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03654026985168457,
+    "t_yazma_s": 0.0003521442413330078,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 9,
+    "olcek": 0.9698484666502176,
+    "beklenen_deger_ham": -0.2520577907562256,
+    "bits": 3196128696,
+    "csim_bits": 3196128696,
+    "csim_deger": -0.2520578,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652334213256836,
+    "t_yazma_s": 0.000385284423828125,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 10,
+    "olcek": 0.997297496741644,
+    "beklenen_deger_ham": -0.18425366282463074,
+    "bits": 3191647486,
+    "csim_bits": 3191647486,
+    "csim_deger": -0.1842537,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.036547183990478516,
+    "t_yazma_s": 0.0003540515899658203,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 11,
+    "olcek": 1.0001892779566426,
+    "beklenen_deger_ham": -0.0760655328631401,
+    "bits": 3181103167,
+    "csim_bits": 3181103167,
+    "csim_deger": -0.07606553,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03651928901672363,
+    "t_yazma_s": 0.0003516674041748047,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 12,
+    "olcek": 0.9822127065974023,
+    "beklenen_deger_ham": -0.10858321934938431,
+    "bits": 3185467617,
+    "csim_bits": 3185467617,
+    "csim_deger": -0.1085832,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03653764724731445,
+    "t_yazma_s": 0.0003502368927001953,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 13,
+    "olcek": 0.9953379497831968,
+    "beklenen_deger_ham": -0.08223606646060944,
+    "bits": 3181931362,
+    "csim_bits": 3181931362,
+    "csim_deger": -0.08223607,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03654646873474121,
+    "t_yazma_s": 0.0003516674041748047,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 14,
+    "olcek": 0.9940464635202945,
+    "beklenen_deger_ham": -0.6595615744590759,
+    "bits": 3207125255,
+    "csim_bits": 3207125255,
+    "csim_deger": -0.6595616,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652811050415039,
+    "t_yazma_s": 0.00035881996154785156,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 15,
+    "olcek": 1.000143158049659,
+    "beklenen_deger_ham": 0.6323261260986328,
+    "bits": 1059184672,
+    "csim_bits": 1059184672,
+    "csim_deger": 0.6323261,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.0365450382232666,
+    "t_yazma_s": 0.0003528594970703125,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 16,
+    "olcek": 0.9905991648151996,
+    "beklenen_deger_ham": -0.11874961853027344,
+    "bits": 3186832128,
+    "csim_bits": 3186832128,
+    "csim_deger": -0.1187496,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03654193878173828,
+    "t_yazma_s": 0.0003509521484375,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 17,
+    "olcek": 1.0007989042313101,
+    "beklenen_deger_ham": 0.03513346239924431,
+    "bits": 1024452635,
+    "csim_bits": 1024452635,
+    "csim_deger": 0.03513346,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03651928901672363,
+    "t_yazma_s": 0.00035452842712402344,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 18,
+    "olcek": 0.9996467851127673,
+    "beklenen_deger_ham": -0.14668668806552887,
+    "bits": 3189126409,
+    "csim_bits": 3189126409,
+    "csim_deger": -0.1466867,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652787208557129,
+    "t_yazma_s": 0.0003516674041748047,
+    "yazma_sayisi": 272
+   },
+   {
+    "i": 19,
+    "olcek": 0.9868661908032627,
+    "beklenen_deger_ham": 0.11280239373445511,
+    "bits": 1038550257,
+    "csim_bits": 1038550257,
+    "csim_deger": 0.1128024,
+    "bit_bit_ayni": true,
+    "t_cekirdek_s": 0.03652167320251465,
+    "t_yazma_s": 0.00035071372985839844,
+    "yazma_sayisi": 272
+   }
+  ],
+  "csim_degerleri": [
+   {
+    "i": 0,
+    "beklenen_deger": -0.1412192,
+    "bits": 3188759494
+   },
+   {
+    "i": 1,
+    "beklenen_deger": -0.2249157,
+    "bits": 3194376271
+   },
+   {
+    "i": 2,
+    "beklenen_deger": -0.2679966,
+    "bits": 3196663515
+   },
+   {
+    "i": 3,
+    "beklenen_deger": 0.09353673,
+    "bits": 1035964464
+   },
+   {
+    "i": 4,
+    "beklenen_deger": -0.09821933,
+    "bits": 3184076599
+   },
+   {
+    "i": 5,
+    "beklenen_deger": -0.09551015,
+    "bits": 3183712979
+   },
+   {
+    "i": 6,
+    "beklenen_deger": -0.04492635,
+    "bits": 3174565041
+   },
+   {
+    "i": 7,
+    "beklenen_deger": -0.01159966,
+    "bits": 3158183037
+   },
+   {
+    "i": 8,
+    "beklenen_deger": -0.2004486,
+    "bits": 3192734308
+   },
+   {
+    "i": 9,
+    "beklenen_deger": -0.2520578,
+    "bits": 3196128696
+   },
+   {
+    "i": 10,
+    "beklenen_deger": -0.1842537,
+    "bits": 3191647486
+   },
+   {
+    "i": 11,
+    "beklenen_deger": -0.07606553,
+    "bits": 3181103167
+   },
+   {
+    "i": 12,
+    "beklenen_deger": -0.1085832,
+    "bits": 3185467617
+   },
+   {
+    "i": 13,
+    "beklenen_deger": -0.08223607,
+    "bits": 3181931362
+   },
+   {
+    "i": 14,
+    "beklenen_deger": -0.6595616,
+    "bits": 3207125255
+   },
+   {
+    "i": 15,
+    "beklenen_deger": 0.6323261,
+    "bits": 1059184672
+   },
+   {
+    "i": 16,
+    "beklenen_deger": -0.1187496,
+    "bits": 3186832128
+   },
+   {
+    "i": 17,
+    "beklenen_deger": 0.03513346,
+    "bits": 1024452635
+   },
+   {
+    "i": 18,
+    "beklenen_deger": -0.1466867,
+    "bits": 3189126409
+   },
+   {
+    "i": 19,
+    "beklenen_deger": 0.1128024,
+    "bits": 1038550257
+   }
+  ],
+  "sapan_izdusumler": [],
+  "gecti": true,
+  "toplam_sure_s": 0.7452616691589355,
+  "not": "Ilk cagri TAM (1095 yazma), sonrakiler kisa yol (272). Kisa yol GECIKME OLCUMUNDE kullanilmaz."
+ },
+ "t034": {
+  "tekrar": 5,
+  "bitler": [
+   "0xBE109BC6",
+   "0xBE109BC6",
+   "0xBE109BC6",
+   "0xBE109BC6",
+   "0xBE109BC6"
+  ],
+  "hepsi_ayni": true,
+  "csim_ile_ayni": true,
+  "gecti": true
+ },
+ "t036": {
+  "hazirlik_bits": "0xBE109BC6",
+  "hazirlik_ap_vld": true,
+  "p0": {
+   "ap_done_geldi": true,
+   "sure_s": 3.600120544433594e-05,
+   "deger_bits": "0xBE109BC6",
+   "degismedi": true,
+   "ap_vld": false,
+   "gecti": true
+  },
+  "p4": {
+   "ap_done_geldi": true,
+   "sure_s": 3.457069396972656e-05,
+   "deger_bits": "0xBE109BC6",
+   "degismedi": true,
+   "ap_vld": false,
+   "gecti": true
+  },
+  "sonra_gecerli_kosum_ayni": true,
+  "gecti": true
+ },
+ "t035": {
+  "yontem": "sudo reboot; uptime 1 dk; overlay yeniden yuklendi; ayni 20 izdusum",
+  "boot_sonrasi_fclk_mhz_overlay_oncesi": 100.0,
+  "fclk_yukleme_sonrasi_mhz": 62.5,
+  "bit_bit_ayni": 20,
+  "izdusum": 20,
+  "gecti": true,
+  "sonra_bits": [
+   3188759494,
+   3194376271,
+   3196663515,
+   1035964464,
+   3184076599,
+   3183712979,
+   3174565041,
+   3158183037,
+   3192734308,
+   3196128696,
+   3191647486,
+   3181103167,
+   3185467617,
+   3181931362,
+   3207125255,
+   1059184672,
+   3186832128,
+   1024452635,
+   3189126409,
+   1038550257
+  ]
+ },
+ "uretim_komutlari": [
+  "sudo python3 -m agent.xadc_izle 50 xadc_us1.json &",
+  "sudo python3 -m agent.kart_testleri --bit qir_20260920_d350605.bit --reference reference_20260915_c6ad872_p2_n5 --vektorler izdusum_vektorleri.json --beklenen izdusum_beklenen.json --cikti kart-testleri-p2.json",
+  "sudo python3 -m agent.run_board --bit qir_20260920_d350605.bit --reference reference_20260915_c6ad872_p2_n5 --vektorler izdusum_vektorleri.json --beklenen izdusum_beklenen.json --cikti kart-dogrulama-p2.json --p 2",
+  "bash t035.sh  (sudo reboot sonrasi run_board + bit karsilastirma)"
+ ]
+}

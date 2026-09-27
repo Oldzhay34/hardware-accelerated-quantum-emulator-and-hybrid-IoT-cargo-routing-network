@@ -67,6 +67,16 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 \
     [get_bd_cells ps7_0]
 
 puts "=== PS7 elle yapilandirma (board preset yerine) ==="
+# ⚠️ KRISTAL YANLIS (2026-09-27, T032'de kartta bulundu): PYNQ-Z2'nin PS
+# referans saati 50 MHz, asagidaki 33,333 degil. Vivado IO PLL'i 1600 MHz
+# sanip FCLK0 bolenlerini 4x4 secti; kartin gercek IO PLL'i 1000 MHz oldugu
+# icin PYNQ bu bolenleri uygulayinca FCLK0 = 62,5 MHz oldu. PL mantigi ve
+# zamanlama kapanisi bundan ETKILENMEZ (kisit 100 MHz); `agent/board.py`
+# FCLK'yi calisma zamaninda 100 MHz'e ayarlayip dogruluyor.
+# Duzeltme (50.000000) bir SONRAKI derlemede yapilmali ve .hwh'deki
+# PCW_IO_IO_PLL_FREQMHZ / PCW_FCLK0_PERIPHERAL_DIVISOR0/1 ile dogrulanmali:
+# kristal tek basina degisince Vivado IO PLL'i yine 1000'den farkli kurabilir.
+# qir_20260920_d350605 bu satirla uretildi.
 set_property -dict [list \
     CONFIG.PCW_UIPARAM_DDR_PARTNO        {MT41J256M16 RE-125} \
     CONFIG.PCW_UIPARAM_DDR_BUS_WIDTH     {16 Bit} \

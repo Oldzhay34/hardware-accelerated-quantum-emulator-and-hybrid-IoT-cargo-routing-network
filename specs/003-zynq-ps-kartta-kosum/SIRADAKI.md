@@ -2,34 +2,33 @@
 
 ## SIRADAKİ
 
-> # 🔒 KAPSAM DONDURULDU — 2026-09-21
+> # ✅ MVP KARTTA GEÇTİ — 2026-09-27
 >
-> **Öbek 4 (T026–T038, MVP) bitene kadar yeni görev AÇILMAZ.**
+> **Öbek 4 (T026–T038) bitti.** *"16 kübitlik statevector emülatörü FPGA'da
+> çalışıyor ve altın referansa karşı doğrulandı"* cümlesi artık **ölçülmüş**:
+> p=2 ve p=1 için 20/20 izdüşüm C-sim ile **bit bit** aynı; belirlenimcilik,
+> durumsuzluk (yeniden başlatma) ve p=0/p=4 sınırı geçti. Kayıt:
+> [kart-dogrulama p2](../../docs/measurements/kart-dogrulama_20260927_67165a7_n16_p2.json),
+> [p1](../../docs/measurements/kart-dogrulama_20260927_67165a7_n16_p1.json).
 >
-> Gerekçe: 21 Eylül'de 14 görev eklendi (T064–T077) ve öbek 4'ten **hiçbiri**
-> bitmedi. Eklenenlerin hepsi iyi fikir — ama hepsi MVP'nin *süsü*, MVP'nin
-> kendisi değil. Öbek 4 bittiğinde elde **tek başına savunulabilir** bir sonuç
-> olur: *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve altın
-> referansa karşı doğrulandı."* Bu cümle GPU'dan, enerjiden ve rota
-> kalitesinden bağımsız ayakta durur — ve şu an **söylenemiyor**, çünkü
-> bitstream kartta koşmadı.
->
-> T064–T077 (GPU tabanı, Pareto, sıcak başlangıç) **MVP'den sonra**.
-> İyi bir fikir çıkarsa tasks.md'ye yazılır ama **başlanmaz**.
+> 21 Eyl'deki kapsam dondurmasının koşulu (öbek 4 bitene kadar) **sağlandı**;
+> 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
+> 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **T032** — bitstream'i karta yükle ve `ap_idle`
-okunabildiğini doğrula; ardından **T033/G3** (20 izdüşüm bit bit tutmalı).
-⚠️ Önce **ağ** çözülmeli: bitstream 3,86 MB, seri porttan ~12 dk sürer.
+**Hedef (tek cümle)**: **T039** — ölçüm protokolünü (`kart-olcum-protokolu.md`)
+yaz ve **ilk gecikme ölçümünden ÖNCE dondur**; ardından T040–T044.
 
-**Dokunulacak dosyalar**: `artifacts/bitstream/qir_20260920_d350605.{bit,hwh}`,
-`agent/` (karta kopyalanacak), `artifacts/izdusum_{vektorleri,beklenen}.json`
+**Dokunulacak dosyalar**: `docs/measurements/kart-olcum-protokolu.md` (yeni),
+`agent/measure_latency.py` (yeni), `agent/board.py` (`kosum()` zamanlaması)
 
-**Bilinen tuzak**: Konak kodu `sudo` ile koşar (`import pynq` root ister) ve
-FCLK'yi **doğrular** (`board.Kart.yukle()` %1'den saparsa istisna atar).
-Bir sapma görülürse **ilk şüpheli GÜÇ** olmalı, mantık değil — bkz. donanım
-tablosundaki JP5 notu.
+**Bilinen tuzak**: ⚠️ **Protokol öncesi görülen değer**: G3 koşumunda
+`t_cekirdek` alanı ~36,5 ms gösterdi (p=2, yoklamayla, tek çağrı başına) —
+sentez tahmini 37,28 ms. Bu bir ölçüm serisi **değil** ve raporlanmaz; ama
+SC-009 *"sonuca bakıp protokol ayarlanamaz"* diyor: protokol bunu **bildiğini
+yazarak** dondurulmalı. Ayrıca T045b **yarım**: ARM tarafı ölçüldü (84,13 ms),
+FPGA tarafı hâlâ tahmin — T044'ün kart ölçümü gelince yeniden hesaplanır.
 
-**Son güncelleme**: 2026-09-21, Faz 5.5 (T026–T031 bitti; T032 kart bekliyor)
+**Son güncelleme**: 2026-09-27, Faz 5.6 (öbek 4 kartta bitti; sıradaki T039)
 
 ---
 
@@ -78,16 +77,16 @@ T001-T005 yerine bu dosya karta kopyalanıp probe_test.py koşulabilir.
 
 | | |
 |---|---|
-| Kart | **KAPALI** (2026-09-20, düzgün kapatıldı). Açılışta IP'yi seri konsoldan yine doğrula |
-| IP | **`192.168.1.2`** (RJ45) — ping 2 ms, SSH/9090/80 açık, MAC `00-05-6b-04-42-a1`.
-Ayrıca **`192.168.2.99`** (USB ethernet gadget). Üç yoldan doğrulandı: seri `hostname -I`, mDNS `pynq.local`, ping |
+| Kart | **AÇIK** (2026-09-27; T035 için bir kez `sudo reboot` edildi, geri geldi) |
+| IP | **`192.168.1.6`** (RJ45, **DHCP**, 2026-09-27) — MAC `00-05-6b-04-42-a1`. Önceki adresler: `.1.2` (20 Eyl). DHCP adresi değişebilir: **`pynq.local`** (mDNS) çalışıyor, ya da `arp -a \| Select-String 00-05-6b`.
+Ayrıca **`192.168.2.99`** (eth0 statik yedeği) |
 | Seri konsol | **COM3**, 115200 8N1 — **parolasız açık** (`xilinx@pynq`). Yedek yol; ağ düşerse buradan girilir |
 | SSH | ✅ **anahtarla parolasız** (2026-09-20). Anahtar: `%USERPROFILE%\.ssh\pynq` (şifresiz), parmak izi `SHA256:8rUb5U7k8QIVMYgYM3ZK5g0cX6rNNPogP0s4Gxxtiqw`.<br>`ssh -i $env:USERPROFILE\.ssh\pynq xilinx@192.168.1.2` · `scp` 157 KB = **1,6 sn** |
 | sudo | ✅ **parolasız** (2026-09-20, `/etc/sudoers.d/010_xilinx-nopasswd`, `visudo -c` parsed OK) |
 | `import pynq` | ✅ root altında çalışıyor — PYNQ **2.5**, `Overlay`/`Bitstream`/`MMIO` erişilebilir |
-| FCLK0 | **100,0 MHz** ölçüldü (boot varsayılanı) — bitstream'in zamanlama hedefiyle aynı. Yine de konak kodu **doğrulamalı**, varsaymamalı |
+| FCLK0 | Boot'ta **100,0 MHz** — ama ⚠️ **overlay yüklenince 62,5 MHz** oluyor (2026-09-27, T032). Sebep: `qir_bd.tcl` kristali **33,333** verdi, PYNQ-Z2'ninki **50 MHz**; Vivado IO PLL'i 1600 sanıp bölenleri 4×4 seçti, kartın IO PLL'i 1000 MHz. SLCR'den doğrulandı (IO/ARM/DDR FBDIV 20/26/21 ×50 MHz). `board.py` artık **ayarlayıp doğruluyor** (bölenler 1×10 → 100,000). PL ve zamanlama kapanışı **etkilenmez** |
 | Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
-| Besleme | ⚠️ **JP5 şu an `USB`** (21 Eyl: kart adaptörsüz açıldı → REG olamaz). Daha önce bu satır "REG" diyordu, **yanlıştı**.<br>⚠️ USB 2,5 W verir; PL %43 LUT + %67 BRAM @100 MHz bunu zorlayabilir. Gerilim düşerse **sessiz yanlış sonuç** verir ve mantık hatası sanılır.<br>**Öneri**: T032 öncesi kartı kapat → JP5 = **REG** → adaptör + USB + ethernet.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
+| Besleme | ⚠️ **JP5 konumu 27 Eyl'de TEYİT EDİLMEDİ** (21 Eyl kaydı: `USB`, adaptörsüz). Kullanıcıya sorulacak ve buraya yazılacak.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
 | INA219 | elde, **bağlanmadı** — yalnız öbek 6 (US3) için |
 | Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
@@ -144,8 +143,8 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 2 | 1 — `fpga/` + belgeler | T008–T012 | ✅ **BİTTİ** |
 | 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
 | 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
-| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | 🔵 **T026–T031 BİTTİ**, T032 kart bekliyor |
-| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | bekliyor |
+| 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ✅ **BİTTİ — MVP (27 Eyl)**: p=1/p=2 20/20 bit bit |
+| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | 🔵 **sıradaki: T039** (T045b yarım: FPGA tarafı T044'ü bekliyor) |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
@@ -162,9 +161,14 @@ donanıma izole olsun.
 
 ---
 
-## ⚠️ AĞ SORUNU — T032'den önce çözülmeli
+## AĞ SORUNU — 27 Eyl'de TEKRARLAMADI
 
-Kart açıkken (21 Eyl) ölçülen durum:
+✅ 2026-09-27: kart DHCP'den `192.168.1.6` aldı; bitstream + dosyalar (4,4 MB)
+`scp` ile **3,5 sn**'de aktarıldı, kartta SHA-256 doğrulandı. 21 Eyl'deki
+kira sorununun sebebi **bulunamadı** (değişen bir şey yapılmadı). Tekrarlarsa
+aşağıdaki sıra geçerli.
+
+21 Eyl'de ölçülen durum:
 
 | | |
 |---|---|
@@ -200,6 +204,18 @@ saat kaybettirdi (risk DT-03).
 
 ## Bilinen tuzaklar
 
+- **FCLK kartta doğrulanmadan hiçbir gecikme raporlanmaz.** Overlay yüklemesi
+  FCLK0'ı 62,5 MHz'e çekiyor (kristal hatası, donanım tablosu). `board.py`
+  ayarlayıp doğruluyor ve yüklemeden hemen sonraki değeri kaydediyor
+  (`fclk_yukleme_sonrasi_mhz`). `qir_bd.tcl`'deki kristal bir **sonraki
+  derlemede** 50 MHz yapılmalı ve `.hwh` bölenleriyle doğrulanmalı
+- **XADC bitstream yüklenirken 0 okur** (PL'de). `xadc_izle.py` bu örnekleri
+  ayrı sayıyor; ham en-düşük "0,0 V" bir çökme değildir
+- **PowerShell → `ssh`/`wsl` tırnakları bozuyor** (`( )`, `"`, `$`). Karta
+  giden çok satırlı komutları betik dosyası olarak `scp` edip `bash dosya.sh`
+  ile koş
+- **Kartın saati ~3 saat geride** (NTP yok): ölçüm zaman damgası dizüstünden
+  alınır
 - **Slash komutu mesajın BAŞINDA** olmalı; çalışma dizini proje kökü olmalı
   (üst klasöre çıkınca skill'ler kayıttan düşüyor — 2026-09-19'da oldu)
 - PowerShell 5.1'de **`&&` yok**, ayıraç `;`

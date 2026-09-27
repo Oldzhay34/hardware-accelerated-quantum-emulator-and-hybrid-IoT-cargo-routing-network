@@ -31,6 +31,7 @@ Ondalık yazdırıp karşılaştırmak, son bitteki farkı gizler.
 """
 # PYTHON 3.6 UYUMU ZORUNLU (yukarı bakın)
 import argparse
+import hashlib
 import json
 import math
 import struct
@@ -55,6 +56,25 @@ def _param_bul(params, onek, r):
 def _bits(f):
     """float -> IEEE-754 bit deseni (uint32)."""
     return struct.unpack("<I", struct.pack("<f", f))[0]
+
+
+def _sha256_dosya(yol):
+    h = hashlib.sha256()
+    with open(yol, "rb") as f:
+        for parca in iter(lambda: f.read(1 << 20), b""):
+            h.update(parca)
+    return h.hexdigest()
+
+
+def devre_ozeti(phases, cb, sb, p):
+    """T038: tüm izdüşümlerde AYNI olması gereken devre parmak izi."""
+    kelimeler = list(phases) + list(cb) + list(sb) + [p]
+    ham = struct.pack("<{}I".format(len(kelimeler)),
+                      *[int(w) & 0xFFFFFFFF for w in kelimeler])
+    return {"p": p, "phases_word": len(phases),
+            "cos_beta": ["0x{:05X}".format(int(w)) for w in cb],
+            "sin_beta": ["0x{:05X}".format(int(w)) for w in sb],
+            "sha256": hashlib.sha256(ham).hexdigest()}
 
 
 def devreyi_kodla(ref):
@@ -96,7 +116,9 @@ def kos(a):
     print("=== kart hazirlaniyor ===")
     kart = bd.Kart(a.bit, yol=a.yol).yukle()
     print("  yol      : {}".format(a.yol))
-    print("  FCLK0    : {:.3f} MHz  (dogrulandi)".format(kart.olculen_fclk))
+    print("  FCLK0    : {:.3f} MHz  (dogrulandi; yuklemeden sonra {:.3f}, "
+          "ayar {})".format(kart.olculen_fclk, kart.fclk_yukleme_sonrasi,
+                             "YAPILDI" if kart.fclk_ayarlandi else "gerekmedi"))
     print("  ap_idle  : {}".format(kart.ap_idle()))
     if uyarilar:
         print("  doyma uyarilari: {}".format(uyarilar))
@@ -153,14 +175,21 @@ def kos(a):
     cikti = {
         "ne": "Kartta izdusum dogrulamasi (G3 / SC-003)",
         "bitstream": a.bit,
+        "bitstream_sha256": _sha256_dosya(a.bit),
+        "devre": devre_ozeti(phases, cb, sb, p),
         "erisim_yolu": a.yol,
         "fclk_mhz": kart.olculen_fclk,
+        "fclk_yukleme_sonrasi_mhz": kart.fclk_yukleme_sonrasi,
+        "fclk_ayarlandi": kart.fclk_ayarlandi,
         "n_qubits": a.n, "p": p,
         "tohum": vek["tohum"],
         "izdusum_sayisi": len(kodlu),
         "bagimlilik_esigi": vek.get("bagimlilik_esigi"),
         "en_buyuk_benzerlik": vek.get("en_buyuk_benzerlik"),
         "kosumlar": kosumlar,
+        "csim_degerleri": [{"i": i, "beklenen_deger": b["beklenen_deger"],
+                            "bits": int(b["bits"])}
+                           for i, b in enumerate(beklenen)],
         "sapan_izdusumler": sapanlar,
         "gecti": (len(sapanlar) == 0 and len(gecerli) == len(kodlu)),
         "toplam_sure_s": sure,

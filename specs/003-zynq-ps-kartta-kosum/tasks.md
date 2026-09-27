@@ -11,20 +11,17 @@ description: "Faz 5 görev listesi — Zynq PS + Kartta Koşum"
 
 ## SIRADAKİ
 
-**Hedef (tek cümle)**: 63 görev üretildi; sıradaki tek iş **T001–T007 (G0)** —
-PYNQ 2.5'in Vivado 2025.2 `.hwh`'sini ayrıştırıp ayrıştıramadığını öğrenmek.
+**Hedef (tek cümle)**: Öbek 4 (MVP) kartta geçti; sıradaki **T039** —
+ölçüm protokolünü ilk gecikme ölçümünden **önce** yaz ve dondur.
 
-**Dokunulacak dosyalar**: `fpga/bd/probe_hwh.tcl`, `fpga/bd/probe_hwh.sh`,
-`fpga/bd/probe_test.py`, `artifacts/ip/qir_kernel_ip_20260917_15931cc.zip`
+**Dokunulacak dosyalar**: `docs/measurements/kart-olcum-protokolu.md`,
+`agent/measure_latency.py`
 
-**Bilinen tuzak**: ⛔ Kukla BD **PS-only olmamalı** — PS-only bir `.hwh`'de özel
-IP yoktur, `ip_dict` boş döner ve bilinen ayrıştırma hatalarının hiçbiri (hepsi
-IP tarafındadır) tetiklenmez. Probe "geçer", bütün konak kodu A yoluna göre
-yazılır, gerçek bitstream gelince `.hwh` ayrıştırılamaz — G0'ın önlemek için var
-olduğu senaryonun ta kendisi. **Kart şu an kapalı**; açılınca DHCP adresi
-değişebilir, seri konsoldan (COM3, 115200) `hostname -I` ile doğrula.
+**Bilinen tuzak**: FCLK0 overlay yüklenince 62,5 MHz'e düşüyor (kristal
+hatası); `board.py` ayarlayıp doğruluyor — doğrulanmamış saatte gecikme
+raporlanmaz. Ayrıntı ve donanım durumu: [SIRADAKI.md](SIRADAKI.md)
 
-**Son güncelleme**: 2026-09-19, Faz 5.2 (görevler üretildi)
+**Son güncelleme**: 2026-09-27, Faz 5.6 (T026–T038 bitti)
 
 Donanım durumu, ölçülmüş değerler ve onaylanan K1/K2/K3 kararları:
 [SIRADAKI.md](SIRADAKI.md)
@@ -154,15 +151,17 @@ enerji ölçümü gerekmez.
 - [X] T029 [US1] `agent/board.py` — zaman aşımı davranışı (madde A-4): `ap_done` 5 sn içinde gelmezse koşum `gecerli=false` işaretlenir ve **hiçbir seride sayılmaz**; kısmî sonuç ölçüm sayılmaz
 - [X] T030 [US1] `agent/board.py` — izdüşüm kısa yolu: yalnız `cost` (272 word) yeniden yazılır, `phases`/`cos_beta`/`sin_beta`/`p` yerinde kalır. ⚠️ **Bu kısa yol gecikme ölçümünde KULLANILMAZ** — karıştırılırsa `T_yazma` olduğundan küçük raporlanır
 - [X] T031 [US1] `agent/run_board.py` — `--n 16 --p 2 --izdusum 20 --tohum 42`; `cost_vectors.py`'den vektörleri alır, her biri için koşar, C-sim çıktılarıyla karşılaştırır, `IzdusumSerisi` üretir
-- [ ] T032 [US1] Bitstream'i karta yükle ve **yüklemenin başarılı olduğunu doğrula** (FR-001) — `ap_idle` okunabiliyor ve 1 dönüyor mu. "Yükledim, koşuyordur" varsayımı yetmez
-- [ ] T033 [US1] G3 koş (p=2): **20 izdüşümün hepsi** kart ↔ C-sim **birebir** tutmalı (SC-003). Biri bile saparsa kapı kapalı — hangi `cost` vektörlerinde saptığı hatayı `h` yoluna mı `J` yoluna mı daralttığını gösterir
-- [ ] T034 [US1] Belirlenimcilik (SC-002, madde A-5): aynı girdiyle iki ardışık koşum **bit düzeyinde aynı** çıktı vermeli
-- [ ] T035 [US1] Durumsuzluk (FR-005, madde K-4): kart yeniden başlatılıp çekirdek yeniden yüklendiğinde aynı sonuç alınmalı; önceki koşumun kalıntısı taşınmamalı
-- [ ] T036 [US1] Sınır davranışı (madde A-3): `p=0` ve `p=4` → çekirdek koşmaz ve `0x0050` **değişmez**. Bu bir hata değil, test edilecek bir davranıştır
-- [ ] T037 [US1] Aynı doğrulamayı **p=1** için tekrarla — SC-001 hem p=1 hem p=2 için ayrı ayrı doğrulama istiyor
-- [ ] T038 [US1] `docs/measurements/kart-dogrulama_<tarih>_<git-hash>_n16_p{1,2}.json` yaz — `IzdusumSerisi` alanları: `devre` özeti (tüm izdüşümlerde aynı olmalı), `tohum`, `izdusum_sayisi` (**≥20**), `kosumlar`, `csim_degerleri`, `sapan_izdusumler` (**boş olmalı**), `bitstream_sha256`
+- [X] T032 [US1] Bitstream'i karta yükle ve **yüklemenin başarılı olduğunu doğrula** (FR-001) — `ap_idle` okunabiliyor ve 1 dönüyor mu. "Yükledim, koşuyordur" varsayımı yetmez. ✅ 2026-09-27: `AP_CTRL=0x04` (ap_idle=1). ⚠️ İlk denemede FCLK koruması **durdurdu**: overlay FCLK0'ı **62,5 MHz** yaptı (`qir_bd.tcl` kristali 33,333, PYNQ-Z2'ninki 50 MHz). `board.py` artık frekansı ayarlayıp doğruluyor
+- [X] T033 [US1] G3 koş (p=2): **20 izdüşümün hepsi** kart ↔ C-sim **birebir** tutmalı (SC-003). Biri bile saparsa kapı kapalı — hangi `cost` vektörlerinde saptığı hatayı `h` yoluna mı `J` yoluna mı daralttığını gösterir
+- [X] T034 [US1] Belirlenimcilik (SC-002, madde A-5): aynı girdiyle iki ardışık koşum **bit düzeyinde aynı** çıktı vermeli
+- [X] T035 [US1] Durumsuzluk (FR-005, madde K-4): kart yeniden başlatılıp çekirdek yeniden yüklendiğinde aynı sonuç alınmalı; önceki koşumun kalıntısı taşınmamalı
+- [X] T036 [US1] Sınır davranışı (madde A-3): `p=0` ve `p=4` → çekirdek koşmaz ve `0x0050` **değişmez**. Bu bir hata değil, test edilecek bir davranıştır
+- [X] T037 [US1] Aynı doğrulamayı **p=1** için tekrarla — SC-001 hem p=1 hem p=2 için ayrı ayrı doğrulama istiyor
+- [X] T038 [US1] `docs/measurements/kart-dogrulama_<tarih>_<git-hash>_n16_p{1,2}.json` yaz — `IzdusumSerisi` alanları: `devre` özeti (tüm izdüşümlerde aynı olmalı), `tohum`, `izdusum_sayisi` (**≥20**), `kosumlar`, `csim_degerleri`, `sapan_izdusumler` (**boş olmalı**), `bitstream_sha256`
 
 **Checkpoint**: US1 tamam ve bağımsız savunulabilir. Ölçüm fazları başlayabilir.
+
+> ✅ **2026-09-27 — US1 KARTTA GEÇTİ.** p=2 ve p=1 için 20/20 izdüşüm C-sim ile **bit bit** aynı; belirlenimcilik (5 ardışık tam çağrı), durumsuzluk (yeniden başlatma), p=0/p=4 sınırı geçti. Koşum boyunca XADC: VCCINT ≥ 1,0151 V (USB beslemede düşüş yok). Kayıt: [kart-dogrulama p2](../../docs/measurements/kart-dogrulama_20260927_67165a7_n16_p2.json), [p1](../../docs/measurements/kart-dogrulama_20260927_67165a7_n16_p1.json)
 
 > ⚠️ **Uyuşmazlık hâlinde**: Bu bir tasarım krizi değil **doğrulama krizidir**.
 > Hangisinin doğru olduğu altın referansla belirlenir; fark kapanmadan

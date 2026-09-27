@@ -4,7 +4,7 @@
 zorunda kalmamak. Buradaki her değer **ölçülmüştür**; tahminler ayrı bir
 bölümde ve açıkça etiketlidir.
 
-**Son güncelleme**: 2026-09-16 · **Kaynak günlük**:
+**Son güncelleme**: 2026-09-27 (§2.1 kart doğrulaması) · **Kaynak günlük**:
 [measurements/faz2-sentez.md](measurements/faz2-sentez.md)
 
 ---
@@ -89,6 +89,36 @@ RTL'inki değildir. `tb_kernel.cpp`'de karşılaştırılan `cikti[]` dizisi yaz
 `sv[]`'sinden doldurulur; cosim bu sayıyı değiştirmez. Testbench'in kendi yorumu
 bunu söylüyor: *"bu çağrı fazladan bir doğrulama değil, cosim'in çalışabilmesi
 için gereken kancadır."*
+
+### 2.1 Kartta doğrulama (US1) — 2026-09-27
+
+Bitstream `qir_20260920_d350605` PYNQ-Z2'de koşuldu; C modeline karşı
+**bit düzeyinde** karşılaştırıldı (float metni değil, IEEE-754 bit deseni).
+
+| Kontrol | Sonuç |
+|---|---|
+| Yükleme (T032) | `ap_idle=1`, FCLK0 **100,000 MHz** doğrulandı |
+| 20 izdüşüm, p=2 (G3) | **20/20 bit bit aynı**, sapan 0 |
+| 20 izdüşüm, p=1 | **20/20 bit bit aynı**, sapan 0 |
+| Belirlenimcilik | 5 ardışık tam çağrı, aynı bit deseni |
+| Durumsuzluk | yeniden başlatma sonrası 20/20 aynı |
+| p=0 / p=4 | çekirdek erken döner, çıkış **değişmez**, `ap_vld` kalkmaz |
+
+Kayıt: [p2](measurements/kart-dogrulama_20260927_67165a7_n16_p2.json),
+[p1](measurements/kart-dogrulama_20260927_67165a7_n16_p1.json).
+
+⚠️ **Neyi kanıtlar**: silikon, C modelinin **aynısını** hesaplıyor (20
+bağımsız `cost` izdüşümü, iki p için). Fidelity bu zincirle **devralınır**:
+C modeli ↔ Qiskit 0,99997 (§2), RTL ↔ C bit bit (cosim), kart ↔ C bit bit
+(burada). Genlikler AXI'den görünmediği için kartta doğrudan ölçülmedi
+(karar K1).
+
+⚠️ **Bulunan hata**: overlay yüklemesi FCLK0'ı **62,5 MHz**'e çekiyordu —
+blok tasarımda PS kristali 33,333 MHz verilmiş, PYNQ-Z2'ninki 50 MHz. Sonuçlar
+doğru çıkardı ama **gecikmeler sessizce %60 yavaş** ölçülürdü. Konak kodu artık
+saati ayarlayıp doğruluyor. Ayrıntı: [SIRADAKI.md](../specs/003-zynq-ps-kartta-kosum/SIRADAKI.md).
+
+Koşum boyunca besleme (XADC): VCCINT ≥ 1,0151 V, VCCBRAM ≥ 1,0159 V — düşüş yok.
 
 ---
 
@@ -217,11 +247,14 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 - RTL, C ile **eşdeğerdir** (cosim PASS, n=8 **ve n=16**); n=16'da çıkış portu
   bit bit aynı — ama tek uyaran ve yalnızca çıkış portu üzerinden (bkz. §2).
 - Q1.17, H eşiğini geçen **en dar** sabit nokta formatıdır.
+- ✅ **Emülatör kartta çalışıyor ve doğrulandı** (27 Eyl): 20 izdüşüm, p=1 ve
+  p=2, C modeliyle bit bit aynı; belirlenimci ve durumsuz (§2.1).
 
 **EDİLEMEZ**:
 
 - ❌ **Hiçbir hızlanma iddiası.** 37,28 ms sentez sonrası bir **tahmindir**;
-  bitstream üretilmedi, kartta koşulmadı. CPU tarafı ayrıca ±%60 oynuyor.
+  bitstream kartta koşuldu ve **doğrulandı** (§2.1) ama gecikmesi henüz
+  protokolle **ölçülmedi** (US2, T039–T044). CPU tarafı ayrıca ±%60 oynuyor.
 - ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
   tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
 - ❌ **Rota optimizasyonunda herhangi bir hızlanma.** Kaba kuvvet aynı makinede
