@@ -15,17 +15,107 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: Öbek 5 **kapandı**; sıradaki **öbek 6 (enerji, T046–T050)**
-— INA219 **lehimlenince** ve vidalı klemensli DC jak adaptörleri gelince.
-Beklerken kartsız **6B** (GPU tabanı) veya **6C** (genişlik Pareto'su).
+**Hedef (tek cümle)**: **6C'yi bitir** — W=14 sentezini yeniden koş (rapor
+üretmedi), sonra **T073**: Pareto figürü + `neden-fpga.md` §2.2b'yi ölçümle
+**yeniden yaz** (eski "18 bit iki kısıtın kesişimi" anlatısı ÇÖKTÜ, aşağıda).
+Ardından öbek 6 (enerji) — lehim ve DC jak adaptörü gelince.
 
-**Dokunulacak dosyalar**: öbek 6 → `agent/calibrate_ina219.py`,
-`agent/measure_energy.py` (yeni); 6B → `scripts/`, 6C → `hls/` varyantları
+**Dokunulacak dosyalar**: `hls/genislik_sentez.sh` (W=14 için
+`QIR_GENISLIKLER=14`), `scripts/genislik_pareto.py`, `docs/figures/` (yeni
+figür), `docs/neden-fpga.md` §2.2b, `docs/olculen-degerler.md` §2.2
 
-**Bilinen tuzak**: Öbek 6 besleme düzenini **değiştirir** (JP5 → REG,
-adaptör INA219'un içinden). Gecikme USB düzeninde ölçüldü; enerji serisinin
-düzeni ayrı kaydedilmeli. İlk iş kalibrasyon (T048, sapma < %5) — geçmeden
-hiçbir enerji rakamı sayılmaz.
+**Bilinen tuzak**: W=14 koşusu 3 sn'de "TAMAM" dedi ama **rapor yok** ve
+günlükte tek Vitis satırı yok — `run.sh` `vitis-run`'ın çıkış kodunu
+güveniyor, rapor varlığını denetlemiyor. W=16/18/20/24 normal (~40 sn/sentez;
+yalnız csynth bu kadar sürüyor). ⛔ **"18 bit fp16'dan daha doğru" yazılmaz**,
+⛔ **"18 bit H'yi geçen en dar format" artık yazılmaz** (16 da geçiyor).
+
+## 🔬 6C DURUMU (27 Eyl) — genişlik taraması
+
+| Görev | Durum |
+|---|---|
+| **T070** `QIR_REAL_BITS` parametresi | ✅ varsayılan 18'de 4 döküm **bit bit aynı**, CI kapısı 4/4, trig tablosu 8192/8192 ham bit aynı |
+| **T071** C-sim fidelity 14/16/18/20/24 | ✅ ön kayıtlı K1–K4 geçti; her 2 bit ~16× (kuramsal), 20→24'te ~1e-7 tabanı |
+| **T072** csynth | 🔵 16/18/20/24 **bitti**, **W=14 rapor yok** → yeniden koş. 18'in tarama koşusu asıl raporla **AYNI** |
+| **T073** figür + §2.2b | ⬜ |
+
+| W | BRAM_18K | DSP | LUT (HLS) | p=2 çevrim | Fidelity p=2 | Model |
+|---|---:|---:|---:|---:|---:|---:|
+| 14 | — (yeniden) | | | | 0,994508 | 0,978861 |
+| 16 | **169** | 36 | 44.800 | 3.728.217 | **0,999656** ✅H | 0,998674 |
+| 18 | **187** | 36 | 45.131 | 3.728.217 | 0,999978 | 0,999917 |
+| 20 | **204** | 30 | 45.917 | 3.728.218 | 0,9999985 | 0,999995 |
+| 24 | **238** | 33 | 47.260 | 3.728.219 | 0,9999999 | 0,99999998 |
+
+Kayıt: [genislik-pareto](../../docs/measurements/genislik-pareto_20260927_29b253c.json)
+(W=14 satırı eksik). Betikler: `hls/genislik_tarama.sh` (C-sim),
+`hls/genislik_sentez.sh` (csynth, asıl projeye dokunmaz → `qir_hls_prj_W<n>`),
+`scripts/genislik_pareto.py` (toplama).
+
+### ⛔ Çöken anlatı — tezde düzeltilmeli
+
+Belgelerdeki *"18 bit iki bağımsız kısıtın tam kesişimi"* iddiasının **iki
+yarısı da ölçümle düştü**:
+1. **Doğruluk**: "H'yi geçen en dar format Q1.17, Q1.15 kalır" — bu
+   `format_fidelity.py` **modelinden** geliyordu (her kapıdan sonra yuvarlar,
+   hatayı ~3,8× fazla tahmin eder). Gerçek çekirdekte **Q1.15 = 0,999656,
+   GEÇİYOR**.
+2. **Donanım**: "19+ bit BRAM36 kelimesini aşar, BRAM ikiye katlanır" —
+   **katlanmıyor**: BRAM bit başına ~9 blok **düzgün** artıyor (169 → 187 →
+   204 → 238). 16 bit 18'den **18 blok az**. DSP'de de 18 üstünde sıçrama yok
+   (DSP48 18-bit B portu argümanı da tutmadı). **Kök neden** (rapordaki
+   Memory tablosu): HLS statevector'ü re/im **ayrı**, 4 bellek × 32.768
+   kelime × W bit kuruyor → tam **8W** blok (128/144/160/192); 36-bit
+   kelimeye paketleme hiç yok. Yan bulgu (doğrulanmadı): parite bitleri
+   kullanılmıyor, 18 bitte 1K×18 düzeni 128 blok verebilirdi.
+
+Eski iddia ⛔ ile işaretlendi: `neden-fpga.md` (§0 tablo + §2.2b),
+`mimari-gerekce.md` (2 yer), `banking-research.md` §4, `memory-budget.md`,
+`hizlandirici-kiyas-gunlugu.md`. Hata kaydı **#10**, olculen-degerler §2.2 +
+§7 + §8 #5–6. ⚠️ Hâlâ eski iddiayı taşıyan (dokunulmadı, tarihsel):
+`specs/002-…/quickstart.md:46`, `specs/003-…/tasks.md:288` bağlam paragrafı.
+
+**Geriye kalan, savunulabilir FPGA'ya özgü katkı**: genişlik, ölçülmüş bir
+maliyet/doğruluk eğrisi olan **serbest bir tasarım parametresi** — GPU'da
+menü sabit (fp16/bf16/fp32). Eğride "dirsek" yok; 18 bir **seçim**,
+zorunluluk değil. 16 bit, H'yi ~3× paya geçip BRAM'de %10 tasarruf ederdi.
+CLAUDE.md tez cümlesindeki *"18-bit hassasiyet noktası"* ifadesi
+**kullanıcı kararı bekliyor** (değiştirilmedi).
+
+## Bu oturumda (27 Eyl) yapılanlar — özet
+
+- **Öbek 4 (MVP) kartta**: T032–T038 ✅ — 20/20 izdüşüm p=1/p=2 bit bit;
+  FCLK 62,5 MHz hatası bulundu (kristal 33,333 vs 50 MHz), `board.py` düzeltildi
+- **Öbek 5 (gecikme)**: protokol v1.0 dondu (onaylı metin `201475a`), p=2
+  **36,578 ms**, p=1 **20,385 ms**, PS↔PL **2,30×**; T045 → HLS en kötü
+  durum, RTL simülasyonu 36,5464 ms
+- **INA219 (T047)**: I2C tarafı bağlandı (VCC→3.3V ölçüldü 3,32 V, SCL/SDA →
+  Arduino başlığının sol ucu), `0x40` cevap verdi, yapılandırma `0x399F`.
+  ⚠️ Başlık **lehimsiz** — temas aralıklı. VIN+/VIN− boş
+- **Hata kaydı**: `docs/hatalar-ve-duzeltmeler.md` (rapor için, 10 kayıt)
+- **Form 4203T**: dolduruldu, başlık "Hardware-Accelerated …" + özet
+  "2.30× faster than the on-chip ARM core" (masaüstü `… - dolu.pdf`).
+  ⚠️ Kullanıcının 17:34'teki sürümünün üzerine yazıldı — ne eklediği sorulacak
+- **Vivado/Vitis GUI**: WSLg bozuk (WSL 2.7.3) → tarayıcıda noVNC
+  (`xilinx-web vivado|vitis`, localhost:6080/6081); Vitis IDE için
+  `libasound2t64` kuruldu. Ayrıntı: kullanıcı hafızası
+
+## Kullanıcının yapacakları
+
+1. **INA219'u lehimlet** (6'lı başlık + yeşil klemens) — bölüm lab / tamirci
+2. **Vidalı klemensli DC jak adaptörü** (dişi + erkek) — almadan önce kart
+   girişi ve adaptör fişi ölçüsü birlikte kontrol edilecek
+3. **Form 4203T**: tarih/imza; 17:34 sürümünde bir şey eklediyse söylemek.
+   Son teslim **02.10.2026**
+4. **Tez cümlesi kararı**: "18-bit hassasiyet noktası" ifadesi kalsın mı
+   (6C bulgusu)?
+
+## Öbek 6 için hatırlatma
+
+Öbek 6 besleme düzenini **değiştirir** (JP5 → REG, adaptör INA219'un
+içinden). Gecikme USB düzeninde ölçüldü; enerji serisinin düzeni ayrı
+kaydedilmeli. İlk iş kalibrasyon (T048, sapma < %5) — geçmeden hiçbir enerji
+rakamı sayılmaz.
 
 **Öbek 5 sonucu (27 Eyl)**: ✅ protokol v1.0 donduruldu · ✅ p=2 **36,578 ms**,
 p=1 **20,385 ms** (IQR ~15 µs, plato var, 16.159 koşum, hepsi C-sim ile bit
@@ -34,7 +124,7 @@ durum** (üçgen döngüler); **RTL simülasyonu 36,5464 ms**, kart 31 µs üst�
 kart RTL'i koşuyor. ⬜ Döngü döngü dağılım kapanmadı (manşeti değiştirmez).
 Ön kayıtlı **B7 tutmadı**. Kayıt: [olculen-degerler §5.1](../../docs/olculen-degerler.md).
 
-**Son güncelleme**: 2026-09-27, Faz 5.8 (öbek 5 kapandı)
+**Son güncelleme**: 2026-09-27, Faz 5.9 (öbek 5 kapandı; 6C T070–T071 bitti, T072 W=14 hariç bitti)
 
 ---
 
@@ -154,7 +244,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |
-| 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | bekliyor — kart gerekmez, bağımlılık yok |
+| 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | 🔵 T070–T071 ✅, T072 W=14 hariç ✅, T073 ⬜ — ⛔ "18 kesişim" anlatısı **çöktü** |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 

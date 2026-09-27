@@ -16,6 +16,10 @@ ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 > ve kuantum devre emülasyonunu 5 W zarfında koşturmanın ölçülmüş gecikme/enerji
 > bedeli.**
 
+⚠️ **27 Eyl (6C)**: *"18-bit hassasiyet noktası"* ifadesinin dayanağı düştü —
+16 bit de H'yi geçiyor, BRAM doğrusal (8W), dirsek yok. Cümle **kullanıcı
+kararını bekliyor**; ayrıntı [hatalar #10](docs/hatalar-ve-duzeltmeler.md).
+
 **İsim**: *"Donanım hızlandırmalı"* ifadesi **ölçülmüş** bir dayanağa sahiptir —
 ama yalnız doğru tabana karşı: çekirdeği **PS'ten PL'e** taşımak **2,30×**
 hızlandırıyor — **iki taraf da kartta ölçüldü** (ARM Cortex-A9 84,13 ms →

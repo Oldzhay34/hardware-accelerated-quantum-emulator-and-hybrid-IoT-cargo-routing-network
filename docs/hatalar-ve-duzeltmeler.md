@@ -35,9 +35,10 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 7 | 19 Eyl | cosim'in 13 saat sürmesi — **iki kez yanlış teşhis** | araç zinciri | süreç tablosu (hangi süreç CPU yiyor) | n=16 RTL eşdeğerliği hiç gösterilemezdi |
 | 8 | 20 Eyl | I2C pinleri (INA219 için) **ses çipinin** pinlerine atanacaktı — kâğıt üzerinde | donanım tasarımı (pin ataması) | kart kısıt dosyasını satır satır okumak | sensöre hiç ulaşılamaz; yeni bitstream + bütün ölçümlerin tekrarı |
 | 9 | 27 Eyl | besleme gerilimi **"0,0 V"** göründü | ölçüm yorumu | dört rayın aynı anda 0 olması | yanlış "USB beslemesi yetmiyor" sonucu |
+| 10 | 27 Eyl | *"18 bit iki kısıtın kesişimi"* — **iki yarısı da yanlış** | tasarım gerekçesi (model ≠ çekirdek) | genişliği gerçekten tarayıp sentezlemek (6C) | tezin ana bulgularından biri yanlış raporlanırdı |
 
-**Desen**: 9 hatanın **5'i ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9),
-4'ü tasarım, yapılandırma ve araç zincirinde (1, 2, 7, 8). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
+**Desen**: 10 hatanın **5'i ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9),
+5'i tasarım, gerekçe, yapılandırma ve araç zincirinde (1, 2, 7, 8, 10). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
 altın referansla bit bit karşılaştırıldığı için. Hatalar, karşılaştırmanın
 **olmadığı** yerlerde birikti.
 
@@ -335,6 +336,58 @@ aykırı değer önce aracın o anki durumuyla açıklanmaya çalışılmalı.*
 
 ---
 
+## 10. "18 bit iki kısıtın kesişimi" — iki yarısı da yanlış (2026-09-27, Faz 5 6C)
+
+**Belirti**: Belgelerde (neden-fpga §2.2b, mimari-gerekçe, banking-research
+§4, memory-budget) ve tez cümlesinde bir **bulgu** olarak duruyordu:
+*"Q1.17 H eşiğini geçen en dar formattır; 19+ bit BRAM36'nın 36-bit
+kelimesini aşar ve BRAM ikiye katlanır — 18, iki bağımsız kısıtın tam
+kesişimidir."* Genişlik gerçekten tarandığında (aynı çekirdek, 14–24 bit):
+
+| W | Fidelity p=2 (çekirdek) | Model | BRAM_18K (toplam) | Statevector BRAM |
+|---:|---:|---:|---:|---:|
+| 16 | **0,999656** ✅ H | 0,998674 ❌ | 169 | 128 |
+| 18 | 0,999978 | 0,999917 | 187 | 144 |
+| 20 | 0,9999985 | 0,999995 | 204 | 160 |
+| 24 | 0,9999999 | 0,99999998 | 238 | 192 |
+
+**Nasıl yakalandı**: 6C görevinin kendisi — tasarım parametresini gerçekten
+süpürüp her noktayı sentezlemek. Kriterler (K1–K4) koşudan **önce** yazıldı.
+
+**Kök neden** (iki ayrı):
+1. **Doğruluk yarısı modelden geliyordu, çekirdekten değil.** Format Faz 2'de
+   `format_fidelity.py` ile seçildi; model her kapıdan sonra yuvarlıyor.
+   Çekirdek ise çift genişlikli `acc_t`'de biriktirip bir kez yuvarlıyor →
+   hata ~3,8× az. Modelde kalan Q1.15, çekirdekte H'yi ~3× payla geçiyor.
+2. **Donanım yarısı hesaplanmıştı, sentezlenmemişti.** Hesap, genliğin re+im
+   olarak tek 36-bit kelimeye paketlendiğini varsaydı. Sentez raporunun
+   bellek tablosu başka bir şey gösteriyor: statevector **4 ayrı bellek ×
+   32.768 kelime × W bit** (re ve im ayrı), her biri **2W** blok →
+   statevector BRAM'i tam **8W** (128/144/160/192). Kelimeye hizalama hiç
+   devreye girmiyor; maliyet bit başına doğrusal, uçurum yok. DSP48'in 18-bit
+   B portu argümanı da tutmadı (DSP 36/36/30/33).
+
+**Yakalanmasaydı**: Tezin *"18-bit hassasiyet noktası"* katkısı ve savunmanın
+*"FPGA'ya özgü değer"* argümanı yanlış bir mekanizmaya dayanırdı. Jüride
+tek bir soruyla (*"16 bitle denediniz mi?"*) çökerdi.
+
+**Düzeltme**: Kod değişmedi (18 bit çalışıyor ve doğru). Değişen **iddia**:
+18 bir seçimdir; genişlik, ölçülmüş maliyet/doğruluk eğrisi olan serbest
+bir parametredir. Eski cümleler ilgili belgelerde ⛔ ile işaretlendi; tez
+cümlesi kararı kullanıcıda. İlginç yan bulgu (doğrulanmadı): HLS BRAM'in
+parite bitlerini kullanmıyor; 18 bitte 1K×18 düzeni 144 yerine 128 blok
+verebilirdi.
+
+**Kanıt**: [genislik-pareto_20260927_29b253c.json](measurements/genislik-pareto_20260927_29b253c.json),
+`qir_hls_prj_W<n>/solution1/syn/report/qir_kernel_csynth.rpt` (Memory
+tablosu), [olculen-degerler.md §2.2, §8 #5–6](olculen-degerler.md).
+
+**Rapor için ders**: *Bir tasarım noktasının "optimum" olduğu, komşu
+noktalar gerçekten üretilip ölçülmeden iddia edilemez — model ve el hesabı
+yalnız hangi noktaların ölçülmeye değer olduğunu söyler.*
+
+---
+
 ## Hataları ne yakaladı — rapor için çapraz bakış
 
 | Mekanizma | Yakaladığı |
@@ -347,6 +400,7 @@ aykırı değer önce aracın o anki durumuyla açıklanmaya çalışılmalı.*
 | **Tabanı değiştirip aynı şeyi yeniden ölçmek** | 5, 6 |
 | **Kaynak belgeyi satır satır okumak** | 8 |
 | **Fiziksel tutarlılık kontrolü** (bu değer mümkün mü?) | 9 |
+| **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10 |
 
 **Rapora girecek genel sonuç**: Çekirdeğin kendisinde hata kalmadı, çünkü
 her aşamada (C-sim → RTL → kart) bir altın referansa **bit düzeyinde**

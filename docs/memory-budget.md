@@ -130,6 +130,14 @@ yan yana **iki blok** gerekir ve artan bitler israf olur.
 
 ### Bunun üç sonucu var
 
+> ⛔ **27 Eyl 2026 — bu tablo ve 2./3. sonuç sentezle tutmadı** (Faz 5 6C).
+> Tablo re+im'in tek 36-bit kelimeye paketlendiğini varsayıyor; HLS
+> statevector'ü **re ve im ayrı**, 4 bellek × 32.768 kelime × W bit olarak
+> kuruyor ve **8W** blok harcıyor: Q1.15 **128**, Q1.17 **144**, Q1.19
+> **160**, Q1.23 **192** BRAM_18K (tablodaki 128/128/256/256 değil). Dar
+> format BRAM kazandırıyor, geniş format ikiye katlamıyor. Ayrıntı:
+> [hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+
 **1. float32 yerinde tamponlama, sanılandan pahalı.** §2'de %81,3 çıkmıştı; blok düzeyinde
 **%91,4** — yani **%85 tavanını aşıyor**. 64-bitlik bir genlik iki 36-bit kelimeye yayılıyor,
 8 bit israf oluyor. §2'de yazdığım "granülarite kaybıyla doluluk yukarı çıkar" uyarısı

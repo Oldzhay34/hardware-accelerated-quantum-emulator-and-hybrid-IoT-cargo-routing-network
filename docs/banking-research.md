@@ -163,6 +163,12 @@ bedavadır** (§1) — o M kapsamında kalır.
 
 ## 4. Format kararıyla kesişim — üç kısıt tek noktada buluşuyor
 
+> ⛔ **27 Eyl 2026 — bu bölümün bulgusu ölçümle düştü** (Faz 5 6C). Üç
+> satırın üçü de tutmadı: çekirdekte Q1.15 H'yi geçiyor (0,999656; tablodaki
+> 0,998674 modelin değeri), BRAM Q1.19'da ikiye katlanmıyor (187 → 204),
+> DSP sıçramıyor (36 → 30). Ayrıntı: [olculen-degerler.md §2.2](olculen-degerler.md),
+> [hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+
 Bankalama ile format bağımsız değil. Üç bağımsız kısıt aynı formatta kesişiyor:
 
 | Kısıt | Yön | Sınır | Kaynak |

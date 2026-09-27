@@ -27,7 +27,7 @@ cevap burada olmalı; yoksa tartışma baştan açılır.
 "FPGA kargo aracında değil, merkezî çözücü"
         ↓ sistem-mimarisi.md yazıldı, savunma düzeltildi
 "Sadece FPGA ile yapılabilecek kritik bir değer katabilir miyiz?"
-        ↓ 18-bit / BRAM36 kesişimi bulundu
+        ↓ 18-bit / BRAM36 kesişimi bulundu (⛔ 27 Eyl: 6C taramasında düştü — hatalar #10)
 "18 bit demek 18 kübit değil mi?"
         ↓ üç ayrı "16" ve iki ayrı "18" ayrıştırıldı
 "Paralel processing yapacağız değil mi?"

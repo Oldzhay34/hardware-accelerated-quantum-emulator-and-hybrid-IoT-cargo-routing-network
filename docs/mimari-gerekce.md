@@ -343,6 +343,12 @@ Zynq-7'deki BRAM36 bloğunun **azami kelime genişliği 36 bittir**. Bir genlik
 > oturan en geniş genişliğin kesişimidir.** Altında doğruluk yetmiyor,
 > üstünde bellek maliyeti iki katına çıkıyor.
 
+⛔ **27 Eyl 2026 — yukarıdaki alıntı ölçümle düştü** (6C genişlik taraması):
+çekirdekte Q1.15 de H'yi geçiyor (0,999656) ve BRAM bit başına doğrusal
+artıyor (16/18/20/24 → 169/187/204/238; statevector re/im ayrı, tam 8W blok,
+kelimeye paketleme yok). Ayrıntı: [olculen-degerler.md §2.2](olculen-degerler.md),
+[hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+
 Bu, tesadüf değildir. 36 = 2 × 18 ve DSP48E1'in çarpan portu **25 × 18**:
 Xilinx'in bu ailedeki taneciklik seçimi 18 bittir. **Sabit noktalı sinyal
 işleme için silikonun doğal birimi 18 bittir** ve bizim doğruluk tabanımız
@@ -496,9 +502,11 @@ Savunmanın sağlamlığı, neyi iddia etmediğini bilmesinden gelir.
 > ölçerek gösterdik. Tasarımın bağlayıcı kısıtı aritmetik değil **bellek
 > portudur**: bankalama faktörünü dörde katlamak sıfır kazanç verirken,
 > bellek tipini gerçek çift porta çevirmek tek kelimeyle %22,6 kazandırmıştır.
-> Aynı bellek-merkezli mantık sayısal genişliği de belirlemiştir: 18 bit,
+> ~~Aynı bellek-merkezli mantık sayısal genişliği de belirlemiştir: 18 bit,
 > doğruluk eşiğini geçen en dar format olmakla kalmaz, BRAM36'nın 36-bit
-> kelimesine iki genlik bileşeni hâlinde **sıfır israfla** oturur. Katkımız
+> kelimesine iki genlik bileşeni hâlinde **sıfır israfla** oturur.~~
+> ⛔ *(27 Eyl: ölçümle düştü — [hatalar #10](hatalar-ve-duzeltmeler.md).
+> Özet cümlesi yeniden yazılacak.)* Katkımız
 > bir hız rekoru değil — hız rekorunun **neden mümkün olmadığının** ölçülmüş
 > ve modellenmiş açıklamasıdır.
 

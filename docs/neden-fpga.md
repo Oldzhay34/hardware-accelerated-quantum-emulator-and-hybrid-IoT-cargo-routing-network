@@ -23,7 +23,7 @@ karışmaları çok kolay. Geliştirme sırasında iki kez karıştı; jüride d
 |---|---|---|---|
 | **16** kübit | Problem boyutu → 2¹⁶ = 65.536 genlik | Prensip III tavanı → 5 şehirlik TSP, (5−1)² = 16 | `N_QUBITS` |
 | **16** banka | `cyclic` bölümlenme faktörü | 65536'yı tam böler, parçalanma uçurumu F > 64'te | `BANKS` |
-| **18** bit | Her **reel sayının** hassasiyeti | Q1.17 — doğruluk ve BRAM kelimesinin kesişimi | `real_t` |
+| **18** bit | Her **reel sayının** hassasiyeti | Q1.17 — bir **seçim** (~~doğruluk ve BRAM kelimesinin kesişimi~~, 27 Eyl ölçümle düştü, §2.2b) | `real_t` |
 | **18** bit | Faz çözünürlüğü (TUR cinsinden) | Ayrı ve **bağımsız** karar | `phase_t` |
 
 ### "18 bit" kübit sayısı değildir
@@ -240,7 +240,17 @@ Bu, Anayasa madde III'ün (çip-içi bellek zorunluluğu) bir kısıt değil bir
 > ⚠️ **"18 bit" kübit sayısı değil, her reel sayının hassasiyetidir.**
 > Ayrıntı ve diğer sayı çakışmaları: [§0](#0-aynı-sayı-farklı-anlam--önce-bunu-netleştirin).
 
-**Bulgu: 18, iki bağımsız kısıtın tam kesişimidir.**
+> ⛔ **27 Eyl 2026 — bu bölümün ana iddiası ÖLÇÜMLE DÜŞTÜ (6C).** Aşağıdaki
+> metin tarihsel kayıttır; T073'te ölçülmüş tabloyla yeniden yazılacak.
+> Çekirdeğin kendi taramasında **Q1.15 = 0,999656, H'yi geçiyor** (aşağıdaki
+> 0,998674 modelin değeri); BRAM 16/18/20/24 bitte **169/187/204/238** —
+> 19. bitte uçurum yok, statevector tam **8W** blok (re/im ayrı bellekler,
+> 36-bit kelimeye paketleme yok). Kalan savunulabilir iddia: genişlik GPU'da
+> seçilemeyen, ölçülmüş maliyet eğrisi olan **serbest bir parametre**; 18 bir
+> seçim. Ayrıntı: [olculen-degerler.md §2.2](olculen-degerler.md),
+> [hatalar-ve-duzeltmeler.md #10](hatalar-ve-duzeltmeler.md).
+
+~~**Bulgu: 18, iki bağımsız kısıtın tam kesişimidir.**~~
 
 **Yukarıdan — doğruluk.** H eşiğini (≥0,999) geçen en dar format Q1.17'dir;
 Q1.15 kalır ([olculen-degerler.md](olculen-degerler.md)):

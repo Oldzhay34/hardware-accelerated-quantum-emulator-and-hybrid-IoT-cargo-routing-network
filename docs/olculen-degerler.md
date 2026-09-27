@@ -40,13 +40,17 @@ kullanılmamıştır.
 | n=12, p=2 (sentetik) | **0,999998860** | ✅ | ✅ |
 | n=8, p=2 (sentetik) | **0,999999871** | ✅ | ✅ |
 
-Format taraması (p=2, en zorlu durum) — **Q1.17 H eşiğini geçen en dar format**:
+Format taraması — **SAYISAL MODEL** (`format_fidelity.py`, p=2). ⚠️ Bu tablo
+**çekirdeğin değil modelin** çıktısıdır; model her kapıdan sonra yuvarladığı
+için hatayı ~3,8× fazla tahmin eder. Çekirdeğin kendi taraması §2.2'de —
+orada **16 bit de H'yi geçiyor**. ⛔ *"Q1.17 H eşiğini geçen en dar format"*
+cümlesi bu tabloya dayanıyordu ve **artık kullanılmaz** (27 Eyl, 6C):
 
-| Bit | Format | Fidelity | H |
+| Bit | Format | Fidelity (model) | H (model) |
 |---:|---|---:|:---:|
 | 12 | Q1.11 | 0,714527166 | ❌ |
 | 14 | Q1.13 | 0,978861091 | ❌ |
-| 16 | Q1.15 | 0,998674120 | ❌ |
+| 16 | Q1.15 | 0,998674120 | ❌ (çekirdekte ✅, §2.2) |
 | **18** | **Q1.17** | **0,999917032** | ✅ |
 | 20 | Q1.19 | 0,999994814 | ✅ |
 | 24 | Q1.23 | 0,999999980 | ✅ |
@@ -119,6 +123,37 @@ doğru çıkardı ama **gecikmeler sessizce %60 yavaş** ölçülürdü. Konak k
 saati ayarlayıp doğruluyor. Ayrıntı: [SIRADAKI.md](../specs/003-zynq-ps-kartta-kosum/SIRADAKI.md).
 
 Koşum boyunca besleme (XADC): VCCINT ≥ 1,0151 V, VCCBRAM ≥ 1,0159 V — düşüş yok.
+
+### 2.2 Genişlik taraması — çekirdeğin kendisi (6C, 2026-09-27)
+
+Aynı çekirdek `QIR_REAL_BITS` ile 5 genişlikte derlendi (C-sim + csynth).
+Sabit tutulan: n=16, `phase_t` 18 bit, trig indeksi 13 bit, 10 ns hedef,
+xc7z020clg400-1. Kayıt:
+[genislik-pareto_20260927_29b253c.json](measurements/genislik-pareto_20260927_29b253c.json).
+
+| W | Format | Fidelity p=2 | Fidelity p=1 | Model p=2 | BRAM_18K | DSP | LUT* | Periyot |
+|---:|---|---:|---:|---:|---:|---:|---:|---:|
+| 14 | Q1.13 | 0,994507735 | 0,997262828 | 0,978861 | — | — | — | — |
+| 16 | Q1.15 | **0,999656239** ✅H | 0,999827344 | 0,998674 | **169** | 36 | 44.800 | 7,278 ns |
+| 18 | Q1.17 | 0,999978179 | 0,999989167 | 0,999917 | **187** | 36 | 45.131 | 7,195 ns |
+| 20 | Q1.19 | 0,999998540 | 0,999999277 | 0,999995 | **204** | 30 | 45.917 | 7,209 ns |
+| 24 | Q1.23 | 0,999999892 | 0,999999946 | 0,99999998 | **238** | 33 | 47.260 | 7,220 ns |
+
+\* HLS tahmini (bu projede ~2× şişik). Çevrim sayısı genişlikten
+bağımsız: p=2 için hepsinde ~3.728.217; II 2/1 hepsinde. W=14 csynth
+raporu üretilmedi (koşu hatası, yeniden koşulacak). W=18 tarama koşusu
+asıl sentez raporuyla **birebir aynı** — tarama altyapısı tutarlı.
+
+**Ne gösteriyor**:
+* Her 2 bit hatayı ~16× düşürüyor (kuramsal 4²); 24 bitte ~1e-7 tabanı
+  (18 bit faz ve 13 bit trig indeksi artık baskın).
+* Çekirdek modelden ~3,8× iyi — model her kapıdan sonra yuvarlıyor,
+  çekirdek çift genişlikli `acc_t`'de biriktirip bir kez yuvarlıyor.
+* BRAM bit başına ~9 blok **düzgün** artıyor; 19. bitte **uçurum yok**.
+  DSP'de 18 üstünde sıçrama yok.
+* ⛔ Sonuç: **18 bit iki kısıtın kesişimi DEĞİL**. 16 bit H'yi ~3× payla
+  geçip 18 blok BRAM (%10) daha az kullanırdı. 18 bir **seçim**
+  (Faz 2'de modele göre yapıldı), ölçülmüş bir zorunluluk değil.
 
 ---
 
@@ -322,7 +357,11 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 - Kaynak kullanımı **implementasyon sonrası** ölçülmüştür, HLS tahmini değildir.
 - RTL, C ile **eşdeğerdir** (cosim PASS, n=8 **ve n=16**); n=16'da çıkış portu
   bit bit aynı — ama tek uyaran ve yalnızca çıkış portu üzerinden (bkz. §2).
-- Q1.17, H eşiğini geçen **en dar** sabit nokta formatıdır.
+- ~~Q1.17, H eşiğini geçen **en dar** sabit nokta formatıdır.~~ ⛔ **27 Eyl
+  düştü** (§2.2): çekirdekte Q1.15 de H'yi geçiyor (0,999656). Yerine:
+  *"Genlik genişliği ölçülmüş bir maliyet/doğruluk eğrisi olan serbest bir
+  tasarım parametresidir; 16→24 bitte fidelity 0,99966→0,9999999, BRAM
+  169→238 blok (csynth), çevrim sayısı sabit."*
 - ✅ **Emülatör kartta çalışıyor ve doğrulandı** (27 Eyl): 20 izdüşüm, p=1 ve
   p=2, C modeliyle bit bit aynı; belirlenimci ve durumsuz (§2.1).
 - ✅ **Kartta ölçülen gecikme** (27 Eyl): p=2 `T_cekirdek` **36,578 ms**
@@ -359,7 +398,8 @@ tarafı çoklu koşumla** yapılacaktır.
 
 ## 8. Yanlışlanan hipotezler — makalenin en değerli kısmı olabilir
 
-Bu çalışmada **tahmine dayalı dört tasarım kararı ölçümle yanlışlandı**.
+Bu çalışmada **tahmine dayalı altı tasarım kararı ölçümle yanlışlandı**
+(5 ve 6: 27 Eyl, genişlik taraması).
 
 | # | Hipotez | Ölçüm | Sonuç |
 |---|---|---|---|
@@ -367,6 +407,8 @@ Bu çalışmada **tahmine dayalı dört tasarım kararı ölçümle yanlışland
 | 2 | Çakışma bankalama ile çözülür → daha çok banka daha iyi | cyclic 2→4→8: II **değişmedi** (3), LUT %84→%86→%90 | Sınır bankalama değil **bellek portu**: RAM_2P→RAM_T2P II'yi 3→2 yaptı, **bedelsiz** |
 | 3 | Bankalama analizi işin çoğunu belirler | Bankalama araştırması toplam çalışma süresinin **%0,4'ünü** optimize etmiş | Köşegen maliyet katmanı işin %98'iydi |
 | 4 | Tablo varyantları LUT'a sığmıyor (HLS: %182, %166) | Gerçek: **%71** ve **%74** — ikisi de sığıyor | HLS tahminiyle varyant elemek **güvenilmez** |
+| 5 | 18 bit, H eşiğini geçen en dar genişlik (sayısal modelden) | Çekirdeğin C-sim'i: **16 bit 0,999656** — geçiyor (6C, 27 Eyl) | Model hatayı ~3,8× fazla tahmin ediyor; format seçimi modelle değil **çekirdekle** yapılmalıydı |
+| 6 | 19+ bit BRAM36 kelimesini aşar → BRAM uçurumu; DSP48 18-bit portu → DSP sıçraması | csynth: BRAM 169/187/204/238 (16/18/20/24) — bit başına ~9 blok **düzgün**; DSP 36/36/30/33 | "18 = iki kısıtın kesişimi" anlatısı **düştü**; eğride dirsek yok |
 
 Ayrıca: yerleştirme-yönlendirme **monoton değildir**. Daha az talep eden bir
 varyant (#7, #6'nın alt kümesi) daha kötü yerleşti ve zamanlamayı tutturamadı
