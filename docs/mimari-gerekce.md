@@ -4,6 +4,14 @@
 ölçüm kaydı değildir. Her nicel iddia ya `docs/measurements/` altındaki bir
 dosyaya işaret eder ya da **açıkça türetim/tahmin** olarak etiketlenir.
 
+> 🔄 **Güncelleme 2026-09-27**: Bu belgede FPGA gecikmesi olarak geçen
+> **37,28 ms** sentez tahminidir. Kartta ölçüldü: p=2 `T_cekirdek` **36,578 ms**
+> (modelin %1,9 altında), p=1 **20,385 ms**. Buna göre PS↔PL **2,30×**
+> (belgedeki 2,26× yerine), dizüstü CPU FPGA'dan **11,2×** hızlı (11,4× yerine);
+> FPGA'nın çevrim/çift değeri ~3,49 (3,56 yerine). Sonuçların yönü ve hiçbir
+> argüman değişmiyor. Kaynak: [kart-gecikme p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json).
+> Metin 21 Eylül'ün argümanı olarak değiştirilmedi.
+
 ---
 
 ## §0. Yöntem ve üç premis düzeltmesi

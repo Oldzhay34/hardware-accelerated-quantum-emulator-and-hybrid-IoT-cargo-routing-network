@@ -268,17 +268,22 @@ class Kart(object):
 
         T029 / madde A-4: `ap_done` zaman aşımına uğrarsa **istisna atılmaz** —
         çağıran koşumu `gecerli=False` işaretler. Kısmî sonuç ölçüm sayılmaz.
+
+        `T_cekirdek` kapsamı (protokol v1.0 §5): sayaç `ap_start` yazımından
+        **hemen önce** başlar, `ap_done` biti **görüldüğünde** durur.
+        Zamanlayıcı `perf_counter` (R4); yoklama üst taraftan en fazla bir
+        yoklama periyodu `δ` ekler (T041).
         """
-        self._yaz(ADDR_AP_CTRL, BIT_AP_START)
-        t0 = time.time()
         yoklama = 0
+        t0 = time.perf_counter()
+        self._yaz(ADDR_AP_CTRL, BIT_AP_START)
         while True:
             durum = self._oku(ADDR_AP_CTRL)
             yoklama += 1
             if durum & BIT_AP_DONE:
-                return True, time.time() - t0, yoklama
-            if time.time() - t0 > zaman_asimi:
-                return False, time.time() - t0, yoklama
+                return True, time.perf_counter() - t0, yoklama
+            if time.perf_counter() - t0 > zaman_asimi:
+                return False, time.perf_counter() - t0, yoklama
 
     def beklenen_deger_oku(self):
         """Adım 5 / madde A-6: ham 32 bit okunur, `struct.unpack` ile yorumlanır.
@@ -291,13 +296,13 @@ class Kart(object):
     # --------------------------------------------------------- tam çağrı sırası
     def kosum(self, kodlanmis, zaman_asimi=ZAMAN_ASIMI_SN):
         """Sözleşmedeki 1–5 adımlarının tamamı (maddeler A-1…A-6)."""
-        t_bas = time.time()
+        t_bas = time.perf_counter()
         if not self.ap_idle():
             return Kosum(hata="ap_idle=0: çekirdek meşgul (madde A-1)")
 
-        t0 = time.time()
+        t0 = time.perf_counter()
         n = self.yaz_tam(kodlanmis)
-        t_yazma = time.time() - t0
+        t_yazma = time.perf_counter() - t0
 
         bitti, t_cek, yoklama = self.basla_ve_bekle(zaman_asimi)
         if not bitti:
@@ -308,7 +313,7 @@ class Kart(object):
 
         deger = self.beklenen_deger_oku()
         return Kosum(beklenen_deger_ham=deger, gecerli=True, t_cekirdek=t_cek,
-                     t_yazma=t_yazma, t_uctan_uca=time.time() - t_bas,
+                     t_yazma=t_yazma, t_uctan_uca=time.perf_counter() - t_bas,
                      yazma_sayisi=n, yoklama_sayisi=yoklama)
 
     def izdusum(self, cost, zaman_asimi=ZAMAN_ASIMI_SN):
@@ -316,12 +321,12 @@ class Kart(object):
 
         ⛔ Gecikme ölçümünde kullanılmaz; bkz. `yaz_cost`.
         """
-        t_bas = time.time()
+        t_bas = time.perf_counter()
         if not self.ap_idle():
             return Kosum(hata="ap_idle=0: çekirdek meşgul (madde A-1)")
-        t0 = time.time()
+        t0 = time.perf_counter()
         n = self.yaz_cost(cost)
-        t_yazma = time.time() - t0
+        t_yazma = time.perf_counter() - t0
         bitti, t_cek, yoklama = self.basla_ve_bekle(zaman_asimi)
         if not bitti:
             return Kosum(gecerli=False, t_yazma=t_yazma, yazma_sayisi=n,
@@ -329,5 +334,5 @@ class Kart(object):
                          hata="ap_done zaman aşımı (madde A-4)")
         return Kosum(beklenen_deger_ham=self.beklenen_deger_oku(), gecerli=True,
                      t_cekirdek=t_cek, t_yazma=t_yazma,
-                     t_uctan_uca=time.time() - t_bas,
+                     t_uctan_uca=time.perf_counter() - t_bas,
                      yazma_sayisi=n, yoklama_sayisi=yoklama)

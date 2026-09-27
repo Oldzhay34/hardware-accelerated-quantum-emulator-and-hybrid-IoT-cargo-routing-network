@@ -5,6 +5,12 @@ Bu belge bir **akış** kaydıdır. Sonuçların kendisi başka yerlerde
 `docs/measurements/`) — burada **hangi soruyu sorup nereye vardığımız** ve
 **yolda neyi yanlış yaptığımız** duruyor.
 
+> 🔄 **Güncelleme 2026-09-27**: Bu günlükteki **2,26×**, FPGA tarafı sentez
+> tahmini (37,28 ms) olduğu için yarı ölçümdü. FPGA kartta ölçüldü:
+> `T_cekirdek` **36,578 ms** → PS↔PL **2,30×**; dizüstü CPU FPGA'dan **11,2×**
+> hızlı ([kart-gecikme p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json)).
+> Aşağıdaki metin 21 Eylül'ün kaydı olarak **değiştirilmedi**.
+
 Var olma sebebi: sonuçlar kaydedildi ama onlara götüren akıl yürütme
 kaydedilmedi. Bir hafta sonra *"neden şu değil de bu?"* diye sorulduğunda
 cevap burada olmalı; yoksa tartışma baştan açılır.

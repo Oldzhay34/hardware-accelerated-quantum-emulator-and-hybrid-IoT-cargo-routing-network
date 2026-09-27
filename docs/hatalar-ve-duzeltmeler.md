@@ -231,7 +231,8 @@ kuantalıyor; Cortex-A9'un NEON birimi **çift duyarlık desteklemiyor**.
 
 **Yakalanmasaydı**: *"Donanımla aynı aritmetik"* en adil taban gibi
 göründüğü için yalnız o ölçülürdü ve **42× hızlanma** raporlanırdı. Gerçek
-sayı **2,26×**.
+sayı **2,26×** (21 Eyl, FPGA tarafı tahmin); FPGA kartta ölçülünce **2,30×**
+(27 Eyl, [kart-gecikme p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json)).
 
 **Düzeltme**: `QIR_REAL_FLOAT` bayrağı (yalnız taban ölçümü için, sentezde
 kullanılmaz); taban, hedef platformda **yetkin bir gerçeklemenin** yapacağı şey.

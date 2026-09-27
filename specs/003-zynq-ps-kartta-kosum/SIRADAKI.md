@@ -15,21 +15,30 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: **T039** — [protokol taslağı](../../docs/measurements/kart-olcum-protokolu.md)
-yazıldı (2026-09-27), **kullanıcı onayı bekliyor**; onaylanınca v1.0 olarak
-dondurulur, ardından T040–T044. ⛔ Onaysız ölçüm alınmaz.
+**Hedef (tek cümle)**: **T045** — ölçülen `T_cekirdek`'in HLS modelinden
+~%2 **düşük** çıkmasının nedenini çevrim düzeyinde açıkla (p=2 −70.428,
+p=1 −42.599 çevrim → katman başına ~27.800, sabit ~14.800); bulunamazsa
+bulunamadığını yaz. Sonra öbek 5 kapanır.
 
-**Dokunulacak dosyalar**: `docs/measurements/kart-olcum-protokolu.md` (yeni),
-`agent/measure_latency.py` (yeni), `agent/board.py` (`kosum()` zamanlaması)
+**Dokunulacak dosyalar**: `hls/` csynth raporu (döngü bazında gecikme),
+`docs/measurements/faz2-sentez.md`, `docs/olculen-degerler.md` §5.1
 
-**Bilinen tuzak**: ⚠️ **Protokol öncesi görülen değer**: G3 koşumunda
-`t_cekirdek` alanı ~36,5 ms gösterdi (p=2, yoklamayla, tek çağrı başına) —
-sentez tahmini 37,28 ms. Bu bir ölçüm serisi **değil** ve raporlanmaz; ama
-SC-009 *"sonuca bakıp protokol ayarlanamaz"* diyor: protokol bunu **bildiğini
-yazarak** dondurulmalı. Ayrıca T045b **yarım**: ARM tarafı ölçüldü (84,13 ms),
-FPGA tarafı hâlâ tahmin — T044'ün kart ölçümü gelince yeniden hesaplanır.
+**Bilinen tuzak**: Fark **iki p'de de** modelin altında ve p ile büyüyor —
+hem katman içinde hem sabit kısımda bir fazlalık var. `T_cekirdek` üst
+taraftan en fazla bir δ (~21,5 µs = ~2.150 çevrim) içerir; yani gerçek fark
+biraz daha **büyük** olabilir. HLS raporu `max` gecikmedir; aranacak yer
+değişken sınırlı döngüler ve boru hattı doldurma/boşaltma varsayımları.
 
-**Son güncelleme**: 2026-09-27, Faz 5.6 (öbek 4 kartta bitti; sıradaki T039)
+**Öbek 5 durumu (27 Eyl)**: ✅ T039 protokol v1.0 donduruldu · ✅ T040–T044
+ölçüldü (p=2 **36,578 ms**, p=1 **20,385 ms**, IQR ~15 µs, plato var,
+16.129 koşum, hepsi C-sim ile bit bit) · ✅ T045b **2,30×** (iki taraf ölçüm) ·
+⬜ T045 nedeni. Kayıt: [kart-gecikme p2](../../docs/measurements/kart-gecikme_20260927_201475a_n16_p2.json).
+Ön kayıtlı **B7 tutmadı** (kodlama uçtan ucun %22–27'si, domine etmiyor).
+
+**Paralel yol**: öbek 6 (enerji) **lehim + DC jak adaptörü** bekliyor. O
+sürede kartsız işler açık: 6B GPU tabanı, 6C genişlik Pareto'su.
+
+**Son güncelleme**: 2026-09-27, Faz 5.7 (öbek 5 ölçümleri bitti; sıradaki T045)
 
 ---
 
@@ -104,7 +113,7 @@ yuvasından çıkmıştı, iki saat kaybettirdi.)
 
 **FPGA** (Vivado implementasyonu, gerçek):
 LUT %42 · FF %18 · DSP %15 · BRAM %67 · post-route **9,122 ns** ·
-gecikme p=2 **37,28 ms** (tahmin, kartta ölçülmedi) ·
+gecikme p=2 **36,578 ms kartta ölçüldü** (27 Eyl; sentez modeli 37,28 ms) ·
 fidelity ≥0,99997 · cosim PASS (**n=8 ve n=16**)
 
 **CPU** (2026-09-19 temiz ölçüm, prizde, 7474 koşum, plato oturdu):
@@ -112,7 +121,7 @@ turbo **32,75 ms** · plato **41,93 ms** · enerji **0,644 J/koşum**
 
 ⛔ **"BAŞABAŞ" SONUCU GEÇERSİZ** (21 Eyl) — o taban Qiskit Aer'di ve ~10× adil değildi.
 Aynı kod konak CPU'da **3,273 ms** (CPU 11,4× hızlı); kart üstü ARM'da **84,13 ms**
-(**FPGA 2,26× hızlı** ← geçerli olan bu). Bkz. [§22](../../docs/measurements/faz2-sentez.md),
+(**FPGA 2,26× hızlı**; 27 Eyl kart ölçümüyle **2,30×** ← geçerli olan bu). Bkz. [§22](../../docs/measurements/faz2-sentez.md),
 [hizlandirici-kiyas-gunlugu.md](../../docs/hizlandirici-kiyas-gunlugu.md).
 
 Eski metin: 37,28 ms, CPU'nun turbo ve plato
@@ -145,7 +154,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 2 | 3 — konak kodlayıcı | T019–T025 | ✅ **BİTTİ — G2 geçti** |
 | 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
 | 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ✅ **BİTTİ — MVP (27 Eyl)**: p=1/p=2 20/20 bit bit |
-| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | 🔵 **sıradaki: T039** (T045b yarım: FPGA tarafı T044'ü bekliyor) |
+| 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | 🔵 **T039–T044 + T045b BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×. Kalan: **T045 nedeni** |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | bekliyor — kart gerekmez |

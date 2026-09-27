@@ -121,7 +121,7 @@ yanlış tabana karşı ölçtüğümüz için.
 | Taban | Sonuç |
 |---|---|
 | Dizüstü i7 (Faz 2'de ölçüldü) | **başabaş** — 37,28 ms vs 32,75–41,93 ms ❌ |
-| **Kart üstü ARM** (Cortex-A9 650 MHz) | ✅ **84,13 ms → FPGA 2,26× hızlı** (2026-09-21) |
+| **Kart üstü ARM** (Cortex-A9 650 MHz) | ✅ **84,13 ms → FPGA 36,58 ms: 2,30× hızlı** (iki taraf da kartta ölçüldü, 2026-09-27) |
 
 Dizüstü karşılaştırması *"dizüstüm yerine PYNQ mı alsam"* sorusunu cevaplar;
 mimari olarak anlamsızdır. SoC hızlandırmasında doğru soru **"çekirdeği
@@ -129,14 +129,19 @@ PS'ten PL'e taşımak neye değer?"**dir ve tabanı aynı çipteki ARM'dır. Bu,
 zayıf taban seçmek değil, **mimari olarak doğru** tabanı seçmektir; HLS
 literatürü hızlanmayı böyle raporlar.
 
-✅ **ÖLÇÜLDÜ (2026-09-21, T045b)**: ARM float 84,13 ms (IQR 0,210, n=30),
-FPGA 37,28 ms → **2,26×**
-([ps-pl-hizlanma](measurements/ps-pl-hizlanma_20260921_c504294.json)).
+✅ **ÖLÇÜLDÜ, İKİ TARAF DA KARTTA (2026-09-27, T044/T045b)**: ARM float
+84,13 ms (IQR 0,210, n=30) ↔ FPGA `T_cekirdek` **36,578 ms** (IQR 0,015,
+n=6102, protokol v1.0) → **2,30×**
+([kart-gecikme p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json)).
+21 Eylül'deki **2,26×**, FPGA tarafı sentez tahmini (37,28 ms) olduğu için
+yarı ölçümdü ([ps-pl-hizlanma](measurements/ps-pl-hizlanma_20260921_c504294.json));
+artık geçerli değer 2,30×. FPGA tarafı Python yoklamasıyla alındı, en fazla
+bir yoklama periyodu (21,5 µs) **kötümser**.
 
 > **Karar: *"donanım hızlandırmalı"* ifadesi kullanılabilir — ama daima
 > sayısıyla ve tabanıyla birlikte**: *"kart üstü ARM Cortex-A9'a karşı
-> 2,26×"*. Genel bir hızlanma ima edecek şekilde tek başına kullanılmaz;
-> aynı çekirdek bir dizüstü CPU'da FPGA'dan 11,4× hızlıdır.
+> 2,30×"*. Genel bir hızlanma ima edecek şekilde tek başına kullanılmaz;
+> aynı çekirdek bir dizüstü CPU'da FPGA'dan 11,2× hızlıdır.
 
 | Sonuç | Proje adı |
 |---|---|

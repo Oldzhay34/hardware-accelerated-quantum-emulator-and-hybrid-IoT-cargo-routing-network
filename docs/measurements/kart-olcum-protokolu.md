@@ -2,8 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 🟡 **TASLAK — onay bekliyor. DONDURULMADI.** Bu sürümle ölçüm alınmaz |
-| **Sürüm** | v1.0-taslak |
+| **Durum** | 🔒 **DONDURULDU — 2026-09-27**, kullanıcı onayıyla, **ilk gecikme ölçümünden önce** |
+| **Sürüm** | **v1.0** — ölçüm kodu her çıktıya `kart-olcum-protokolu v1.0` yazar |
+| **Onaylanan metin** | commit `201475a`, git içerik özeti `fc8c570da02a8285b771d0ea8316878af1552990` (`git rev-parse 201475a:docs/measurements/kart-olcum-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff 201475a -- <bu dosya>` bunu gösterir |
 | **Görev** | T039 (bu belge) → T040–T044 (ölçüm), T045 (HLS kıyası), T045b'nin FPGA tarafı |
 | **Dayanak** | FR-007, FR-008, FR-011, FR-013, SC-004, SC-009 · [research.md §R4](../../specs/003-zynq-ps-kartta-kosum/research.md) · [data-model.md §2](../../specs/003-zynq-ps-kartta-kosum/data-model.md) |
 

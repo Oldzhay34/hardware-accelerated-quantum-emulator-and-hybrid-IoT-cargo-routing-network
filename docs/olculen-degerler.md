@@ -186,6 +186,48 @@ Katman içi dağılım (p=3, toplam 5.375.327 çevrim):
 Ölçülen başlatma aralıkları (II): cost_amp_loop **1**, rx_dyn_pair_loop **2**.
 Kabul ölçütü ≤ 4.
 
+### 5.1 Kartta ölçülen gecikme — 2026-09-27 (US2, protokol v1.0)
+
+PYNQ-Z2, FCLK0 100,000 MHz (seri başı ve sonu doğrulandı), JP5=USB, her
+koşum **tam çağrı** ve sonucu C-sim ile **bit bit** doğrulandı; 300 sn/seri,
+ilk 3 koşum ısınma, zaman değerine göre koşum atılmadı.
+
+| Kapsam | p=2 medyan | IQR | p99 | maks | p=1 medyan |
+|---|---:|---:|---:|---:|---:|
+| **`T_cekirdek`** (ap_start → ap_done) | **36,578 ms** | 0,015 | 36,594 | 36,626 | **20,385 ms** |
+| `T_yazma` (1.095 yazma) | 1,342 ms | 0,024 | 1,405 | 1,703 | 1,332 ms |
+| `T_uctan_uca` (kodlama + yazma + koşum + okuma) | 48,947 ms | 0,046 | 49,107 | 55,643 | 29,726 ms |
+| ↳ içinde Python kodlaması | 10,96 ms | | | | 7,94 ms |
+
+Koşum sayısı: p=2 **6.102**, p=1 **10.027**; zaman aşımı 0. Yoklama periyodu
+δ ≈ 21,5 µs — `T_cekirdek`'e üst taraftan en fazla bir δ eklenir. Kayıt:
+[p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json),
+[p1](measurements/kart-gecikme_20260927_201475a_n16_p1.json).
+
+**HLS modeliyle kıyas (T045)**:
+
+| p | Model | Ölçülen (çevrim eşdeğeri) | Fark |
+|---|---:|---:|---:|
+| 2 | 3.728.217 | 3.657.789 | **−70.428 (−%1,89)** |
+| 1 | 2.081.110 | 2.038.511 | **−42.599 (−%2,05)** |
+
+Ölçülen, modelin **altında** — HLS raporu `max` gecikmedir. İki p'nin
+farkından: katman başına ~27.800, sabit kısımda ~14.800 çevrim. ⬜ **Nedeni
+henüz çevrim düzeyinde açıklanmadı** (T045 açık).
+
+**Yapısal gözlemler**:
+- **Yayılım yok denecek kadar küçük**: IQR 15 µs, jitter (maks−min) 65 µs —
+  δ'nın birkaç katı. Çevrim sayısı sabit; kalan yayılım yoklamadan ve
+  Linux'tan geliyor.
+- **Termal plato yok**: çip 48,9 → 52,3 °C ısındı, son 6 pencere medyanı
+  %0,002 içinde. Dizüstündeki turbo→plato (1,28×) davranışının karşılığı yok.
+- **Kuyruk yalnız Python yolunda**: `T_cekirdek` maksı medyanın 0,05 ms
+  üstünde; `T_uctan_uca` maksı **6,7 ms** üstünde (Linux zamanlaması).
+- **Girdiden bağımsız**: farklı bir `cost` vektörüyle kontrol serisi (n=30)
+  medyanı 2,3 µs farklı (2δ = 43 µs).
+- ⚠️ **Ön kayıtlı beklenti B7 tutmadı**: `T_uctan_uca`'yı Python kodlamasının
+  domine edeceği beklenmişti; kodlama yalnız **%22–27**, çekirdek **%69–75**.
+
 ---
 
 ## 6. CPU tabanı — TEMİZ ÖLÇÜM (2026-09-19)
@@ -249,12 +291,17 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 - Q1.17, H eşiğini geçen **en dar** sabit nokta formatıdır.
 - ✅ **Emülatör kartta çalışıyor ve doğrulandı** (27 Eyl): 20 izdüşüm, p=1 ve
   p=2, C modeliyle bit bit aynı; belirlenimci ve durumsuz (§2.1).
+- ✅ **Kartta ölçülen gecikme** (27 Eyl): p=2 `T_cekirdek` **36,578 ms**
+  (IQR 0,015), p=1 **20,385 ms**; sentez modelinin ~%2 altında (§5.1).
+- ✅ **PS↔PL hızlanması 2,30×** — iki taraf da kartta ölçüldü (ARM 84,13 ms,
+  FPGA 36,578 ms). **Daima tabanıyla** yazılır: *"kart üstü ARM Cortex-A9'a
+  karşı"*.
 
 **EDİLEMEZ**:
 
-- ❌ **Hiçbir hızlanma iddiası.** 37,28 ms sentez sonrası bir **tahmindir**;
-  bitstream kartta koşuldu ve **doğrulandı** (§2.1) ama gecikmesi henüz
-  protokolle **ölçülmedi** (US2, T039–T044). CPU tarafı ayrıca ±%60 oynuyor.
+- ❌ **Genel bir hızlanma iddiası.** Geçerli tek hızlanma PS↔PL 2,30×'tir;
+  aynı çekirdek dizüstü CPU'da FPGA'dan **11,2× hızlı** (3,273 ms vs
+  36,578 ms). "FPGA hızlandırıyor" cümlesi tabansız kurulamaz.
 - ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
   tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
 - ❌ **Rota optimizasyonunda herhangi bir hızlanma.** Kaba kuvvet aynı makinede

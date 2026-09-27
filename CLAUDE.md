@@ -17,11 +17,12 @@ ekseninde gerçek ölçümle kıyaslayan bir bitirme projesi.
 > bedeli.**
 
 **İsim**: *"Donanım hızlandırmalı"* ifadesi **ölçülmüş** bir dayanağa sahiptir —
-ama yalnız doğru tabana karşı: çekirdeği **PS'ten PL'e** taşımak **2,26×**
-hızlandırıyor (ARM Cortex-A9 84,13 ms → FPGA 37,28 ms, 21 Eyl,
-[ps-pl-hizlanma](docs/measurements/ps-pl-hizlanma_20260921_c504294.json)).
+ama yalnız doğru tabana karşı: çekirdeği **PS'ten PL'e** taşımak **2,30×**
+hızlandırıyor — **iki taraf da kartta ölçüldü** (ARM Cortex-A9 84,13 ms →
+FPGA **36,58 ms**, 27 Eyl, protokol v1.0,
+[kart-gecikme p2](docs/measurements/kart-gecikme_20260927_201475a_n16_p2.json)).
 ⛔ Genel hızlanma ima edecek şekilde **tek başına kullanılmaz**: aynı çekirdek
-bir dizüstü CPU'da FPGA'dan **11,4× hızlıdır**
+bir dizüstü CPU'da FPGA'dan **11,2× hızlıdır**
 ([adil-cpu-tabani](docs/measurements/adil-cpu-tabani_20260921_c504294.json)).
 Faz 2'nin *"başabaş"* sonucu zayıf bir tabandan (Qiskit Aer, 12× fazla kapı)
 geliyordu ve **geçersizdir**.
