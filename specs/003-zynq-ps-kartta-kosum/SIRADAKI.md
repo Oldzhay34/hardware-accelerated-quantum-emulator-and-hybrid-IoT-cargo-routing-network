@@ -15,12 +15,11 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B — protokol **v1.1** (28 Eyl, §12): v1.0'da
-A-CPU koştu (16 iş parçacığı → aşırı abonelik, p99 525 ms), A-GPU kod hatası
-yüzünden başlamadı. Sıradaki: commit sonrası **temiz ağaçta**
-`scripts/aer_serileri.sh` (aşama 0: iş parçacığı taraması + T seçimi, aşama
-1: dört seri; ~65 dk, prizde, dokunulmaz) → A1–A5 ve T1–T3 beklentileriyle
-karşılaştır. Sonra T065b (CuPy) ve G serileri.
+**Hedef (tek cümle)**: 6B — T065b ✅ (GPU'da aynı algoritma, FP32 çıktısı
+CPU float modeliyle aynı float32). Sıradaki: commit sonrası **temiz ağaçta,
+gözetimsiz** tek komut: `bash scripts/aer_serileri.sh && bash scripts/g_serileri.sh`
+(WSL, ~110 dk: iş parçacığı taraması + 4 Aer serisi + 4 doğrulama + 4 G serisi;
+prizde, dokunulmaz) → sonuçları A1–A5, T1–T3, G1–G4 beklentileriyle karşılaştır.
 ⚠️ Ölçümler bitince `.wslconfig` `processors` 6'ya geri alınabilir (kullanıcı kararı).
 
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),

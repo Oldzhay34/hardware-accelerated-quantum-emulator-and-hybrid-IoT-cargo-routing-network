@@ -14,6 +14,7 @@ GPU yolunu WSL2'de kurmak ve doğrulamak.
 | WSL | Ubuntu 24.04.3 LTS, Python 3.12.3, `/dev/dxg` mevcut |
 | `nvidia-smi` | `/usr/lib/wsl/lib/nvidia-smi` (PATH'te değil) |
 | Venv | `/root/qir-gpu-venv` — **repoda değil**, WSL ext4'te |
+| CuPy (katman 2, T065b) | `cupy-cuda12x` **14.2.0** — `pip install cupy-cuda12x`; NVRTC pip'teki CUDA 12.9 kütüphanelerinden, nvcc gerekmez (30 Eyl) |
 | WSL işlemci | `.wslconfig` `processors=16` (28 Eyl, protokol K1; önceden 6). `wsl --shutdown` sonrası `nproc` = 16 |
 | Paketler | `qiskit` 1.4.6, `qiskit-aer-gpu` 0.15.1, pip'ten CUDA 12.9 çalışma zamanı (`nvidia-*-cu12`), `cuquantum-cu12` 26.9.0 |
 

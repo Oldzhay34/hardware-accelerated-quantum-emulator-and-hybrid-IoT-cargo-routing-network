@@ -184,16 +184,27 @@ def _windows_guc() -> dict:
 
 
 def _kod_kirli() -> bool:
-    """Protokol §4 'temiz agac' = IZLENEN dosyalarda degisiklik yok. Izlenmeyen
-    dosyalar (bu serinin kismi izi, onceki serilerin ciktilari) KOD degildir.
-    stamp.is_dirty() onlari da sayar; 28 Eyl'de A-CPU'nun ciktisi A-GPU'yu
-    reddettirdi. Kiyas icin ikisi de kaydedilir."""
+    """Protokol §4 'temiz agac': KOD commit'lenmis mi. Kirli sayilan:
+    izlenen dosyalardaki her degisiklik + docs/measurements/ DISINDAKI
+    izlenmeyen dosyalar (yeni, eklenmemis bir betik de koddur).
+    Olcum ciktilari (docs/measurements/ altinda izlenmeyen) sayilmaz --
+    28 Eyl'de A-CPU'nun ciktisi A-GPU'yu reddettirmisti (v1.1 §12 Δ1).
+    30 Eyl: yalniz --untracked-files=no yetmedi; eklenmemis yeni bir betik
+    'temiz' sayildi. Bu kural Δ1'den SIKIDIR, gevsek degil.
+    stamp.is_dirty() her izlenmeyeni sayar; kiyas icin ikisi de kaydedilir."""
     try:
-        out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+        out = subprocess.run(["git", "status", "--porcelain"],
                              capture_output=True, text=True, timeout=10, cwd=KOK)
     except (OSError, subprocess.SubprocessError):
         return True
-    return out.returncode != 0 or bool(out.stdout.strip())
+    if out.returncode != 0:
+        return True
+    for satir in out.stdout.splitlines():
+        if not satir.strip():
+            continue
+        if not satir.startswith("?? ") or not satir[3:].strip('"').startswith("docs/measurements/"):
+            return True
+    return False
 
 
 def _loadavg() -> str | None:
@@ -248,7 +259,7 @@ def main() -> int:
     # Protokol §4/§7: seri temiz agacta; kirli agactan olcum docs/measurements'a girmez
     kod_kirli_bas = _kod_kirli()
     if resmi and not a.yalniz_dogrula and kod_kirli_bas:
-        raise SystemExit("⛔ izlenen dosyalarda degisiklik var -- protokol §4: seri temiz agacta kosulur "
+        raise SystemExit("⛔ commit'lenmemis kod var -- protokol §4: seri temiz agacta kosulur "
                          "(deneme icin --cikti-dizini <baska dizin>)")
 
     from qiskit_aer import AerSimulator

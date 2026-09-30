@@ -25,9 +25,10 @@ TARAMA_ARA_S=120
 SOGUMA_S=300
 SERILER=("A-CPU CPU 2" "A-GPU GPU 2" "B-CPU CPU 1" "B-GPU GPU 1")
 
-# §4 / §12 Δ1: "temiz ağaç" = izlenen dosyalar; önceki çıktılar (izlenmeyen) sayılmaz
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-    echo "⛔ izlenen dosyalarda degisiklik var — protokol §4: seriler temiz agacta"; exit 1
+# §4 / §12 Δ1: kod commit'lenmiş olmalı. Kirli = izlenen her değişiklik + docs/measurements/
+# dışındaki izlenmeyen dosyalar (eklenmemiş yeni betik de koddur). Ölçüm çıktıları sayılmaz.
+if git status --porcelain | grep -v '^?? "\{0,1\}docs/measurements/' | grep -q .; then
+    echo "⛔ commit'lenmemis kod var — protokol §4: seriler temiz agacta"; exit 1
 fi
 GIT="$(git rev-parse --short HEAD)"
 # dosya adlarındaki tarih stamp.stamped_name ile aynı (UTC)
