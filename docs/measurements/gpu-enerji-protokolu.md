@@ -1,0 +1,139 @@
+# GPU Tabanı Enerji Ölçüm Protokolü (6B, T068)
+
+| | |
+|---|---|
+| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanıp dondurulmadan hiçbir enerji serisi koşulmaz |
+| **Sürüm** | v1.0 (taslak) — enerji kayıtları `gpu-enerji-protokolu v1.0` taşır |
+| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Görev** | T068 (bu belge + ölçüm), T069'un enerji sütunu |
+| **Dayanak** | FR-009b/c/d, FR-011, FR-013, FR-014, SC-009 · [gpu-taban-olcum-protokolu v1.1](gpu-taban-olcum-protokolu.md) (gecikme; aynı iş yükleri) · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · CPU yöntemi: [faz2-sentez §19](faz2-sentez.md) |
+
+**Kural (FR-011, SC-009)**: ilk enerji serisinden **önce** onaylanıp dondurulur;
+sonuca bakıp değiştirilemez, değişiklik yeni sürümdür.
+
+---
+
+## 1. Ne ölçülüyor
+
+**Koşum başına iş enerjisi**, dizüstünün tamamı kapsamında: aynı iş yükü
+bataryadan beslenirken boştaki ve yük altındaki gücün **farkı**, koşum
+sayısına bölünür. Alet ve yöntem 19 Eyl CPU ölçümüyle (0,644 J/koşum)
+**birebir aynı** (T068 kuralı); yalnız iş yükü değişir.
+
+| Seri | İş yükü | Katman (ADR 0010) | Kıyaslanır |
+|---|---|---|---|
+| **E1** | Aer CPU, p=2, T=4 (`cpu_load_loop.py`) | 1 | E2 |
+| **E2** | Aer GPU, p=2, T=4 (`cpu_load_loop.py --device GPU`) | 1 | E1 |
+| **E3** | Aynı algoritma GPU FP32, p=2 (`gpu_ayni_algoritma.py`) | 2 | E4; ileride FPGA (öbek 6) |
+| **E4** | Aynı algoritma CPU float, **tek iş parçacığı**, p=2 (`bench_kernel`) | 2 | E3; ileride FPGA |
+
+Ölçülmeyen: p=1, FP64, FPGA/ARM (kart enerjisi öbek 6'da, INA219 ile).
+⛔ 19 Eyl'in 0,644 J'si bu kıyasa **girmez** (Windows, Aer 0.17, rastgele
+parametre, iş parçacığı sayısı kayıtsız); E1 onun bu ortamdaki yeniden ölçümüdür.
+
+---
+
+## 2. Önceden bilinenler — ön kayıt beyanı
+
+| Bilinen | Değer | Kaynak |
+|---|---:|---|
+| CPU enerjisi, eski ortam | boşta 21,58 W, yük 34,80 W, **0,644 J/koşum** | [cpu-enerji-batarya](cpu-enerji-batarya_15931cc.json) |
+| Bataryada kısma, eski ortam, CPU | verim **−%18**, süre +%22 | [faz2-sentez §19](faz2-sentez.md) |
+| Prizde gecikme (T067): E1–E4 iş yükleri | 36,23 / 29,94 / 0,997 / 3,273 ms | [olculen-degerler §6.1](../olculen-degerler.md) |
+| ⚠️ `nvidia-smi` GPU güç çekişi, prizde, T067 serileri sırasında | boşta ~6–9 W, katman 2 yükünde 10–18 W | T067 pencere okumaları (yan ürün) |
+| Batarya | tam dolu **37,7 Wh**, 1 Eki %97; pilde güç modu "En iyi performans" | WMI, 1 Eki |
+
+`nvidia-smi` değerleri **yalnız GPU kartı**dır ve farklı bir kapsamdır; §3'teki
+E3 beklentisi bunlar **bilinerek** yazıldı.
+
+---
+
+## 3. Ön kayıtlı beklentiler (ölçümden ÖNCE)
+
+| # | Beklenti | Gerekçe |
+|---|---|---|
+| N1 ⚠️ | E3 (GPU, aynı algoritma) **< 0,1 J/koşum** | ~1 ms × onlarca W; ⚠️ GPU gücü `nvidia-smi`'den kabaca bilinerek |
+| N2 | E3, E1'den ve E2'den **≥ 10×** az | 30–36× hızlı; ek güç bunu tümüyle yiyemez |
+| N3 | E2 / E1 (Aer GPU / Aer CPU) **0,5–2** arası | GPU 1,2× hızlı ama ek güç çekiyor — yön belirsiz |
+| N4 | E3 < E4 — aynı algoritmada GPU, tek iş parçacıklı CPU'dan koşum başına **daha az** enerji harcar | 3,3× hızlı; bağımsız tahmin |
+| N5 | Bataryada GPU verimi prizdekinin **%80'inden az** (E3 verimi < 0,8 × 436,7 koşum/sn) | Dizüstü dGPU pilde güç sınırına iner; bağımsız |
+| N6 | Tüm pencerelerde iki enerji hesabı (A: gücün integrali, B: kapasite farkı) **≤ %10** ayrışır | Eski ölçümde %3,6 / %0,9 |
+
+---
+
+## 4. Deney koşulları — her seride kaydedilir
+
+| Koşul | Değer / kural |
+|---|---|
+| Güç | **Fişten çıkık** (kaydedici prizde örnek görürse kayıt **geçersiz**, `battery_energy.py` reddeder) |
+| Batarya | Başta **≥ %80**; herhangi bir seri başında < %30 ise ölçüm durur |
+| Ekran | Harici monitör yok; parlaklık ölçümden önce **kullanıcı tarafından sabitlenir** ve değeri beyan edilir, ölçüm boyunca **değiştirilmez**. (WMI bu dizüstünde parlaklığı `0` döndürüyor — okunamıyor; kayıtta `0` görünür, beyan edilen değer rapora yazılır.) |
+| Güç modu | Pilde "En iyi performans" (`ActiveOverlayDcPowerScheme`), kaydedilir |
+| Makine | Vivado/Vitis/noVNC kapalı; klavye/fare kullanılmaz; ağ ve Bluetooth durumu değiştirilmez |
+| Ortam | WSL, `/root/qir-gpu-venv` (gecikme protokolüyle aynı), Aer T=4 |
+| Git | Kod commit'lenmiş (`_kod_kirli` kuralı) |
+
+---
+
+## 5. Yöntem — her seri için bir çift
+
+```
+[ boş: 180 sn kayıt, iş yükü YOK ] -> [ yük: 180 sn kayıt, iş yükü kayıtla birlikte başlar ]
+```
+
+- Kaydedici: `scripts/battery_logger.ps1` — saniyede bir `DischargeRate` (mW)
+  ve `RemainingCapacity` (mWh). **Değişmez.**
+- **Boş pencere her serinin hemen önünde yeniden alınır** (T068 kuralı: GPU
+  boşta da güç çeker; önceki serinin ısısı da sadeleşsin). Ayrıca soğuma işlevi
+  görür; seriler arası ek bekleme yok.
+- İş yükü döngüsü **170 sn** (Python başlangıcı, derleme ve doğrulama koşumuyla
+  birlikte 180 sn'lik kayda sığsın diye); E4 **175 sn** (başlangıç yükü yok).
+- **Hesap** (`scripts/battery_energy.py`, 19 Eyl ile aynı):
+  `koşum başına J = (P̄_yük − P̄_boş) × t_yük_kaydı / N`,
+  N = iş yükünün zamanlanmış koşum sayısı (ısınma dahil, doğrulama hariç).
+- ⚠️ **Bilinen yanlılık**: kayıt penceresi başlangıç yükünü (içe aktarma,
+  derleme, doğrulama) ve döngü bittikten sonraki birkaç saniyeyi de içerir →
+  koşum başına enerji **hafifçe fazla** çıkar. Yöntem eski ölçümle aynı kalsın
+  diye düzeltilmez; yazılır.
+- Sıra **sabit**: E1, E2, E3, E4 (batarya boşaldıkça gerilim düşer; sıra
+  etkisi tekdüze olsun diye değiştirilmez, yazılır).
+
+---
+
+## 6. Geçerlilik
+
+| Durum | Karar |
+|---|---|
+| Kaydedici prizde örnek gördü | seri **geçersiz**, baştan |
+| A/B sapması > %10 (bir pencere) | seri **güvenilmez**; raporlanır ama kıyasa girmez |
+| P̄_yük ≤ P̄_boş | seri **geçersiz** |
+| İş yükü doğrulaması kaldı (E1–E3: fidelity kapısı / sonda bit bit; E4: `beklenen_deger` = −3950,989990234) | seri **geçersiz** |
+| Makine çöktü (GK-01) | seri geçersiz, kısmi kayıt saklanır, baştan |
+| Zamana ya da güce bakarak örnek ayıklama | ⛔ **yapılmaz** |
+
+---
+
+## 7. Karşılaştırma ve raporlama
+
+- Her seri: P̄_boş, P̄_yük, ΔP, N, **J/koşum**, A/B sapmaları, **bataryadaki
+  verim** ve prizdeki (T067) verime oranı — **çalışma noktası farkı
+  düzeltilmez**, yazılır (19 Eyl kuralı).
+- Katman 1: E2/E1. Katman 2: E3/E4. ⛔ Katmanlar arası oran kurulmaz.
+- ⛔ Kart (FPGA/ARM) ile kıyas bu protokolde **yok** — kart tarafı öbek 6'da
+  farklı aletle (INA219) ölçülecek; T069'da iki taraf dolunca, kapsam farkı
+  (dizüstünün tamamı ↔ kartın tamamı) yazılarak kurulur.
+- `nvidia-smi` güç okumaları (her 10 sn) ikincil, **yalnız GPU** kapsamlı bilgi
+  olarak eklenir; manşet değer değildir.
+
+---
+
+## 8. Çıktı
+
+- `docs/measurements/batarya-{bos,yuk}_<tarih>_<git-hash>_E<n>.csv` — ham kayıt
+- `docs/measurements/enerji-batarya_<tarih>_<git-hash>_E<n>.json` — hesap
+- iş yükü kayıtları gecikme protokolünün adlandırmasıyla (`...enerjiE<n>...`)
+- Seri başına koşullar: `docs/measurements/enerji-kosullar_<tarih>_<git-hash>.json`
+  (batarya mWh/%, şebeke durumu, pildeki güç modu, zaman)
+- Çalıştırıcı: `scripts/enerji_serileri.ps1` (Windows; kaydedici Windows'ta,
+  iş yükü WSL'de). `-Deneme` kipi yalnız akışı sınar: kaydedici yerine sahte
+  veri, kısa süreler, çıktı repo dışına — **ölçüm değildir**.

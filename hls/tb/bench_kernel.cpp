@@ -72,18 +72,20 @@ double yuzdelik(std::vector<double> v, double p) {
 int main(int argc, char** argv) {
     std::string ref_taban;
     int tekrar = 30, isinma = 3;
+    double saniye = 0.0;   // > 0 ise tekrar yerine SÜREYE göre koşar (T068 enerji)
 
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
         if (a == "--reference" && i + 1 < argc) ref_taban = argv[++i];
         else if (a == "--tekrar" && i + 1 < argc) tekrar = std::stoi(argv[++i]);
         else if (a == "--isinma" && i + 1 < argc) isinma = std::stoi(argv[++i]);
+        else if (a == "--saniye" && i + 1 < argc) saniye = std::stod(argv[++i]);
         else { std::fprintf(stderr, "bilinmeyen argüman: %s\n", a.c_str()); return 2; }
     }
     if (ref_taban.empty()) {
         std::fprintf(stderr,
             "kullanim: bench_kernel --reference <yol/reference_..._p2_n5> "
-            "[--tekrar 30] [--isinma 3]\n");
+            "[--tekrar 30] [--isinma 3] [--saniye S]\n");
         return 2;
     }
     for (const char* uz : {".npy", ".json"}) {
@@ -139,12 +141,18 @@ int main(int argc, char** argv) {
 
         std::vector<double> ms;
         ms.reserve(size_t(tekrar));
-        for (int i = 0; i < tekrar; ++i) {
+        // --saniye: enerji ölçümü (T068) için süreye göre döngü; koşum sayısı yazılır.
+        const auto bas = std::chrono::steady_clock::now();
+        for (int i = 0; saniye > 0.0 || i < tekrar; ++i) {
+            if (saniye > 0.0 &&
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - bas).count() >= saniye)
+                break;
             const auto t0 = std::chrono::steady_clock::now();
             qir_kernel(phases, cos_beta, sin_beta, cost, p, bd);
             const auto t1 = std::chrono::steady_clock::now();
             ms.push_back(std::chrono::duration<double, std::milli>(t1 - t0).count());
         }
+        std::printf("kosum_sayisi   : %zu  (isinma %d haric)\n", ms.size(), isinma);
 
         const double p50 = yuzdelik(ms, 0.50);
         const double p25 = yuzdelik(ms, 0.25);

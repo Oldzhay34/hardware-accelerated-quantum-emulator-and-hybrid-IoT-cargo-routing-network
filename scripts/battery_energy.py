@@ -72,10 +72,18 @@ def main() -> int:
     ap.add_argument("--kosum", type=int, required=True,
                     help="yuk kaydi sirasinda tamamlanan kosum sayisi")
     ap.add_argument("--git-hash", default="unknown")
+    # T068 (gpu-enerji-protokolu): serinin adı, protokol ve iş yükü kaydı.
+    # Verilmezse 19 Eyl davranışı aynen (cpu-enerji-batarya_<git>.json).
+    ap.add_argument("--ad", default=None,
+                    help="cikti dosyasinin govdesi, or. enerji-batarya_<tarih>_<git>_E1")
+    ap.add_argument("--protokol", default=None)
+    ap.add_argument("--is-yuku", default=None, help="is yukunun kendi kaydi (JSON adi)")
+    ap.add_argument("--cikti-dizini", default=None)
     a = ap.parse_args()
 
-    bos = coz(yukle(a.bos))
-    yuk = coz(yukle(a.yuk))
+    bos_ham, yuk_ham = yukle(a.bos), yukle(a.yuk)
+    bos = coz(bos_ham)
+    yuk = coz(yuk_ham)
 
     print(f"{'':22} {'BOS':>16} {'YUK':>16}")
     for k in ("sure_sn", "ortalama_guc_mw", "enerji_A_integral_mwh", "enerji_B_kapasite_mwh"):
@@ -127,7 +135,14 @@ def main() -> int:
         "yontem": "batarya delta (yuk - bos), tum dizustu kapsami",
         "git_hash": a.git_hash,
     }
-    yol = KOK / "docs" / "measurements" / f"cpu-enerji-batarya_{a.git_hash}.json"
+    if a.ad:
+        ozet.update({"protokol_surumu": a.protokol, "is_yuku_kaydi": a.is_yuku,
+                     "ham_veri": {"bos": Path(a.bos).name, "yuk": Path(a.yuk).name},
+                     "kalan_mwh_bas_son": {
+                         "bos": [int(bos_ham[0]["KalanMwh"]), int(bos_ham[-1]["KalanMwh"])],
+                         "yuk": [int(yuk_ham[0]["KalanMwh"]), int(yuk_ham[-1]["KalanMwh"])]}})
+    dizin = Path(a.cikti_dizini) if a.cikti_dizini else KOK / "docs" / "measurements"
+    yol = dizin / (f"{a.ad}.json" if a.ad else f"cpu-enerji-batarya_{a.git_hash}.json")
     yol.write_text(json.dumps(ozet, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nyazildi: {yol.name}")
     return 1 if uyari else 0
