@@ -1,0 +1,91 @@
+{
+ "ne": "Aer CPU is parcacigi taramasi ve T secimi (protokol v1.1 §12 Δ2)",
+ "protokol_surumu": "gpu-taban-protokolu v1.1",
+ "damga": {
+  "stamped_at": "2026-09-30T19:51:58.043388+00:00",
+  "git_hash": "14a59ee",
+  "git_dirty": true,
+  "config": {
+   "tarih": "20260930",
+   "tarama_git": "14a59ee"
+  }
+ },
+ "kural": "medyani en dusuk T; en dusugun %1'i icindekiler arasinda en kucuk T",
+ "tablo": [
+  {
+   "T": 1,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT1_p2.json",
+   "aer_is_parcacigi": 1,
+   "medyan_ms": 52.68097800004057,
+   "iqr_ms": 4.198467500032166,
+   "p99_ms": 66.85043969002092,
+   "maks_ms": 97.45692399997097,
+   "kosum": 1122
+  },
+  {
+   "T": 2,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT2_p2.json",
+   "aer_is_parcacigi": 2,
+   "medyan_ms": 44.30950200003281,
+   "iqr_ms": 5.395271999987017,
+   "p99_ms": 60.868297600040904,
+   "maks_ms": 85.12651200010168,
+   "kosum": 1317
+  },
+  {
+   "T": 4,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT4_p2.json",
+   "aer_is_parcacigi": 4,
+   "medyan_ms": 31.65843500005394,
+   "iqr_ms": 5.128349999722559,
+   "p99_ms": 46.80163624008856,
+   "maks_ms": 59.61197600004198,
+   "kosum": 1833
+  },
+  {
+   "T": 6,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT6_p2.json",
+   "aer_is_parcacigi": 6,
+   "medyan_ms": 37.32303600000364,
+   "iqr_ms": 6.78743299999951,
+   "p99_ms": 58.6169627399988,
+   "maks_ms": 87.285645999998,
+   "kosum": 1563
+  },
+  {
+   "T": 8,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT8_p2.json",
+   "aer_is_parcacigi": 8,
+   "medyan_ms": 42.55260200000066,
+   "iqr_ms": 6.921972000043297,
+   "p99_ms": 82.69066405996905,
+   "maks_ms": 179.36931499991715,
+   "kosum": 1347
+  },
+  {
+   "T": 10,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT10_p2.json",
+   "aer_is_parcacigi": 10,
+   "medyan_ms": 34.4011130000581,
+   "iqr_ms": 6.033587000047191,
+   "p99_ms": 59.88757131999591,
+   "maks_ms": 346.0042899999962,
+   "kosum": 1649
+  },
+  {
+   "T": 16,
+   "dosya": "cpu-yuk-dongu_20260930_14a59ee_taramaT16_p2.json",
+   "aer_is_parcacigi": 16,
+   "medyan_ms": 37.20608399999037,
+   "iqr_ms": 8.691228250015115,
+   "p99_ms": 249.65611540001547,
+   "maks_ms": 772.9553690000159,
+   "kosum": 1312
+  }
+ ],
+ "en_dusuk_medyan_ms": 31.65843500005394,
+ "adaylar_T": [
+  4
+ ],
+ "secilen_T": 4
+}

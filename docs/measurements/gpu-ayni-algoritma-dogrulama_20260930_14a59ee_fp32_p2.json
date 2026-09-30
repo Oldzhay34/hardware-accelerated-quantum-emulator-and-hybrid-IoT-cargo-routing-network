@@ -1,0 +1,46 @@
+{
+  "ne": "GPU ayni algoritma, altin referansa karsi (T066 katman 2)",
+  "damga": {
+    "stamped_at": "2026-09-30T20:36:22.716768+00:00",
+    "git_hash": "14a59ee",
+    "git_dirty": true,
+    "config": {
+      "hassasiyet": 32,
+      "p": 2
+    }
+  },
+  "kod_kirli": false,
+  "ortam": {
+    "cupy": "14.2.0",
+    "cuda_runtime": 12090,
+    "cuda_surucu": 13040,
+    "aygit": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "sm": "89",
+    "hassasiyet": "FP32",
+    "derleme": "NVRTC, varsayilan secenekler (fmad acik)",
+    "blok": 256,
+    "python": "3.12.3",
+    "nproc": 16,
+    "gpu": {
+      "ad": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "surucu": "616.92",
+      "guc_siniri_W": "[N/A]"
+    }
+  },
+  "dogrulama": {
+    "referans": "reference_20260915_c6ad872_p2_n5.json",
+    "referans_backend": "aer_simulator_statevector/0.17.2",
+    "fidelity": 0.9999998973492918,
+    "bir_eksi_F": 1.026507081558492e-07,
+    "max_genlik_farki": 1.8244591793822517e-05,
+    "p_optimum_referans": 2.380275080015953e-05,
+    "p_optimum_bu_kosum": 2.3817351522512358e-05,
+    "esik": 0.999,
+    "gecti": true,
+    "beklenen_deger_gpu": -3950.989990234375,
+    "beklenen_deger_numpy_bu_sv": -3950.9901439754967,
+    "beklenen_deger_numpy_referans_sv": -3950.9272389426255,
+    "beklenen_deger_bagil_hata_referansa": 1.588267461150039e-05,
+    "referans_cost_after": -3950.9272389426637
+  }
+}

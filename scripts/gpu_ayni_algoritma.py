@@ -455,7 +455,8 @@ def main() -> int:
         "ilk_ve_son": ml.ilk_ve_son(konfig, "hesap", z_ist, s_ist, **kw),
         "pencereler": pen,
         "plato": ml.plato(pen),
-        "ham_iz_ms": [[round(t, 6), round(s * 1000, 5)] for t, s in zip(zamanlar, sureler)],
+        "ham_iz": cll.ham_iz_ayri_yaz(yol, [[round(t, 6), round(s * 1000, 5)]
+                                            for t, s in zip(zamanlar, sureler)]),
     }
     yol.write_text(json.dumps(ozet, indent=1, ensure_ascii=False), encoding="utf-8")
     kismi.unlink()

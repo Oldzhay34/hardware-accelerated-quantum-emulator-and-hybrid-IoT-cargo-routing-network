@@ -354,9 +354,21 @@ seferinde. Kuyruk yok, işletim sistemi araya girmiyor, sürücü zamanlaması
 yok. Bir denetim döngüsünde önemli olan ortalama değil **en kötü durumdur**.
 
 GPU'da aynı hesap makineyi işletim sistemi, sürücü ve diğer süreçlerle
-paylaşır; gecikmenin uzun bir kuyruğu vardır. Bu **ölçülebilir** bir farktır:
-bizim T034 belirlenimcilik testimiz bit düzeyinde aynılığı zaten kanıtlıyor;
-gecikme histogramı da farkı gösterir.
+paylaşır; gecikmenin uzun bir kuyruğu vardır. **30 Eyl'de ölçüldü**
+([olculen-degerler §6.1](olculen-degerler.md)), aynı algoritma, p=2:
+
+| | Medyan | p99 | p99 / medyan | En kötü |
+|---|---:|---:|---:|---:|
+| FPGA (kart) | 36,578 ms | 36,594 ms | **1,0004** | 36,626 ms |
+| GPU FP32 (RTX 4060 Laptop) | 0,997 ms | 20,1 ms | **20** | 126,6 ms |
+
+GPU medyanda 36,7× hızlı; ama **en kötü koşumu (126,6 ms) FPGA'nın en
+kötüsünden (36,6 ms) 3,5× UZUN** ve kuyruğu medyanının 20 katına uzanıyor.
+FPGA'nın en kötü koşumu medyanından %0,13 uzun. Yani en kötü durum
+gecikmesinde bu ölçümde FPGA önde. Argüman bu tabloyla kurulur — hızı
+saklamadan. ⚠️ En kötü durum tek bir koşumdur (131.012 koşumun maksimumu) ve
+WSL + ekranı da süren bir dizüstü GPU'sunda alındı; "GPU en kötü durumda her
+zaman yavaş" genellemesi yapılmaz.
 
 > Yan gözlem (argüman olarak fazla yaslanmayın): geliştirme makinesi NVIDIA
 > sürücüsü yüzünden **günde ~1 çöküyor** ([GK-01](risk-register.md)). Bir
@@ -370,7 +382,7 @@ gerçek ve **ölçülmüş**:
 
 | Bulgu | Değer |
 |---|---|
-| Sabit nokta genişliği **ölçerek** seçildi | Q1.17, H eşiğini geçen **en dar** format (Q1.15 kalıyor, Q1.19 israf) |
+| Genişlik ekseni **ölçüldü** | 14–24 bit: doğruluk/BRAM eğrisi, dirsek yok; 18 bir seçim (§2.2b) — ~~"Q1.17 en dar format"~~ 27 Eyl'de düştü |
 | II tabanının kaynağı | Bankalama değil **bellek portu** — `RAM_2P` → `RAM_T2P` ([ADR 0009](decisions/0009-paralellik-turu-kapatildi.md)) |
 | HLS tahmini güvenilmez | LUT'u **2× fazla** sayıyor (ölçülen oran 0,39–0,50×, **sabit değil**) |
 | Yerleştirme monoton değil | Daha az kaynak isteyen varyant daha kötü yerleşti ve zamanlamayı tutturamadı |
@@ -419,6 +431,26 @@ güçlüdür**. Çünkü:
 ⛔ **Sonuç ne çıkarsa çıksın raporlanır.** "GPU kazandı" çıkması bu ölçümün
 başarısızlığı değil, tam da varlık sebebidir.
 
+✅ **Ölçüldü — 30 Eyl 2026** ([olculen-degerler §6.1](olculen-degerler.md),
+protokol v1.1, iki katman — [ADR 0010](decisions/0010-gpu-tabani-iki-katman.md)):
+
+| Aynı algoritma, p=2 | Medyan | FPGA'ya göre |
+|---|---:|---:|
+| ARM Cortex-A9 (kart) | 84,13 ms | 2,30× yavaş |
+| **FPGA** (kart) | **36,578 ms** | 1× |
+| Dizüstü CPU (tek iş parçacığı) | 3,273 ms | 11,2× hızlı |
+| **GPU** (RTX 4060 Laptop, FP32) | **0,997 ms** | **36,7× hızlı** |
+
+GPU kazandı — beklendiği gibi ve beklenen büyüklükte (ön kayıtlı G1: ≤ 1 ms,
+≥ 36×; kıl payı tuttu). Kaybedilen eksen hız; FPGA'nın ölçülmüş üstünlüğü
+**belirlenimcilik** (§2.3) ve ölçülmemiş ama savunulan üstünlüğü **dağıtım
+zarfı** (§2.1). Enerji iki tarafta da henüz ölçülmedi (T068, öbek 6).
+
+⚠️ Aer'le ölçülen GPU (29,94 ms) bu tabloya **girmez**: Aer QAOA'yı
+ayrıştırıyor, aynı GPU'da bizim algoritmadan 30× yavaş. Aer içinde GPU
+CPU'dan yalnız 1,2× hızlı — n=16'da süreyi cihaz değil kütüphane ek yükü
+belirliyor.
+
 ---
 
 ## 5. Tek paragrafta savunma
@@ -427,8 +459,9 @@ başarısızlığı değil, tam da varlık sebebidir.
 > burada **merkezî çözücü ve G/Ç göbeği** olarak duruyor: ≥60 kargo rotasını
 > bölgelere bölüp bir boru hattından geçiriyor ve servislerdeki ESP32'lerle
 > doğrudan konuşuyor — tek kutu, ~5 W, sürekli çalışıyor, konak bilgisayar
-> yok, çip-dışı belleğe hiç dokunmuyor. GPU tek bir çözümü daha hızlı yapar;
-> ölçtük ve raporluyoruz. Ama GPU'nun G/Ç'si yoktur, bir konak makine ister
+> yok, çip-dışı belleğe hiç dokunmuyor. GPU tek bir çözümü daha hızlı yapar —
+> aynı algoritmada 36,7× (ölçtük ve raporluyoruz); FPGA'nın gecikmesi ise
+> belirlenimci: en kötü koşumu medyanından %0,13 uzun, GPU'nunki 127 kat. Ama GPU'nun G/Ç'si yoktur, bir konak makine ister
 > ve sürekli görev döngüsünde iki kat büyüklük daha fazla güç çeker. Bizim
 > ölçtüğümüz şey, bu işi **tek bir düşük güçlü düğümde** yapmanın kapasitesi
 > ve bedelidir — ve o kapasitenin nerede yetmeyip Railway'e devrettiğidir.

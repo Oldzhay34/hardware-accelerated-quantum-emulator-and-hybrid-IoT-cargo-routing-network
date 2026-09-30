@@ -148,7 +148,7 @@ Değişen tek şey, o işin **ne olduğunun doğru adlandırılması**.
 
 | ⬜ | Konu |
 |---|---|
-| GPU hiç ölçülmedi — Phase 6B (T064–T069), MVP'den sonra | |
+| ~~GPU hiç ölçülmedi~~ → **30 Eyl ölçüldü**: aynı algoritma GPU'da 0,997 ms, FPGA'dan 36,7× hızlı; FPGA belirlenimci (olculen-degerler §6.1) | |
 | FPGA enerjisi ölçülmedi — tek taraflı karşılaştırma yapılamaz | |
 | Genişlik Pareto eğrisi — Phase 6C (T070–T073) | |
 | 37,28 ms hâlâ **sentez tahmini**, kartta doğrulanmadı (T044) | |

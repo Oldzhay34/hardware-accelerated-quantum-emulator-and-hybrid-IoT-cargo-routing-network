@@ -15,12 +15,14 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B — T065b ✅ (GPU'da aynı algoritma, FP32 çıktısı
-CPU float modeliyle aynı float32). Sıradaki: commit sonrası **temiz ağaçta,
-gözetimsiz** tek komut: `bash scripts/aer_serileri.sh && bash scripts/g_serileri.sh`
-(WSL, ~110 dk: iş parçacığı taraması + 4 Aer serisi + 4 doğrulama + 4 G serisi;
-prizde, dokunulmaz) → sonuçları A1–A5, T1–T3, G1–G4 beklentileriyle karşılaştır.
-⚠️ Ölçümler bitince `.wslconfig` `processors` 6'ya geri alınabilir (kullanıcı kararı).
+**Hedef (tek cümle)**: 6B gecikme ekseni **kapandı** (30 Eyl, 8/8 seri,
+[olculen-degerler §6.1](../../docs/olculen-degerler.md)): aynı algoritma GPU'da
+0,997 ms, FPGA'dan **36,7×** hızlı; FPGA belirlenimcilikte önde (p99/medyan
+1,0004 vs 20). 6B'de kalan: **T068** (GPU enerjisi, batarya-delta — ayrı
+protokol eki gerekir) ve **T069** (kıyas matrisi). Kartsız diğer seçenekler:
+6D sıcak başlangıç (T074–T077), US4 matris betiği (T051–T055), faz kapanış
+belgeleri. Öbek 6 (kart enerjisi) lehim + DC jak bekliyor.
+⚠️ `.wslconfig` `processors=16` hâlâ açık — 6'ya geri alınsın mı (kullanıcı kararı; T068 de WSL'de koşacaksa bekletilebilir).
 
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
 `services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
@@ -268,7 +270,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
-| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T065 ✅, T066 Aer katmanı ✅, T067 protokol v1.1 (v1.0 A-CPU koştu), tarama + seriler bekliyor |
+| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T067 + T065b ✅ (30 Eyl: GPU aynı algoritmada 36,7× hızlı, FPGA belirlenimci); T068 enerji, T069 matris kaldı |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
 | 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |

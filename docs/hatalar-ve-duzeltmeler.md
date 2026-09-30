@@ -36,8 +36,9 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 8 | 20 Eyl | I2C pinleri (INA219 için) **ses çipinin** pinlerine atanacaktı — kâğıt üzerinde | donanım tasarımı (pin ataması) | kart kısıt dosyasını satır satır okumak | sensöre hiç ulaşılamaz; yeni bitstream + bütün ölçümlerin tekrarı |
 | 9 | 27 Eyl | besleme gerilimi **"0,0 V"** göründü | ölçüm yorumu | dört rayın aynı anda 0 olması | yanlış "USB beslemesi yetmiyor" sonucu |
 | 10 | 27 Eyl | *"18 bit iki kısıtın kesişimi"* — **iki yarısı da yanlış** | tasarım gerekçesi (model ≠ çekirdek) | genişliği gerçekten tarayıp sentezlemek (6C) | tezin ana bulgularından biri yanlış raporlanırdı |
+| 11 | 28 Eyl | Aer CPU tabanı **16 iş parçacığıyla** — sanal makinede aşırı abonelik | ölçüm yöntemi (taban yapılandırması) | ilk serinin kuyruğu (p99 525 ms) + ön kayıtlı tarama | CPU/GPU oranı GPU lehine çarpık |
 
-**Desen**: 10 hatanın **5'i ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9),
+**Desen**: 11 hatanın **6'sı ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9, 11),
 5'i tasarım, gerekçe, yapılandırma ve araç zincirinde (1, 2, 7, 8, 10). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
 altın referansla bit bit karşılaştırıldığı için. Hatalar, karşılaştırmanın
 **olmadığı** yerlerde birikti.
@@ -392,6 +393,52 @@ yalnız hangi noktaların ölçülmeye değer olduğunu söyler.*
 
 ---
 
+## 11. Aer CPU tabanı 16 iş parçacığıyla — sanal makinede aşırı abonelik (2026-09-28, Faz 5 6B)
+
+**Belirti**: GPU tabanı protokolünün (v1.0) ilk serisi A-CPU'da, medyan
+normal görünüyordu (42,66 ms) ama kuyruk patlamıştı: p99 **525 ms**, en kötü
+**1.338 ms**, 4.214 koşumun 264'ü 200 ms'yi aştı, ilk 50 koşumun medyanı
+137,7 ms.
+
+**Nasıl yakalandı**: Kuyruğun kendisi, ve 6 iş parçacığıyla yapılmış duman
+testinde en kötü koşumun 51 ms olması. Sonra **ön kayıtlı bir tarama**
+(T = 1…16, seçim kuralı taramadan önce yazıldı) nedeni ölçtü: T=4 medyanı
+31,7 ms, T=16'nın p99'u 249,7 ms (taramanın en kötüsü).
+
+**Kök neden**: Protokolün K1 kararı WSL'e ana makinenin **tüm** 16 mantıksal
+işlemcisini verdi ve Aer varsayılan olarak hepsini kullandı. Windows da
+işlemci istediğinde sanal işlemciler askıya alınıyor, OpenMP iş parçacıkları
+birbirini bekliyor. K1'in gerekçesi ("6 iş parçacığı GPU lehine şişirir")
+ölçümde **ters** çalıştı: 16 iş parçacığı CPU'yu kötü, dolayısıyla GPU'yu iyi
+gösteriyordu.
+
+**Yakalanmasaydı**: Aer içinde CPU/GPU oranı 42,66 / 29,94 = 1,42× diye
+raporlanırdı; doğru yapılandırmayla 1,21×. Fark GPU'nun değil **tabanın
+yanlış yapılandırılmasının** ürünü olurdu — hata #5'in ("taban farklı bir
+algoritma") akrabası.
+
+**Düzeltme**: Protokol v1.1 (§12, "sonuç görüldükten sonra" diye beyan
+edildi): iş parçacığı sayısı ön kayıtlı taramayla seçildi (T=4), dört seri
+baştan koşuldu, v1.0 serisi silinmedi, ayrı satır olarak kaldı.
+
+**Aynı turda iki araç hatası daha (sonucu bozmadı, ölçüm dışı)**: kirli ağaç
+kontrolü önce **fazla katıydı** (bir önceki serinin çıktı dosyasını "kirli"
+sayıp ikinci seriyi reddetti), düzeltilince **fazla gevşek** oldu (eklenmemiş
+yeni bir betiği "temiz" saydı, bir deneme ölçüm dizinine yazdı — dosya
+silindi). Son kural: izlenen her değişiklik + ölçüm dizini dışındaki her yeni
+dosya kirlidir; altı durumla sınandı.
+
+**Kanıt**: [v1.0 A-CPU](measurements/cpu-yuk-dongu_20260927_20f1c5c_seriA-CPU_p2.json),
+[tarama ve seçim](measurements/aer-is-parcacigi-secimi_20260930_14a59ee.json),
+[protokol §12](measurements/gpu-taban-olcum-protokolu.md),
+[olculen-degerler §6.1](olculen-degerler.md).
+
+**Rapor için ders**: *Taban, kendi en iyi yapılandırmasıyla ölçülmelidir; o
+yapılandırma varsayılarak değil, önceden yazılmış bir kuralla ölçülerek
+seçilir.*
+
+---
+
 ## Hataları ne yakaladı — rapor için çapraz bakış
 
 | Mekanizma | Yakaladığı |
@@ -404,7 +451,8 @@ yalnız hangi noktaların ölçülmeye değer olduğunu söyler.*
 | **Tabanı değiştirip aynı şeyi yeniden ölçmek** | 5, 6 |
 | **Kaynak belgeyi satır satır okumak** | 8 |
 | **Fiziksel tutarlılık kontrolü** (bu değer mümkün mü?) | 9 |
-| **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10 |
+| **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10, 11 |
+| **Kuyruğa bakmak** (medyan değil p99/maks) | 11 |
 
 **Rapora girecek genel sonuç**: Çekirdeğin kendisinde hata kalmadı, çünkü
 her aşamada (C-sim → RTL → kart) bir altın referansa **bit düzeyinde**

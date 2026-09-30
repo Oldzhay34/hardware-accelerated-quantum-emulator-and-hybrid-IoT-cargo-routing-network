@@ -207,6 +207,25 @@ def _kod_kirli() -> bool:
     return False
 
 
+def ham_iz_ayri_yaz(ana_yol: Path, ham_iz: list) -> dict:
+    """Ham izi AYRI, sıkıştırılmış dosyaya yazar; ana JSON'a yalnız işaretçi girer.
+
+    30 Eyl'de katman 2 serileri 450 bine kadar koşum yaptı ve ham iz ana
+    dosyayı 15 MB'a çıkardı. gzip kayıpsızdır; yazdıktan sonra geri açılıp
+    birebir karşılaştırılır. `mtime=0`: aynı veri her zaman aynı bayt."""
+    import gzip
+    import hashlib
+    acik = json.dumps(ham_iz, separators=(",", ":")).encode("utf-8")
+    yan = ana_yol.with_name(ana_yol.stem + ".ham.json.gz")
+    with open(yan, "wb") as f, gzip.GzipFile(fileobj=f, mode="wb", filename="",
+                                             mtime=0, compresslevel=9) as gz:
+        gz.write(acik)
+    if json.loads(gzip.decompress(yan.read_bytes())) != ham_iz:
+        raise RuntimeError(f"ham iz kayipsiz geri acilamadi: {yan}")
+    return {"dosya": yan.name, "kosum": len(ham_iz), "bicim": "[[baslangic_s, sure_ms], ...]",
+            "sha256_acik": hashlib.sha256(acik).hexdigest(), "sikistirma": "gzip -9, mtime=0"}
+
+
 def _loadavg() -> str | None:
     try:
         return Path("/proc/loadavg").read_text().strip()
@@ -404,7 +423,8 @@ def main() -> int:
             "plato_ms": _med_ms([s for s, t in zip(sureler, zamanlar)
                                  if t >= max(toplam - 60.0, toplam * 2 / 3)]),
         },
-        "ham_iz_ms": [[round(t, 6), round(s * 1000, 4)] for t, s in zip(zamanlar, sureler)],
+        "ham_iz": ham_iz_ayri_yaz(yol, [[round(t, 6), round(s * 1000, 4)]
+                                        for t, s in zip(zamanlar, sureler)]),
     }
     yol.write_text(json.dumps(ozet, indent=1, ensure_ascii=False), encoding="utf-8")
     kismi.unlink()      # tam ozet yazildi; kismi iz yalniz cokme kaniti icindi

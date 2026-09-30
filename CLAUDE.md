@@ -27,7 +27,9 @@ FPGA **36,58 ms**, 27 Eyl, protokol v1.0,
 [kart-gecikme p2](docs/measurements/kart-gecikme_20260927_201475a_n16_p2.json)).
 ⛔ Genel hızlanma ima edecek şekilde **tek başına kullanılmaz**: aynı çekirdek
 bir dizüstü CPU'da FPGA'dan **11,2× hızlıdır**
-([adil-cpu-tabani](docs/measurements/adil-cpu-tabani_20260921_c504294.json)).
+([adil-cpu-tabani](docs/measurements/adil-cpu-tabani_20260921_c504294.json)),
+GPU'da (RTX 4060 Laptop) **36,7×** — ama FPGA'nın gecikmesi belirlenimci (p99/medyan
+1,0004 vs GPU 20; [olculen-degerler §6.1](docs/olculen-degerler.md), 30 Eyl).
 Faz 2'nin *"başabaş"* sonucu zayıf bir tabandan (Qiskit Aer, 12× fazla kapı)
 geliyordu ve **geçersizdir**.
 

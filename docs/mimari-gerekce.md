@@ -401,6 +401,10 @@ edilebilirlik ve sığma**dır. **[?]** → FP16 doğruluk karşılaştırması.
 ⚠️ **Bu bölümün tamamı [T]/[?]'dir.** GPU ölçülmedi
 (`available_devices() == ('CPU',)`). Görev olarak var (Phase 6B, T064–T069).
 
+✅ **30 Eyl 2026 — ölçüldü** ([olculen-degerler §6.1](olculen-degerler.md)): aynı
+algoritma GPU'da 0,997 ms (FPGA'dan 36,7× hızlı), FP64/FP32 = 1,09 → süre hesap değil
+**başlatma** bağlı — aşağıdaki işgal analiziyle tutarlı. Aşağısı tarihsel akıl yürütmedir.
+
 ### 5.1 İşgal (occupancy) analizi
 
 Bir kübitin karıştırıcı geçişi **32.768 bağımsız çift** üretir. RTX 4060'ta

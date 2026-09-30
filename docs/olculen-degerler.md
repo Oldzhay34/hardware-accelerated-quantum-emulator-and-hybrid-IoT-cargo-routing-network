@@ -382,6 +382,105 @@ Batarya delta yöntemiyle, tüm dizüstü kapsamı (§19):
 yöntemi yalnızca fişten çıkıkken çalışabildiği için enerji ve gecikme farklı
 noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 
+### 6.1 GPU tabanı — ÖLÇÜLDÜ (2026-09-30, 6B, protokol v1.1)
+
+Protokol: [gpu-taban-olcum-protokolu.md](measurements/gpu-taban-olcum-protokolu.md)
+🔒 v1.1 ([ADR 0010](decisions/0010-gpu-tabani-iki-katman.md): iki katman).
+Koşullar: RTX 4060 Laptop (güç sınırı 45 W), sürücü 616.92; WSL2 Ubuntu
+24.04, 16 işlemci; prizde, "Yüksek performans"; git `14a59ee` (temiz); her
+seri 300 sn, ilk 3 koşum atıldı, seriler arası 5 dk soğuma. **8 serinin 8'i
+geçerli** (başta fidelity kapısı, sonda bit bit aynı).
+Ham koşum izleri her serinin yanında `<ad>.ham.json.gz`'de (kayıpsız ayrıldı,
+1 Eki; ana JSON'daki `ham_iz.sha256_acik` açık veriyi doğrular).
+
+**Aer CPU iş parçacığı taraması** (p=2, 60 sn; ön kayıtlı kural: en düşük
+medyan) → **T = 4** ([seçim](measurements/aer-is-parcacigi-secimi_20260930_14a59ee.json)):
+
+| T | 1 | 2 | **4** | 6 | 8 | 10 | 16 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Medyan (ms) | 52,7 | 44,3 | **31,7** | 37,3 | 42,6 | 34,4 | 37,2 |
+| p99 (ms) | 66,9 | 60,9 | 46,8 | 58,6 | 82,7 | 59,9 | **249,7** |
+
+**Katman 1 — Qiskit Aer, yalnız cihaz değişir** (T=4). ⛔ FPGA'yla
+kıyaslanmaz (Aer QAOA'yı ayrıştırıyor, hata #5):
+
+| Seri | Medyan | IQR | p99 | maks | ilk 50 → son 60 sn |
+|---|---:|---:|---:|---:|---|
+| A-CPU, p=2 | 36,23 ms | 7,81 | 82,4 | 430 | 34,0 → 38,4 |
+| A-GPU, p=2 | 29,94 ms | 5,15 | 163,4 | 584 | 26,5 → 29,9 |
+| B-CPU, p=1 | 22,42 ms | 7,26 | 175,5 | 764 | 22,1 → 21,2 |
+| B-GPU, p=1 | 17,81 ms | 8,38 | 201,4 | 474 | 16,1 → 18,2 |
+
+**Aer içinde GPU, CPU'dan yalnız 1,21× (p=2) / 1,26× (p=1) hızlı.** n=16'da
+Aer'in kapı başına ek yükü baskın; cihaz farkı küçük. v1.0'daki 16 iş
+parçacıklı A-CPU (42,66 ms, p99 525 ms) ayrı satırdır — aşırı abonelik
+([hatalar #11](hatalar-ve-duzeltmeler.md)).
+
+**Katman 2 — çekirdeğin KENDİ algoritması GPU'da** (T065b; FP32 çıktısı CPU
+float modeliyle aynı float32):
+
+| Seri | Medyan | IQR | p99 | maks | ilk 50 → son 60 sn | Fidelity |
+|---|---:|---:|---:|---:|---|---:|
+| G32-2 (FP32, p=2) | **0,997 ms** | 0,979 | 20,1 | 126,6 | 0,62 → 1,10 | 0,999999897 |
+| G64-2 (FP64, p=2) | 1,085 ms | 1,142 | 26,2 | 134,0 | 0,61 → 0,99 | 0,999999897 |
+| G32-1 (FP32, p=1) | **0,515 ms** | 0,272 | 2,29 | 51,7 | 0,46 → 0,54 | 0,99999995 |
+| G64-1 (FP64, p=1) | 0,588 ms | 0,378 | 6,93 | 84,2 | 0,52 → 0,63 | 0,99999995 |
+
+**Aynı algoritma, p=2, dört platform:**
+
+| Platform | Medyan | IQR | p99 / medyan | GPU FP32 kaç kat hızlı |
+|---|---:|---:|---:|---:|
+| ARM Cortex-A9 (kart PS, float) | 84,13 ms | 0,21 | — | **84×** |
+| **FPGA** (kart PL, `T_cekirdek`) | **36,578 ms** | **0,015** | **1,0004** | **36,7×** |
+| Dizüstü CPU (`bench_kernel` float, **tek iş parçacığı**) | 3,273 ms | 0,19 | — | 3,3× |
+| **GPU FP32** (RTX 4060 Laptop) | **0,997 ms** | 0,979 | **20** | 1× |
+
+p=1'de GPU FPGA'dan **39,6×** hızlı (0,515 / 20,385 ms). Kaynaklar:
+[G32-2](measurements/gpu-ayni-algoritma_20260930_14a59ee_seriG32-2_fp32_p2.json),
+[kart p2](measurements/kart-gecikme_20260927_201475a_n16_p2.json),
+[ARM/CPU](measurements/adil-cpu-tabani_20260921_c504294.json).
+
+**Ne gösteriyor**:
+* **Hızda FPGA açık ara kaybediyor**: aynı algoritma GPU'da 36,7×, dizüstü
+  CPU'nun tek iş parçacığında bile 11,2× daha hızlı. Beklenen buydu (§7).
+* **Belirlenimcilikte FPGA açık ara önde — artık ölçülmüş**: FPGA'nın p99'u
+  medyanının %0,04 üstünde; GPU'nun p99'u medyanının **20 katı**, en kötü
+  koşumu 126,6 ms — **FPGA'nın en kötüsünden (36,6 ms) 3,5× uzun** (tek
+  koşum, 131.012'nin maksimumu; WSL + ekranı süren dizüstü GPU'su —
+  genelleme yapılmaz). [neden-fpga §2.3](neden-fpga.md)'ün argümanı veriyle.
+* **GPU süresi hesap değil başlatma bağlı**: FP64, FP32'den yalnız %9–14
+  yavaş (tüketici GPU'da FP64 verimi FP32'nin 1/64'ü) — ~40 çekirdek
+  başlatmasının ve konak senkronunun gecikmesi baskın.
+* **Aynı GPU'da Aer 30× yavaş** (29,94 vs 0,997 ms): n=16'da süreyi cihaz
+  değil **algoritma ve kütüphane ek yükü** belirliyor — hata #5'in GPU'daki
+  karşılığı.
+
+⚠️ **Sınırlar**: (a) kapsamlar aynı değil — FPGA Python yoklamasıyla (δ ≈
+21,5 µs kötümser), GPU senkronlu `perf_counter`, `bench_kernel` C++ içinden;
+(b) dizüstü CPU tabanı **tek iş parçacığı** — çok iş parçacıklı sürümü
+ölçülmedi; (c) tek problem, n=16; (d) **hiçbir seride plato oturmadı**
+(±%0,5); katman 2'de ilk 50 koşumdan son 60 sn'ye süre %60–80 uzadı (GPU
+saati seri içinde 1470–2085 MHz arasında gezdi); (e) B-CPU serisinin başında
+GPU 79 °C / 2085 MHz / 17,5 W okundu — bir CPU serisi sırasında GPU'yu
+başka bir süreç kullanıyordu, kaynağı bilinmiyor.
+
+**Ön kayıtlı beklentiler**:
+
+| # | Beklenti | Sonuç |
+|---|---|---|
+| A1 ⚠️ | Aer CPU/GPU oranı 1–3× | ✅ 1,21× / 1,26× |
+| A2 ⚠️ | GPU yavaşlaması CPU'dan büyük; GPU platosu oturmayabilir | ◐ p=1'de evet (+%13 vs −%4), p=2'de eşit (+%13 / +%13); plato **iki cihazda da** oturmadı |
+| A3 | p=1/p=2 oranı GPU'da daha büyük | ❌ medyanla tutmadı (GPU 0,595 < CPU 0,619); son 60 sn ile tutuyor (0,608 > 0,551) |
+| A4 | GPU kuyruğu (p99/medyan) daha uzun | ✅ p=2 5,5 vs 2,3; p=1 11,3 vs 7,8 |
+| A5 | Son koşum ilk koşumla bit bit aynı | ✅ 8/8 seri |
+| T1 ⚠️ | En kötü p99 T=16'da | ✅ 249,7 ms |
+| T2 | Medyan U biçimli, en iyi T ∈ {4, 6, 8} | ◐ en iyi T=4, ama eğri U değil (T=8 T=10'dan kötü) |
+| T3 | Seçilen T ≤ 10 | ✅ T=4 |
+| G1 | FP32 p=2 ≤ 1 ms, FPGA'dan ≥ 36× | ✅ **kıl payı**: 0,997 ms, 36,7× — son 60 sn medyanıyla (1,10 ms) tutmazdı |
+| G2 | FP32 p=2 dizüstü CPU float'tan hızlı | ✅ 3,3× |
+| G3 | FP64/FP32 < 2 | ✅ 1,09 (p=2) / 1,14 (p=1) |
+| G4 | FP32 ≥ H; FP64 belirgin iyi değil | ✅ ikisi de 0,999999897 (p=2) |
+
 ---
 
 ## 7. NE İDDİA EDİLEBİLİR, NE EDİLEMEZ
@@ -406,6 +505,9 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
 - ✅ **PS↔PL hızlanması 2,30×** — iki taraf da kartta ölçüldü (ARM 84,13 ms,
   FPGA 36,578 ms). **Daima tabanıyla** yazılır: *"kart üstü ARM Cortex-A9'a
   karşı"*.
+- ✅ **GPU tabanı ölçüldü** (30 Eyl, §6.1): aynı algoritma GPU'da 0,997 ms
+  (FPGA'dan 36,7× hızlı); FPGA'nın gecikmesi belirlenimci (p99/medyan
+  1,0004), GPU'nunki değil (20). Aer içinde GPU CPU'dan yalnız 1,2× hızlı.
 
 **EDİLEMEZ**:
 
@@ -419,12 +521,14 @@ noktalardan geliyor. Bataryada kısma ölçüldü: **−%18 verim, +%22 süre**.
   2,4e-05 — **~85.000× kaba kuvvet lehine**, ölçüldü
   ([kaba-kuvvet-kiyas](measurements/kaba-kuvvet-kiyas_20260921_c504294.json)).
   Bu yapısaldır ve donanımla ilgisizdir; ayrıntı: [neden-fpga.md](neden-fpga.md).
-- ❌ **GPU'ya karşı hiçbir şey.** Kıyas yalnız CPU'ya karşı kuruldu ve GPU
-  **hiç ölçülmedi** (`AerSimulator` CPU build'i, `available_devices() == ('CPU',)`).
-  Makinede RTX 4060 var; ölçülene kadar "FPGA daha hızlı/verimli" **hiçbir
-  biçimde** yazılamaz. Beklenti GPU'nun hızda, muhtemelen enerjide de önde
-  olduğu yönünde — FPGA'nın savunması **dağıtım zarfı**, hız değil.
-  Ölçüm görevi: Faz 5 Phase 6B (T064–T069).
+- ❌ **"FPGA GPU'dan hızlı" — ölçümle yanlış** (30 Eyl, §6.1): aynı algoritma
+  RTX 4060 Laptop'ta **0,997 ms**, FPGA'dan **36,7×** hızlı. Yazılabilecek
+  olan: *"GPU hızda 36,7× önde; FPGA belirlenimcilikte önde (p99/medyan
+  1,0004'e karşı 20)"* — ikisi birlikte, tabanlarıyla.
+- ⚠️ **GPU enerjisi ölçülmedi** (T068). "GPU daha verimli/verimsiz" yazılamaz;
+  FPGA'nın savunması **dağıtım zarfı** (~5 W, konaksız), hız değil.
+- ❌ **Aer rakamlarını FPGA'yla kıyaslamak** — Aer katmanı (§6.1) yalnız
+  "Aer içinde GPU/CPU oranı" (1,2×) için geçerli.
 - ⚠️ **n=16 RTL eşdeğerliği kısmen** — çıkış portu bit bit doğrulandı, ancak
   65536 genliğin tek tek eşitliği ve birden fazla uyaran gösterilmedi.
 
