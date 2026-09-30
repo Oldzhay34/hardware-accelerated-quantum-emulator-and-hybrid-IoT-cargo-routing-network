@@ -31,7 +31,7 @@ ve fsync edilir (<olcum>.kismi.jsonl). Cokmede en fazla bir pencere kaybolur;
 basarili bitiste kismi dosya silinir. Kosum basina yazmak zamanlama dongusunu
 bozardi.
 
-PROTOKOL (🔒 gpu-taban-protokolu v1.0, docs/measurements/gpu-taban-olcum-protokolu.md):
+PROTOKOL (🔒 gpu-taban-protokolu v1.1, docs/measurements/gpu-taban-olcum-protokolu.md):
 dogrulama kosumu zamanlanmaz, ilk 3 zamanlanmis kosum istatistige girmez,
 istatistik kart protokolu §8'in AYNI kodu (agent/measure_latency.py), her
 pencerede nvidia-smi, sonda son kosum ilk kosumla bit bit, kirli agactan
@@ -66,7 +66,7 @@ from services.qubo import qubo as qubo_mod             # noqa: E402
 from services.reference import qaoa_reference          # noqa: E402
 from agent import measure_latency as ml                # noqa: E402  (kart §8, AYNI kod)
 
-PROTOKOL = "gpu-taban-protokolu v1.0"   # docs/measurements/gpu-taban-olcum-protokolu.md
+PROTOKOL = "gpu-taban-protokolu v1.1"   # docs/measurements/gpu-taban-olcum-protokolu.md (§12)
 KAPSAMLAR = ("kosum",)                  # protokol §5, katman 1: T_kosum
 
 
@@ -183,6 +183,19 @@ def _windows_guc() -> dict:
     }
 
 
+def _kod_kirli() -> bool:
+    """Protokol §4 'temiz agac' = IZLENEN dosyalarda degisiklik yok. Izlenmeyen
+    dosyalar (bu serinin kismi izi, onceki serilerin ciktilari) KOD degildir.
+    stamp.is_dirty() onlari da sayar; 28 Eyl'de A-CPU'nun ciktisi A-GPU'yu
+    reddettirdi. Kiyas icin ikisi de kaydedilir."""
+    try:
+        out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                             capture_output=True, text=True, timeout=10, cwd=KOK)
+    except (OSError, subprocess.SubprocessError):
+        return True
+    return out.returncode != 0 or bool(out.stdout.strip())
+
+
 def _loadavg() -> str | None:
     try:
         return Path("/proc/loadavg").read_text().strip()
@@ -199,6 +212,7 @@ def _ortam(sim, meta: dict, device: str) -> dict:
         "python": platform.python_version(),
         "platform": platform.platform(),
         "nproc": os.cpu_count(),
+        "max_parallel_threads": sim.options.max_parallel_threads,
         "aer_is_parcacigi": meta.get("parallel_state_update"),
         "device_istenen": device,
         "device_metadata": meta.get("device"),
@@ -223,6 +237,8 @@ def main() -> int:
                     help="altin referans (.json/.npy); verilmezse en yeni tarihli")
     ap.add_argument("--yalniz-dogrula", action="store_true",
                     help="zamanlama yok; yalniz referansa karsi dogrulama kaydi (T066)")
+    ap.add_argument("--is-parcacigi", type=int, default=None,
+                    help="Aer max_parallel_threads (protokol v1.1 §12 Δ2); verilmezse Aer varsayilani")
     ap.add_argument("--cikti-dizini", default=None,
                     help="varsayilan docs/measurements; deneme kosulari icin baska dizin")
     a = ap.parse_args()
@@ -230,15 +246,17 @@ def main() -> int:
     cikti_dizini = Path(a.cikti_dizini) if a.cikti_dizini else KOK / "docs" / "measurements"
     resmi = cikti_dizini.resolve() == (KOK / "docs" / "measurements").resolve()
     # Protokol §4/§7: seri temiz agacta; kirli agactan olcum docs/measurements'a girmez
-    if resmi and not a.yalniz_dogrula and stamp.is_dirty():
-        raise SystemExit("⛔ calisma agaci kirli -- protokol §4: seri temiz agacta kosulur "
+    kod_kirli_bas = _kod_kirli()
+    if resmi and not a.yalniz_dogrula and kod_kirli_bas:
+        raise SystemExit("⛔ izlenen dosyalarda degisiklik var -- protokol §4: seri temiz agacta kosulur "
                          "(deneme icin --cikti-dizini <baska dizin>)")
 
     from qiskit_aer import AerSimulator
     if a.device not in AerSimulator().available_devices():
         raise SystemExit(f"{a.device} yok: {AerSimulator().available_devices()} "
                          "(GPU yalniz WSL venv'inde, docs/runbooks/gpu-aer-wsl.md)")
-    sim = AerSimulator(method="statevector", device=a.device)
+    secenek = {} if a.is_parcacigi is None else {"max_parallel_threads": a.is_parcacigi}
+    sim = AerSimulator(method="statevector", device=a.device, **secenek)
 
     ref_json = referans_bul(a.p, a.referans)
     ref_meta = json.loads(ref_json.read_text(encoding="utf-8"))
@@ -349,6 +367,10 @@ def main() -> int:
         "gecersizlik_nedeni": gecersiz,
         "etiket": a.etiket,
         "damga": stamp.stamp(device=a.device, saniye=a.saniye, p=a.p),
+        # damga.git_dirty izlenmeyen dosyalari da sayar (bu serinin kismi izi dahil);
+        # protokol §4'un olctugu sey kod_kirli_*: izlenen dosyalar
+        "kod_kirli_bas": kod_kirli_bas,
+        "kod_kirli_son": _kod_kirli(),
         "ortam": ortam,
         "kosullar_bas": kosullar_bas,
         "kosullar_son": kosullar_son,

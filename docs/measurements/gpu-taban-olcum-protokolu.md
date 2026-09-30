@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Durum** | 🔒 **DONDURULDU — 2026-09-28**, kullanıcı onayıyla, **ilk GPU/Aer gecikme serisinden önce** |
-| **Sürüm** | **v1.0** — ölçüm kodu her çıktıya `gpu-taban-protokolu v1.0` yazar |
+| **Sürüm** | **v1.1** (2026-09-28, kullanıcı onayıyla) — değişiklikler **§12**'de, ⚠️ **sonuç görüldükten sonra**. v1.0 ile alınan tek seri (A-CPU) `gpu-taban-protokolu v1.0` etiketini taşır ve raporda kalır. Ölçüm kodu artık `gpu-taban-protokolu v1.1` yazar. v1.1 metni, §12'yi ekleyen commit'te donar |
 | **Onaylanan metin** | commit `65b9169`, git içerik özeti `b4b96bd295b10e10c9ee99fcb8c1b3080e7988e1` (`git rev-parse 65b9169:docs/measurements/gpu-taban-olcum-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §11'deki K1 kararı (onayla birlikte verildi, ölçümden önce) değişti: `git diff 65b9169 -- <bu dosya>` bunu gösterir |
 | **Görev** | T067 (bu belge + ölçüm), T065b'nin ölçüm kısmı, T069'un gecikme sütunu |
 | **Dayanak** | FR-011, FR-012, FR-013, FR-014, SC-004, SC-009 · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (istatistik ölçütleri buradan **aynen** alınır) |
@@ -202,3 +202,76 @@ ham izde kalır.
 | # | Karar | Seçenekler | Öneri |
 |---|---|---|---|
 | **K1** ✅ **Karar: (a)** — 2026-09-28, onayla birlikte, ölçümden önce | WSL'in gördüğü işlemci sayısı | (a) `.wslconfig`'te `processors=16` — ölçüm süresince, `wsl --shutdown` gerekir; bellek 8 GB kalır. (b) 6'da bırak, raporda yaz | **(a)**: ana makinede 16 mantıksal işlemci var, WSL 6 görüyor (16 Eyl'de Vitis bellek sorunu yüzünden sınırlandı). Aer CPU 6 iş parçacığıyla koşarsa CPU/GPU oranı **GPU lehine şişer** — ölçülen şey cihaz değil yapılandırma farkı olur. Katman 2'yi etkilemez |
+
+---
+
+## 12. v1.1 değişiklikleri — 2026-09-28
+
+⚠️ **Sonuç görüldükten sonra mı? EVET.** v1.0 ile A-CPU serisi koşuldu
+([cpu-yuk-dongu_20260927_20f1c5c_seriA-CPU_p2](cpu-yuk-dongu_20260927_20f1c5c_seriA-CPU_p2.json));
+sonucu ve 70 sn'lik kod denemesi görüldü. Bu yüzden her değişikliğin
+gerekçesi, görülen sonuçla bağı ve A-CPU'nun akıbeti ayrı yazılır.
+
+### Δ1 — "Temiz ağaç" = izlenen dosyalar (§4, §7)
+
+v1.0 kodu `git_dirty`'yi izlenmeyen dosyaları da sayarak hesaplıyordu:
+A-CPU'nun kendi çıktısı A-GPU'yu **reddettirdi** (seri başlamadı), A-CPU'nun
+damgasına da kendi kısmi izi yüzünden `git_dirty: true` yazıldı. §4'ün amacı
+**kodun** commit'lenmiş olması. v1.1: temiz ağaç ⇔
+`git status --porcelain --untracked-files=no` boş; çıktıya `kod_kirli_bas`
+ve `kod_kirli_son` yazılır, `damga.git_dirty` bilgi olarak kalır.
+**Sonuca bağı yok** — değişiklik ölçülen değerlere değil çıktı dosyalarına
+dayanıyor.
+
+### Δ2 — CPU iş parçacığı sayısı ön kayıtlı taramayla seçilir (K1'in yerine)
+
+**Görülen**: A-CPU (16 iş parçacığı, WSL 16 işlemci): medyan 42,66 ms ama
+p99 **525 ms**, maks **1.338 ms**, 4.214 koşumun 264'ü > 200 ms, ilk 50 koşum
+medyanı 137,7 ms. 6 iş parçacığıyla duman testinde (§2) en kötü koşum 51 ms.
+Belirti: ana makinenin 16 mantıksal işlemcisinin tamamını isteyen OpenMP,
+Windows da işlemci istediğinde iş parçacıklarını birbirine bekletiyor
+(sanal makinede aşırı abonelik). K1'in gerekçesi ("6 iş parçacığı GPU lehine
+şişirir") bu veride **ters** çalıştı: 16 iş parçacığı CPU'yu kötü, dolayısıyla
+GPU'yu iyi gösteriyor.
+
+**v1.1 kuralı**: WSL 16 işlemcide kalır; Aer'in iş parçacığı sayısı
+`max_parallel_threads = T` ile verilir ve T **aşağıdaki ön kayıtlı taramayla**
+seçilir. Taban kendi en iyi yapılandırmasıyla ölçülür — seçim GPU aleyhine
+korumacıdır.
+
+| Madde | Değer |
+|---|---|
+| Tarama | Aer CPU, p=2, T ∈ {1, 2, 4, 6, 8, 10, 16} |
+| Sıra (sabit, karışık — ısınma yanlılığı tekdüze olmasın) | **6, 16, 1, 10, 2, 8, 4** |
+| Her nokta | **60 sn**, aynı doğrulama kapısı, ilk 3 koşum atılır, §8 istatistiği |
+| Aralarda | **2 dk** boşta bekleme |
+| **Seçim kuralı** | 60 sn'lik noktaların **medyanı** en düşük T. Medyanı en düşüğün **%1**'i içinde olanlar arasında **en küçük T** (daha az aşırı abonelik riski) |
+| Geçersizlik | Bir nokta geçersiz ya da hatalıysa tarama durur, seri koşulmaz |
+| Kullanım | Seçilen T **dört serinin dördünde** de (GPU dahil — Aer GPU'da da konak iş parçacığı kullanır; "yalnız cihaz değişir" korunur) |
+| Çıktı | her nokta `cpu-yuk-dongu_<tarih>_<hash>_taramaT<T>_p2.json`; seçim `aer-is-parcacigi-secimi_<tarih>_<hash>.json` (tablo + kural + seçilen T) |
+
+**Tarama beklentileri (taramadan ÖNCE)**:
+
+| # | Beklenti | |
+|---|---|---|
+| T1 ⚠️ | T=16'nın p99'u taramadaki en kötü p99'dur | ⚠️ **Bilinerek** (A-CPU) |
+| T2 | Medyan T'ye göre U biçimli: T=1 en yavaşlardan, en iyi T ∈ {4, 6, 8} | Kısmen bilinerek (6 → 36,5 ms duman, 16 → 42,7 ms A-CPU); 1, 2, 4, 8, 10 hiç ölçülmedi |
+| T3 | Seçilen T ≤ 10 (fiziksel çekirdek sayısı) | Bağımsız. Hyper-threading kardeşleri statevector güncellemesinde bellek bant genişliğini paylaşır |
+
+### Δ3 — Seriler baştan (§6)
+
+Dört seri (A-CPU, A-GPU, B-CPU, B-GPU) v1.1 ile, seçilen T ile, **baştan ve
+aynı partide** koşulur — seçilen T = 16 çıksa bile. Sıra ve 5 dk soğuma
+değişmez; tarama ile ilk seri arasında da 5 dk.
+
+**v1.0 A-CPU'nun akıbeti**: geçerli bir v1.0 serisidir; **silinmez,
+atılmaz**, raporda "v1.0 — 16 iş parçacığı (Aer varsayılanı), aşırı abonelik
+belirtisi" etiketiyle ayrı satır olarak yer alır. Oran hesabına v1.1
+serileri girer.
+
+### Uygulama notu (protokol değil)
+
+WSL git'i Windows checkout'unu (CRLF, Windows'ta `core.autocrlf=true`) 84
+dosyada "değişmiş" görüyordu; `scripts/aer_serileri.sh` artık aynı ayarı
+ortam değişkeniyle veriyor (kalıcı config yok). v1.0'ın ilk başlatma
+denemesi bu yüzden seri başlamadan durmuştu.
