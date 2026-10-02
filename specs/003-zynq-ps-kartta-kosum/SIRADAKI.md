@@ -23,6 +23,8 @@ kod hazır, **kullanıcı onayı** bekleniyor. Sonra: commit → **fişi çek**
 dokunulmaz) → N1–N6 ile karşılaştır. Sonra T069 (kıyas matrisi).
 ⚠️ `.wslconfig` `processors=16` hâlâ açık (T068 de WSL'de koşuyor — bitince 6'ya geri alınabilir).
 
+**Kartsız paralel iş (2 Eki)**: 6D protokol taslağı [sicak-baslangic-protokolu.md](../../docs/measurements/sicak-baslangic-protokolu.md) — onaylanınca commit → `.venv\Scripts\python.exe scripts\sicak_baslangic.py` (~10 dk, bilgisayar kullanılabilir; enerji ölçümüyle **aynı anda koşulmaz**).
+
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
 `services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
 çekirdek betiği. Ortam: `/root/qir-gpu-venv` (repo dışı), runbook
@@ -271,7 +273,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T067 + T065b ✅ (30 Eyl: GPU aynı algoritmada 36,7× hızlı, FPGA belirlenimci); T068 protokol taslağı (onay bekliyor), T069 kaldı |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
-| 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | bekliyor — kart ve FPGA gerekmez |
+| 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | 📝 protokol taslağı + `sicak_baslangic.py` hazır (2 Eki), **onay bekliyor** — kart ve FPGA gerekmez |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 
 **MVP**: T001–T038 → *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve

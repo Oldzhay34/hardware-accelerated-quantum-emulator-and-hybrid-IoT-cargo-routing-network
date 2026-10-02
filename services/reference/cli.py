@@ -17,18 +17,25 @@ from services.qubo import brute_force, qubo
 from services.reference import amplitudes, qaoa_reference
 
 
-def ornek_matris(n: int) -> np.ndarray:
+def ornek_matris(n: int, satirlar: list[int] | None = None) -> np.ndarray:
     """Sentetik İstanbul verisinden ilk n durakla matris kurar.
 
     Gerçek OSRM matrisi henüz yoksa (Phase 5 bitmemişse) bu, deterministik ve
     gerçekçi bir vekildir. Koordinatlar Faz 0.4'ün sentetik üreticisinden gelir.
+
+    `satirlar` verilirse ilk n yerine o CSV satırları (bu sırayla; ilki depo)
+    kullanılır — 6D'nin farklı problem örnekleri için. Verilmezse davranış
+    değişmez: referans örneği ilk n satırdır.
     """
     import csv
 
     kok = Path(__file__).resolve().parents[2]
     csv_yolu = kok / "data" / "synthetic" / "deliveries.csv"
-    satirlar = list(csv.DictReader(csv_yolu.open(encoding="utf-8")))[:n]
-    pts = np.array([[float(r["lat"]), float(r["lon"])] for r in satirlar])
+    tum = list(csv.DictReader(csv_yolu.open(encoding="utf-8")))
+    secili = tum[:n] if satirlar is None else [tum[i] for i in satirlar]
+    if len(secili) != n:
+        raise ValueError(f"{n} durak istendi, {len(secili)} satir verildi")
+    pts = np.array([[float(r["lat"]), float(r["lon"])] for r in secili])
 
     # Haversine yaklasimi + yone bagli asimetri (gercek yol agini taklit eder).
     # NOT: Bu GERCEK surus suresi DEGILDIR; Phase 5'te OSRM matrisiyle degisir.
