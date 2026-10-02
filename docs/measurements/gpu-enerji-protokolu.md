@@ -66,7 +66,7 @@ E3 beklentisi bunlar **bilinerek** yazıldı.
 | Koşul | Değer / kural |
 |---|---|
 | Güç | **Fişten çıkık** (kaydedici prizde örnek görürse kayıt **geçersiz**, `battery_energy.py` reddeder) |
-| Batarya | Başta **≥ %80**; herhangi bir seri başında < %30 ise ölçüm durur |
+| Batarya | Başta **≥ %80** (yalnız başlangıç koşulu — ölçüm sırasında %80'in altına inmesi beklenir ve serbesttir); herhangi bir seri başında < %30 ise ölçüm durur. Tahmini tüketim 15–17 Wh (37,7 Wh'nin %40–45'i) → %97'den başlanırsa ~%52–57'de biter. Pil tasarrufu otomatik eşiği pilde **%0** (`ESBATTTHRESHOLD`, 1 Eki) — ölçüm sırasında kendiliğinden devreye girmez. Batarya seviyesi seriden seriye düştüğü için sıra etkisi (§5) raporda yazılır |
 | Ekran | Harici monitör yok; parlaklık ölçümden önce **kullanıcı tarafından sabitlenir** ve değeri beyan edilir, ölçüm boyunca **değiştirilmez**. (WMI bu dizüstünde parlaklığı `0` döndürüyor — okunamıyor; kayıtta `0` görünür, beyan edilen değer rapora yazılır.) |
 | Güç modu | Pilde "En iyi performans" (`ActiveOverlayDcPowerScheme`), kaydedilir |
 | Makine | Vivado/Vitis/noVNC kapalı; klavye/fare kullanılmaz; ağ ve Bluetooth durumu değiştirilmez |
