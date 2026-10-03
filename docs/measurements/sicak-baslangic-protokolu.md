@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanıp dondurulmadan ölçüm koşulmaz |
-| **Sürüm** | v1.0 (taslak) — kayıtlar `sicak-baslangic-protokolu v1.0` taşır |
-| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Durum** | 🔒 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, **ölçümden önce** |
+| **Sürüm** | v1.0 — kayıtlar `sicak-baslangic-protokolu v1.0` taşır |
+| **Onaylanan metin** | commit `786801a`, git içerik özeti `521aa55f545226606b2bfc0144b77079111de279` (`git rev-parse 786801a:docs/measurements/sicak-baslangic-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff 786801a -- <bu dosya>`. Yürütücü kodu da `786801a`'daki hâliyle donar (`scripts/sicak_baslangic.py`) |
 | **Görev** | T074 (taban), T075 (sıcak başlangıç), T076 (sabit açı), T077 (kayıt + [sistem-mimarisi §7](../sistem-mimarisi.md)) |
 | **Dayanak** | FR-011, SC-009 (ön kayıt) · [sistem-mimarisi §3 Yol 2, §7](../sistem-mimarisi.md) · amaç fonksiyonu: [native_formulation.py](../../scripts/native_formulation.py) (çekirdeğin Python ikizi) · referans: `services/reference/qaoa_reference.py` |
 | **Yürütücü** | [`scripts/sicak_baslangic.py`](../../scripts/sicak_baslangic.py) — tasarım sabitleri ve §6'daki ölçütler **kodda**, protokolle birlikte donar |

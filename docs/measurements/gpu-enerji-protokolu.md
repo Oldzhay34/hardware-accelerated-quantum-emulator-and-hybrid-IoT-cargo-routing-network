@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, ilk enerji serisinden önce. ⛔ v1.0 ile yapılan tek koşu (3 Eki 13:59–14:22, git `d1e714b`) **GEÇERSİZ** — çalıştırıcı hatası, [hata #12](../hatalar-ve-duzeltmeler.md). 📝 **v1.1 taslağı onay bekliyor** (§9) |
-| **Sürüm** | **v1.1 (taslak, 3 Eki)** — değişiklikler **§9**'da, ⚠️ **geçersiz koşudan, bazı gerçek değerler görüldükten sonra**. Enerji kayıtları `gpu-enerji-protokolu v1.1` taşır. v1.1 metni, §9'u ekleyen commit'te donar |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, ilk enerji serisinden önce. ⛔ v1.0 ile yapılan tek koşu (3 Eki 13:59–14:22, git `d1e714b`) **GEÇERSİZ** — çalıştırıcı hatası, [hata #12](../hatalar-ve-duzeltmeler.md). 🔒 **v1.1 DONDURULDU — 2026-10-03**, kullanıcı onayıyla, yeniden koşudan önce |
+| **Sürüm** | **v1.1** — değişiklikler **§9**'da, ⚠️ **geçersiz koşudan, bazı gerçek değerler görüldükten sonra**. Enerji kayıtları `gpu-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `8b4e393`, git içerik özeti `10b5e44815dfd9ec2cbcf885e797295798d6c799`; sonrasında yalnız durum/sürüm satırları ve §9 başlığı değişti (`git diff 8b4e393 -- <bu dosya>`) |
 | **Onaylanan metin** | commit `38f85b3`, git içerik özeti `b04397ba79caf4c5d0c620f365bd8cc769189e30` (`git rev-parse 38f85b3:docs/measurements/gpu-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §4'e eklenen **"Ekran kapanması / uyku"** satırı değişti (3 Eki ön denetiminde bulundu, **ölçümden önce**): `git diff 38f85b3 -- <bu dosya>` |
 | **Görev** | T068 (bu belge + ölçüm), T069'un enerji sütunu |
 | **Dayanak** | FR-009b/c/d, FR-011, FR-013, FR-014, SC-009 · [gpu-taban-olcum-protokolu v1.1](gpu-taban-olcum-protokolu.md) (gecikme; aynı iş yükleri) · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · CPU yöntemi: [faz2-sentez §19](faz2-sentez.md) |
@@ -141,7 +141,7 @@ E3 beklentisi bunlar **bilinerek** yazıldı.
 
 ---
 
-## 9. v1.1 — geçersiz ilk koşudan sonra (3 Eki) — 📝 onay bekliyor
+## 9. v1.1 — geçersiz ilk koşudan sonra (3 Eki) — 🔒 onaylandı
 
 ### 9.1 Ne oldu
 
