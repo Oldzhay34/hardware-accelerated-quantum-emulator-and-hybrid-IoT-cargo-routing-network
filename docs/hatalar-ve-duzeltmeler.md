@@ -37,8 +37,9 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 9 | 27 Eyl | besleme gerilimi **"0,0 V"** göründü | ölçüm yorumu | dört rayın aynı anda 0 olması | yanlış "USB beslemesi yetmiyor" sonucu |
 | 10 | 27 Eyl | *"18 bit iki kısıtın kesişimi"* — **iki yarısı da yanlış** | tasarım gerekçesi (model ≠ çekirdek) | genişliği gerçekten tarayıp sentezlemek (6C) | tezin ana bulgularından biri yanlış raporlanırdı |
 | 11 | 28 Eyl | Aer CPU tabanı **16 iş parçacığıyla** — sanal makinede aşırı abonelik | ölçüm yöntemi (taban yapılandırması) | ilk serinin kuyruğu (p99 525 ms) + ön kayıtlı tarama | CPU/GPU oranı GPU lehine çarpık |
+| 12 | 3 Eki | Enerji ölçümünde yük penceresine **sahte kaydedici** bağlandı | ölçüm aracı (PowerShell argüman kipi) | üç serinin yük gücünün **birebir aynı** (30.000,0 mW) çıkması | uydurma güç verisiyle hesaplanmış GPU/CPU enerji sonuçları |
 
-**Desen**: 11 hatanın **6'sı ölçümde** (yöntem, taban, yorum: 3, 4, 5, 6, 9, 11),
+**Desen**: 12 hatanın **7'si ölçümde** (yöntem, taban, yorum, araç: 3, 4, 5, 6, 9, 11, 12),
 5'i tasarım, gerekçe, yapılandırma ve araç zincirinde (1, 2, 7, 8, 10). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
 altın referansla bit bit karşılaştırıldığı için. Hatalar, karşılaştırmanın
 **olmadığı** yerlerde birikti.
@@ -439,6 +440,60 @@ seçilir.*
 
 ---
 
+## 12. Enerji ölçümünde yük penceresine sahte kaydedici bağlandı (2026-10-03, Faz 5 6B T068)
+
+**Belirti**: GPU enerji protokolünün (v1.0) ilk gerçek koşusunda (fişten
+çıkık, 26 dk) E1, E2 ve E3'ün **yük** pencerelerinin ortalama gücü üçünde de
+**birebir 30.000,0 mW** çıktı. Enerji hesapları da birebir aynıydı: integral
+1491,67 mWh, kapasite farkı 1492 mWh. Aynı serilerin **boş** pencereleri
+gerçekçiydi (17,9–22,5 W, saniyeden saniyeye 13–41 W oynuyor).
+
+**Nasıl yakalandı**: Farklı üç iş yükünün (Aer CPU, Aer GPU, aynı algoritma
+GPU) aynı gücü vermesi fiziksel olarak mümkün değil. Yük CSV'sine bakınca
+180 örneğin hepsi `30000 mW`, `15000 mV` çıktı — bu, `-Deneme` kipinin
+sahte kaydedicisinin imzası.
+
+**Kök neden**: `enerji_serileri.ps1` yük kaydını bir `Start-Job` içinde
+başlatıyor ve kipi `-ArgumentList $KOK, $yukCsv, $KAYIT_S, [bool]$Deneme`
+ile geçiriyordu. PowerShell **argüman kipinde** `[bool]$Deneme`'yi bir tür
+dönüşümü olarak değil **`'[bool]False'` metni** olarak geçirir. İşin içinde
+`if ($deneme)` boş olmayan metni doğru saydı ve gerçek ölçümde sahte veri
+yazdı. Boş pencere aynı betiğin ana akışında (`if ($Deneme)`, ifade kipi)
+çalıştığı için gerçekti. Tek satırlık sınama:
+`Start-Job {param($d) $d.GetType().Name} -ArgumentList [bool]$false` → `String`.
+
+**Neden sınama yakalamadı**: Çalıştırıcı bir gün önce `-Deneme` ile uçtan uca
+sınanmıştı — ama `-Deneme`'de sahte kaydedici **zaten beklenen** davranış.
+Sınama, hatanın tam olarak bulunduğu dalı (gerçek kip, iş içinde)
+kapsamıyordu.
+
+**Aynı koşuda ikinci araç hatası**: E4 hiç başlamadı — başta `/tmp`'ye
+derlenen ikili kayboldu. WSL sanal makinesi ~1 dk boşta kalınca kapanıyor,
+açılışta `/tmp` temizleniyor. Bunun bir yan etkisi daha vardı: 180 sn'lik
+boş pencerelerde WSL **kapalı**, yük penceresinin başında yeniden
+**açılıyordu** → açılış enerjisi yük tarafına yazılıyordu (sahte veri
+olmasaydı da yanlı olurdu).
+
+**Yakalanmasaydı**: Koşum başına enerji, gerçek yük gücü yerine sabit bir
+30 W'tan hesaplanırdı (E1 0,273 · E2 0,228 · E3 0,0082 J — **uydurma**). GPU
+ile CPU'nun enerji kıyası ve N1–N6 beklentileri tamamen sahte veriye dayanırdı.
+
+**Düzeltme**: Protokol v1.1 (§9, geçersiz koşudan sonra yazıldığı ve bazı
+gerçek değerler — boş güçler ve pildeki verimler — görüldüğü beyan edildi).
+Kip bayrağı gerçek bool (`$Deneme.IsPresent`). İş, tipini denetler ve
+kipini bildirir (`KIP:GERCEK`/`KIP:SAHTE`); ana betik her yük penceresinden
+sonra beklenen kiple karşılaştırır. Ölçüm boyunca WSL açık tutulur, ikili
+`/root`'a derlenir. Mantık iki kipte ayrıca sınandı. Geçersiz koşunun 19
+dosyası repoya girmedi, kanıt olarak yerelde saklandı.
+
+**Kanıt**: [gpu-enerji-protokolu §9](measurements/gpu-enerji-protokolu.md).
+
+**Rapor için ders**: *Sahte veriyle yapılan akış sınaması, gerçek veri
+yolunu doğrulamaz. Ölçüm aracı, hangi kipte çalıştığını çıktısına yazmalı
+ve bu, ölçüm anında denetlenmelidir.*
+
+---
+
 ## Hataları ne yakaladı — rapor için çapraz bakış
 
 | Mekanizma | Yakaladığı |
@@ -450,7 +505,7 @@ seçilir.*
 | **Kontrollü teşhis deneyi** (koşul değiştirip ölçmek) | 4 |
 | **Tabanı değiştirip aynı şeyi yeniden ölçmek** | 5, 6 |
 | **Kaynak belgeyi satır satır okumak** | 8 |
-| **Fiziksel tutarlılık kontrolü** (bu değer mümkün mü?) | 9 |
+| **Fiziksel tutarlılık kontrolü** (bu değer mümkün mü?) | 9, 12 |
 | **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10, 11 |
 | **Kuyruğa bakmak** (medyan değil p99/maks) | 11 |
 

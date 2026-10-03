@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, **ilk enerji serisinden önce** |
-| **Sürüm** | v1.0 — enerji kayıtları `gpu-enerji-protokolu v1.0` taşır |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, ilk enerji serisinden önce. ⛔ v1.0 ile yapılan tek koşu (3 Eki 13:59–14:22, git `d1e714b`) **GEÇERSİZ** — çalıştırıcı hatası, [hata #12](../hatalar-ve-duzeltmeler.md). 📝 **v1.1 taslağı onay bekliyor** (§9) |
+| **Sürüm** | **v1.1 (taslak, 3 Eki)** — değişiklikler **§9**'da, ⚠️ **geçersiz koşudan, bazı gerçek değerler görüldükten sonra**. Enerji kayıtları `gpu-enerji-protokolu v1.1` taşır. v1.1 metni, §9'u ekleyen commit'te donar |
 | **Onaylanan metin** | commit `38f85b3`, git içerik özeti `b04397ba79caf4c5d0c620f365bd8cc769189e30` (`git rev-parse 38f85b3:docs/measurements/gpu-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §4'e eklenen **"Ekran kapanması / uyku"** satırı değişti (3 Eki ön denetiminde bulundu, **ölçümden önce**): `git diff 38f85b3 -- <bu dosya>` |
 | **Görev** | T068 (bu belge + ölçüm), T069'un enerji sütunu |
 | **Dayanak** | FR-009b/c/d, FR-011, FR-013, FR-014, SC-009 · [gpu-taban-olcum-protokolu v1.1](gpu-taban-olcum-protokolu.md) (gecikme; aynı iş yükleri) · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · CPU yöntemi: [faz2-sentez §19](faz2-sentez.md) |
@@ -71,7 +71,7 @@ E3 beklentisi bunlar **bilinerek** yazıldı.
 | Güç modu | Pilde "En iyi performans" (`ActiveOverlayDcPowerScheme`), kaydedilir |
 | Ekran kapanması / uyku | ⚠️ 3 Eki ön denetimi: bu güç planında pilde ekran **180 sn** sonra kapanır, makine **180 sn** sonra uyur — ölçüm 26 dk dokunulmadan sürdüğü için ilk serinin ortasında devreye girerdi. Çalıştırıcı ölçüm boyunca `SetThreadExecutionState` (ES_CONTINUOUS \| ES_SYSTEM_REQUIRED \| ES_DISPLAY_REQUIRED) ile ikisini de engeller; **kalıcı ayar değişmez**, istek onu tutan süreç bitince kalkar. Boş ve yük pencerelerinde aynı durum → farkta sadeleşir. Her serinin koşullarına `ekran_uyku_engeli` yazılır. (Aynı denetimde pil tasarrufu eşiği pilde yine **%0**, ekran koruyucu yok, tek monitör.) |
 | Makine | Vivado/Vitis/noVNC kapalı; klavye/fare kullanılmaz; ağ ve Bluetooth durumu değiştirilmez |
-| Ortam | WSL, `/root/qir-gpu-venv` (gecikme protokolüyle aynı), Aer T=4 |
+| Ortam | WSL, `/root/qir-gpu-venv` (gecikme protokolüyle aynı), Aer T=4. **v1.1**: WSL sanal makinesi ölçüm boyunca (boş pencereler dahil) **açık tutulur** (§9 Δ2), koşullara `wsl_acik` yazılır |
 | Git | Kod commit'lenmiş (`_kod_kirli` kuralı) |
 
 ---
@@ -138,3 +138,48 @@ E3 beklentisi bunlar **bilinerek** yazıldı.
 - Çalıştırıcı: `scripts/enerji_serileri.ps1` (Windows; kaydedici Windows'ta,
   iş yükü WSL'de). `-Deneme` kipi yalnız akışı sınar: kaydedici yerine sahte
   veri, kısa süreler, çıktı repo dışına — **ölçüm değildir**.
+
+---
+
+## 9. v1.1 — geçersiz ilk koşudan sonra (3 Eki) — 📝 onay bekliyor
+
+### 9.1 Ne oldu
+
+v1.0 ile 3 Eki 13:59–14:22'de (git `d1e714b`, fişten çıkık, parlaklık %0
+beyan edildi) koşuldu. **Koşunun tamamı geçersiz**:
+
+- **E1–E3'ün yük pencereleri sahte kaydediciden geldi.** `-ArgumentList …,
+  [bool]$Deneme` PowerShell'in argüman kipinde bool değil **`'[bool]False'`
+  metni** olarak geçti; boş olmayan metin "doğru" sayıldı ve yük penceresinde
+  `-Deneme`'nin sabit 30.000 mW'lık sahte verisi yazıldı. Fark edilme biçimi:
+  üç serinin yük gücü **birebir** 30.000,0 mW. `-Deneme` sınaması bunu
+  yakalayamazdı (orada sahte veri zaten beklenen davranış). [Hata #12](../hatalar-ve-duzeltmeler.md).
+- **E4 başlamadı**: başta `/tmp`'ye derlenen `bench_kernel` kayboldu. WSL
+  sanal makinesi ~1 dk boşta kalınca kapanıyor, açılışta `/tmp` temizleniyor.
+- Aynı nedenle **boş pencerelerde WSL kapalıydı**, her yük penceresinin
+  başında yeniden açılıyordu → açılış enerjisi yük tarafına yazılıyordu
+  (sahte veri olmasaydı da bir yanlılık olurdu).
+
+Koşunun dosyaları repoya **girmedi** (kanıt olarak repo dışında saklandı).
+
+### 9.2 Değişiklikler
+
+| # | Değişiklik | Tür |
+|---|---|---|
+| Δ1 | Kip bayrağı gerçek bool (`$Deneme.IsPresent`); iş tipini denetler ve kipini bildirir (`KIP:GERCEK`/`KIP:SAHTE`); ana betik her yük penceresinden sonra beklenen kiple karşılaştırır, uyuşmazsa seri **geçersiz** | çalıştırıcı hatası |
+| Δ2 | WSL sanal makinesi ölçüm boyunca **açık** tutulur (boş pencereler dahil) → boş ve yük pencerelerinde aynı durum; koşullara `wsl_acik` | **ölçüm koşulu** (§4 Ortam satırı) |
+| Δ3 | `bench_kernel` ikilisi `/root`'a derlenir (`/tmp` değil) | çalıştırıcı hatası |
+
+Yöntem (§5), seriler (§1), geçerlilik (§6) ve **beklentiler (§3) değişmedi**.
+
+### 9.3 Ön kayıt beyanı — geçersiz koşuda görülen GERÇEK değerler
+
+| Görülen | Değer | Etkisi |
+|---|---|---|
+| Boş pencere ortalama gücü (gerçek kaydedici, **WSL kapalı**) | E1 21,73 · E2 22,46 · E3 18,15 · E4 17,92 W | v1.1'de WSL açık olacağı için boş güç bundan farklı çıkabilir |
+| İş yükü verimi, **pilde** (iş yükü kayıtları gerçek) | E1 31,84 koşum/sn (medyan 27,04 ms) · E2 34,81 (25,81 ms) · E3 **1519,2** (0,5325 ms) | T067'de prizde: 25,55 · 29,28 · **436,7** koşum/sn. Pilde **daha yüksek**; nedeni bilinmiyor, yorumlanmadı |
+| Yük gücü, enerji/koşum | **görülmedi** (sahte veriydi) | N1–N4 ve N6 **kör** kalır |
+
+⚠️ **N5 artık kör değil**: E3'ün pildeki verimi görüldü (1519 koşum/sn, N5
+eşiği 0,8 × 436,7 = 349). N5 olduğu gibi kalır ve değerlendirilir, ama raporda
+**"sonuç görüldükten sonra"** işaretiyle yazılır; doğrulayıcı kanıt sayılmaz.

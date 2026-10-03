@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    6B / T068 - GPU tabani enerji protokolu v1.0: dort seri (E1..E4), batarya delta.
+    6B / T068 - GPU tabani enerji protokolu v1.1: dort seri (E1..E4), batarya delta.
 
 .DESCRIPTION
     docs/measurements/gpu-enerji-protokolu.md (kilitli surum). Her seri:
@@ -23,12 +23,12 @@ param([switch]$Deneme)
 $ErrorActionPreference = 'Stop'
 $KOK = Split-Path -Parent $PSScriptRoot
 Set-Location $KOK
-$PROTOKOL = 'gpu-enerji-protokolu v1.0'
+$PROTOKOL = 'gpu-enerji-protokolu v1.1'
 $KAYIT_S = 180
 $YUK_S = 170; $YUK_BENCH_S = 175       # protokol 5
 $WSL_KOK = '/mnt/c/Users/olcay/IdeaProjects/qir-engine'
 $PY = '/root/qir-gpu-venv/bin/python'
-$BENCH = '/tmp/bench_float_enerji'
+$BENCH = '/root/bench_float_enerji'   # /tmp DEGIL: WSL VM yeniden acilinca temizleniyor (3 Eki)
 $REF = 'docs/measurements/reference_20260915_c6ad872_p2_n5'
 $BEKLENEN_BD = '-3950.989990234'      # CPU float modelinin p=2 ciktisi (T065b)
 $OLCUM = Join-Path $KOK 'docs\measurements'
@@ -62,6 +62,7 @@ function Kosullar([string]$seri) {
         batarya_mwh = $b.KalanMwh; batarya_yuzde = $b.Yuzde; prizde = $b.Prizde
         ekran_parlaklik = $parlaklik; guc_modu_dc_overlay = "$dc".Trim()
         ekran_uyku_engeli = [bool]($uyanik -and -not $uyanik.HasExited)
+        wsl_acik = [bool]($wslAcik -and -not $wslAcik.HasExited)
     }
 }
 
@@ -104,6 +105,20 @@ $uyanik = Start-Process -FilePath (Join-Path $KOK '.venv\Scripts\python.exe') -A
     -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $env:TEMP 'qir-enerji-uyanik.txt')
 Start-Sleep -Seconds 3
 if ($uyanik.HasExited) { Write-Host 'HATA: ekran/uyku engeli kurulamadi' -ForegroundColor Red; exit 1 }
+
+# --- WSL sanal makinesi acik --------------------------------------------------
+# 3 Eki gecersiz kosu: WSL VM'i ~1 dk bosta kalinca kapaniyor; 180 sn'lik bos
+# pencerede kapali, yuk penceresinin basinda yeniden aciliyordu (acilis enerjisi
+# yuk tarafina yaziliyor, /tmp temizleniyordu). Olcum boyunca acik tutulur ->
+# bos ve yuk pencerelerinde ayni durum. PID dosyasi: finally'de tam o surec durur.
+$WSL_PID = '/run/qir-enerji-wsl-acik.pid'
+$wslAcik = Start-Process -FilePath 'wsl.exe' -WindowStyle Hidden -PassThru `
+    -ArgumentList '-d', 'Ubuntu', '-u', 'root', '-e', 'bash', '-c', "`"echo `$`$ > $WSL_PID; exec sleep 7200`""
+Start-Sleep -Seconds 8
+if ($wslAcik.HasExited) {
+    Stop-Process -Id $uyanik.Id -Force -ErrorAction SilentlyContinue
+    Write-Host 'HATA: WSL acik tutulamadi' -ForegroundColor Red; exit 1
+}
 
 try {
     $GIT = (git rev-parse --short HEAD).Trim()
@@ -148,7 +163,12 @@ try {
         $job = Start-Job -ScriptBlock {
             param($kok, $csv, $sn, $deneme)
             Set-Location $kok
+            # 3 Eki: arguman kipinde '[bool]$Deneme' bool degil '[bool]False' METNI olarak
+            # geciyordu (dogru sayildi) -> gercek olcumde SAHTE kaydedici. Tip denetlenir,
+            # kip bildirilir; ana betik beklenen kiple karsilastirir.
+            if ($deneme -isnot [bool]) { 'KIP:TIP_HATASI'; 1; return }
             if ($deneme) {
+                'KIP:SAHTE'
                 # YALNIZ -Deneme: sahte kayit (OLCUM DEGIL), gercek kaydedici kadar surer
                 $t0 = Get-Date
                 $satirlar = foreach ($i in 0..($sn - 1)) {
@@ -160,10 +180,11 @@ try {
                 $satirlar | Export-Csv -Path $csv -NoTypeInformation -Encoding utf8
                 0
             } else {
+                'KIP:GERCEK'
                 & powershell -NoProfile -ExecutionPolicy Bypass -File scripts\battery_logger.ps1 -Saniye $sn -Cikti $csv
                 $LASTEXITCODE
             }
-        } -ArgumentList $KOK, $yukCsv, $KAYIT_S, [bool]$Deneme
+        } -ArgumentList $KOK, $yukCsv, $KAYIT_S, ($Deneme.IsPresent)
 
         if ($ad -eq 'E4') {
             $cikti = & wsl -d Ubuntu -u root --cd $WSL_KOK -e bash -c $s.komut
@@ -172,8 +193,13 @@ try {
         } else {
             $kod = WslKos $s.komut
         }
-        $jobKod = Receive-Job -Job (Wait-Job $job) | Select-Object -Last 1
+        $jobCikti = @(Receive-Job -Job (Wait-Job $job))
         Remove-Job $job
+        $jobKod = $jobCikti | Select-Object -Last 1
+        $beklenenKip = if ($Deneme) { 'KIP:SAHTE' } else { 'KIP:GERCEK' }
+        if ($jobCikti -notcontains $beklenenKip) {
+            Write-Host "HATA: $ad yuk kaydedicisi yanlis kipte ($($jobCikti -match '^KIP:')), beklenen $beklenenKip - GECERSIZ" -ForegroundColor Red; exit 1
+        }
         if ($kod -ne 0) { Write-Host "HATA: $ad is yuku basarisiz/gecersiz (kod $kod) - DURDU" -ForegroundColor Red; exit 1 }
         if ($jobKod -ne 0) { Write-Host "HATA: $ad yuk kaydi basarisiz (kod $jobKod) - DURDU" -ForegroundColor Red; exit 1 }
 
@@ -206,4 +232,6 @@ try {
     Write-Host "=== HEPSI BITTI $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 } finally {
     Stop-Process -Id $uyanik.Id -Force -ErrorAction SilentlyContinue
+    & wsl -d Ubuntu -u root -e bash -c "kill `$(cat $WSL_PID 2>/dev/null) 2>/dev/null; rm -f $WSL_PID" | Out-Null
+    Stop-Process -Id $wslAcik.Id -Force -ErrorAction SilentlyContinue
 }

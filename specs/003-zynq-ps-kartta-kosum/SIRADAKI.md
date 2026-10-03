@@ -15,7 +15,7 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B **T068** — enerji protokolü taslağı
+**Hedef (tek cümle)**: 6B **T068** — ⛔ 3 Eki ilk koşu **geçersiz** (hata #12: yük penceresinde sahte kaydedici; E4 /tmp ikilisi kayboldu). Düzeltildi, protokol **v1.1 taslağı onay bekliyor** (§9). Onay → commit → batarya ≥ %80 → fişi çek → aynı komut. Aşağıdaki eski metin v1.0 içindir: enerji protokolü taslağı
 ([gpu-enerji-protokolu.md](../../docs/measurements/gpu-enerji-protokolu.md)) ve
 kod hazır, **kullanıcı onayı** bekleniyor. Sonra: commit → **fişi çek**
 (batarya ≥ %80, ekran parlaklığı sabit ve beyan edilir, harici monitör yok) →
