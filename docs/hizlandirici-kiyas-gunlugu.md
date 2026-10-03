@@ -90,7 +90,8 @@ N=5 → 65.536 genlik            →  24 tur
 ```
 
 Ölçüldü: kaba kuvvet **43,2 µs** (kesin sonuç), QAOA yolu **3,69 s**
-(doğru olma olasılığı 2,4e-05) — **~85.000×**.
+(doğru olma olasılığı 2,4e-05 — ⚠️ 3 Eki: ölçeklemesiz referans ayarının
+ürünü, normalize ~1e-3; [hatalar #13](hatalar-ve-duzeltmeler.md)) — **~85.000×**.
 
 Sonucu: hiçbir uygulama gereksinimi bu iş yükü için hızlandırıcıyı
 gerekçelendiremez. Tez çerçevesi bu yüzden değişti — proje bir **rota
@@ -149,7 +150,7 @@ Değişen tek şey, o işin **ne olduğunun doğru adlandırılması**.
 | ⬜ | Konu |
 |---|---|
 | ~~GPU hiç ölçülmedi~~ → **30 Eyl ölçüldü**: aynı algoritma GPU'da 0,997 ms, FPGA'dan 36,7× hızlı; FPGA belirlenimci (olculen-degerler §6.1) | |
-| FPGA enerjisi ölçülmedi — tek taraflı karşılaştırma yapılamaz | |
+| FPGA enerjisi ölçülmedi — tek taraflı karşılaştırma yapılamaz (dizüstü tarafı 3 Eki ölçüldü, olculen-degerler §6.2) | |
 | Genişlik Pareto eğrisi — Phase 6C (T070–T073) | |
 | 37,28 ms hâlâ **sentez tahmini**, kartta doğrulanmadı (T044) | |
 | Jitter argümanı beklenenden zayıf — ARM 30 koşumda %1,5 yayılım | |

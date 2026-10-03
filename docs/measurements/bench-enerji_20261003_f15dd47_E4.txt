@@ -1,0 +1,10 @@
+﻿varyant   : float (yerel, yetkin ARM gerceklemesi)
+n=16  p=2  tekrar=30  isinma=1
+kosum_sayisi   : 59408  (isinma 1 haric)
+beklenen_deger : -3950.989990234  (dogruluk kontrolu)
+medyan  :      2.911 ms
+IQR     :      0.466 ms  (p25=2.711  p75=3.177)
+min/maks:      2.129 / 11.187 ms
+jitter  :      9.058 ms
+FPGA    :     37.280 ms  (sentez tahmini, p=2)
+ORAN    :       0.08 x

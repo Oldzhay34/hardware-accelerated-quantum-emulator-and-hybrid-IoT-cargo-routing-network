@@ -1,0 +1,40 @@
+{
+  "bos": {
+    "ornek": 176,
+    "sure_sn": 179.0,
+    "ortalama_guc_mw": 24928.4,
+    "enerji_A_integral_mwh": 1238.12,
+    "enerji_B_kapasite_mwh": 1300.0
+  },
+  "yuk": {
+    "ornek": 176,
+    "sure_sn": 179.4,
+    "ortalama_guc_mw": 32931.4,
+    "enerji_A_integral_mwh": 1642.99,
+    "enerji_B_kapasite_mwh": 1779.0
+  },
+  "guc_farki_mw": 8003.0,
+  "is_enerjisi_mwh": 398.82,
+  "is_enerjisi_j": 1435.7,
+  "kosum": 5917,
+  "kosum_basina_j": 0.2426,
+  "uyarilar": [],
+  "yontem": "batarya delta (yuk - bos), tum dizustu kapsami",
+  "git_hash": "f15dd47",
+  "protokol_surumu": "gpu-enerji-protokolu v1.1",
+  "is_yuku_kaydi": "cpu-yuk-dongu_20261003_f15dd47_enerjiE1_p2.json",
+  "ham_veri": {
+    "bos": "batarya-bos_20261003_f15dd47_E1.csv",
+    "yuk": "batarya-yuk_20261003_f15dd47_E1.csv"
+  },
+  "kalan_mwh_bas_son": {
+    "bos": [
+      31852,
+      30552
+    ],
+    "yuk": [
+      30541,
+      28762
+    ]
+  }
+}

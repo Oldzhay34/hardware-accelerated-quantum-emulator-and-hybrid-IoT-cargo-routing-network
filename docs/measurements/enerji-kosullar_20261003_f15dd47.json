@@ -1,0 +1,62 @@
+﻿[
+    {
+        "seri":  "E1",
+        "zaman":  "2026-10-03T15:11:01.0114816+03:00",
+        "deneme":  false,
+        "batarya_mwh":  31852,
+        "batarya_yuzde":  85.8,
+        "prizde":  false,
+        "ekran_parlaklik":  0,
+        "guc_modu_dc_overlay":  "ded574b5-45a0-4f42-8737-46345c09c238",
+        "ekran_uyku_engeli":  true,
+        "wsl_acik":  true
+    },
+    {
+        "seri":  "E2",
+        "zaman":  "2026-10-03T15:17:14.3209984+03:00",
+        "deneme":  false,
+        "batarya_mwh":  28660,
+        "batarya_yuzde":  77.2,
+        "prizde":  false,
+        "ekran_parlaklik":  0,
+        "guc_modu_dc_overlay":  "ded574b5-45a0-4f42-8737-46345c09c238",
+        "ekran_uyku_engeli":  true,
+        "wsl_acik":  true
+    },
+    {
+        "seri":  "E3",
+        "zaman":  "2026-10-03T15:23:22.7426873+03:00",
+        "deneme":  false,
+        "batarya_mwh":  25297,
+        "batarya_yuzde":  68.2,
+        "prizde":  false,
+        "ekran_parlaklik":  0,
+        "guc_modu_dc_overlay":  "ded574b5-45a0-4f42-8737-46345c09c238",
+        "ekran_uyku_engeli":  true,
+        "wsl_acik":  true
+    },
+    {
+        "seri":  "E4",
+        "zaman":  "2026-10-03T15:29:37.8836323+03:00",
+        "deneme":  false,
+        "batarya_mwh":  21329,
+        "batarya_yuzde":  57.5,
+        "prizde":  false,
+        "ekran_parlaklik":  0,
+        "guc_modu_dc_overlay":  "ded574b5-45a0-4f42-8737-46345c09c238",
+        "ekran_uyku_engeli":  true,
+        "wsl_acik":  true
+    },
+    {
+        "seri":  "SON",
+        "zaman":  "2026-10-03T15:35:48.6586415+03:00",
+        "deneme":  false,
+        "batarya_mwh":  17921,
+        "batarya_yuzde":  48.3,
+        "prizde":  false,
+        "ekran_parlaklik":  0,
+        "guc_modu_dc_overlay":  "ded574b5-45a0-4f42-8737-46345c09c238",
+        "ekran_uyku_engeli":  true,
+        "wsl_acik":  true
+    }
+]

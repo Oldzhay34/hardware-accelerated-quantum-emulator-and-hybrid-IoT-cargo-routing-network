@@ -38,8 +38,9 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 10 | 27 Eyl | *"18 bit iki kısıtın kesişimi"* — **iki yarısı da yanlış** | tasarım gerekçesi (model ≠ çekirdek) | genişliği gerçekten tarayıp sentezlemek (6C) | tezin ana bulgularından biri yanlış raporlanırdı |
 | 11 | 28 Eyl | Aer CPU tabanı **16 iş parçacığıyla** — sanal makinede aşırı abonelik | ölçüm yöntemi (taban yapılandırması) | ilk serinin kuyruğu (p99 525 ms) + ön kayıtlı tarama | CPU/GPU oranı GPU lehine çarpık |
 | 12 | 3 Eki | Enerji ölçümünde yük penceresine **sahte kaydedici** bağlandı | ölçüm aracı (PowerShell argüman kipi) | üç serinin yük gücünün **birebir aynı** (30.000,0 mW) çıkması | uydurma güç verisiyle hesaplanmış GPU/CPU enerji sonuçları |
+| 13 | 2–3 Eki | Referans QAOA'nın düşük kalitesi (P_opt 2,4e-5, "99 iterasyon") **ayarın ürünü** — normalize edilmemiş H | ölçüm yorumu (referans yapılandırması) | 6D fizibilitesi: iki yolda aynı fonksiyon, farklı minimum → γ taraması | QAOA'nın kalitesi ve artımlı yolun süresi yanlış nedene bağlanırdı |
 
-**Desen**: 12 hatanın **7'si ölçümde** (yöntem, taban, yorum, araç: 3, 4, 5, 6, 9, 11, 12),
+**Desen**: 13 hatanın **8'i ölçümde** (yöntem, taban, yorum, araç: 3, 4, 5, 6, 9, 11, 12, 13),
 5'i tasarım, gerekçe, yapılandırma ve araç zincirinde (1, 2, 7, 8, 10). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
 altın referansla bit bit karşılaştırıldığı için. Hatalar, karşılaştırmanın
 **olmadığı** yerlerde birikti.
@@ -494,6 +495,55 @@ ve bu, ölçüm anında denetlenmelidir.*
 
 ---
 
+## 13. Referans QAOA'nın düşük kalitesi ayarın ürünüymüş — normalize edilmemiş Hamiltonyen (2026-10-02/03, Faz 5 6D)
+
+**Belirti**: 6D'nin fizibilite denetiminde, referans örneğinde aynı amaç
+fonksiyonu iki yolla (Qiskit ve çekirdeğin Python ikizi) hesaplandı; değerler
+1e-8 içinde (göreli 1e-11) aynıydı ama **COBYLA iki yolda farklı minimumlara
+gitti** (p=2: 99'a karşı 66 çağrı, ⟨E⟩ −3950,9'a karşı −4519,5).
+
+**Nasıl yakalandı**: Bu kadar küçük bir farka bu kadar duyarlılık, manzaranın
+pürüzlü olduğunu düşündürdü. ⟨E⟩(γ) taraması (p=1, β sabit, 4001 nokta):
+γ ∈ [0, π]'de **2889** yerel uç, γ ∈ [0; 0,002]'de 15. Sonra ön kayıtlı 6D
+ölçümü 20 problemde bunu sınadı.
+
+**Kök neden**: Referans (`qaoa_reference.run`) QUBO'yu Ising'e çeviriyor ama
+**ölçeklemiyor**: katsayılar binler mertebesinde (max\|h\| 5.658–16.732,
+spektral genişlik ~2,3e5), γ ise [0, π]'den rastgele başlatılıyor. Bu ölçekte
+γ·E fazı binlerce radyan dönüyor; COBYLA'nın adımı (rhobeg 1) manzaranın
+ilinti uzunluğundan (~1e-4) çok büyük → arama sözde rastgele bir fonksiyonda
+yapılıyor.
+
+**Etkisi (ölçüldü, 6D)**: Referans ayarında 20 problemde P_opt medyanı
+**düzgün dağılımın 0,62×'i** — QAOA rastgele tahminden iyi değil; en olası
+geçerli turun optimum olma oranı %5 (rastgele %4,2). γ'yı s = max\|h\|,\|J\|'ye
+bölünce P_opt **121×** (1,1e-3), r 0,10 → 0,79. "99 iterasyon" da problemin
+değil ayarın özelliği (20 problemde 66,5; normalize edilince tavan).
+
+**Yanlış olan ne değil**: FPGA doğrulaması (fidelity, bit bit eşitlik) devreyi
+doğrular, parametre kalitesini değil — **etkilenmez**. Kaba kuvvetle süre
+kıyası (~85.000×) ve "bu proje rota optimizasyonu ürünü değil" sonucu da
+değişmez: normalize QAOA bile kesin çözümden çok uzak.
+
+**Yakalanmasaydı**: "Doğru olma olasılığı 2,4e-05" QAOA'nın bu problemdeki
+yeteneği diye raporlanırdı; artımlı yolun süresi için sıcak başlangıca
+güvenilirdi (ölçülen kazanç en fazla %26) — oysa asıl kaldıraç ölçekleme ve
+p=1 sabit açı (tek çağrı).
+
+**Düzeltme**: Referans dosyaları ve altın referans **değiştirilmedi** (FPGA
+doğrulamasının dayanağı). Belgelerde 2,4e-05 geçen yerlere not düşüldü;
+[olculen-degerler §5.2](olculen-degerler.md), [sistem-mimarisi §7](sistem-mimarisi.md).
+Normalizasyonun sisteme alınması (konak tarafı) ayrı bir karar.
+
+**Kanıt**: [sicak-baslangic-protokolu §2](measurements/sicak-baslangic-protokolu.md),
+[sicak-baslangic_20261003_f15dd47](measurements/sicak-baslangic_20261003_f15dd47.json).
+
+**Rapor için ders**: *Bir referansın doğruluğu (devreyi doğru hesaplıyor mu)
+ile kalitesi (iyi parametre buluyor mu) ayrı sorulardır; ikincisi de tek bir
+örnekle değil dağılımla ölçülmelidir.*
+
+---
+
 ## Hataları ne yakaladı — rapor için çapraz bakış
 
 | Mekanizma | Yakaladığı |
@@ -508,6 +558,7 @@ ve bu, ölçüm anında denetlenmelidir.*
 | **Fiziksel tutarlılık kontrolü** (bu değer mümkün mü?) | 9, 12 |
 | **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10, 11 |
 | **Kuyruğa bakmak** (medyan değil p99/maks) | 11 |
+| **Aynı şeyi iki bağımsız yoldan hesaplayıp tutarsızlığın peşine düşmek** | 13 |
 
 **Rapora girecek genel sonuç**: Çekirdeğin kendisinde hata kalmadı, çünkü
 her aşamada (C-sim → RTL → kart) bir altın referansa **bit düzeyinde**

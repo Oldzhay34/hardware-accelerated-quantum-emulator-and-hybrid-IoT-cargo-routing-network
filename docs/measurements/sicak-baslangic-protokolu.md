@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, **ölçümden önce** |
+| **Durum** | 🔒 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, **ölçümden önce**. ✅ **Koşuldu** 3 Eki (git `f15dd47`), geçerli — [kayıt](sicak-baslangic_20261003_f15dd47.json), sonuç [olculen-degerler §5.2](../olculen-degerler.md). Sapmalar: süre 25 dk (§2'deki ~10 dk planlama tahminiydi); ilk başlatma SciPy içe aktarılırken Windows Uygulama Denetimi'nin geçici engeline takıldı, koşum yapılmadan yeniden başlatıldı |
 | **Sürüm** | v1.0 — kayıtlar `sicak-baslangic-protokolu v1.0` taşır |
 | **Onaylanan metin** | commit `786801a`, git içerik özeti `521aa55f545226606b2bfc0144b77079111de279` (`git rev-parse 786801a:docs/measurements/sicak-baslangic-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff 786801a -- <bu dosya>`. Yürütücü kodu da `786801a`'daki hâliyle donar (`scripts/sicak_baslangic.py`) |
 | **Görev** | T074 (taban), T075 (sıcak başlangıç), T076 (sabit açı), T077 (kayıt + [sistem-mimarisi §7](../sistem-mimarisi.md)) |

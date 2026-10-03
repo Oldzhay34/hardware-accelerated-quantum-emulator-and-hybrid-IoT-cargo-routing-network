@@ -96,6 +96,13 @@ QAOA yolu (FPGA)  99 × 37,28 ms         :   3,69 s         →  doğru olma ola
 ORAN: ~85.000× kaba kuvvet lehine
 ```
 
+⚠️ **3 Eki (6D)**: 2,4e-05 referansın **ölçeklemesinin** ürünü — Hamiltonyen
+normalize edilmeden γ [0, π]'den başlatılıyor; 20 problemde bu ayarla P_opt
+rastgele düzeyinde. γ normalize edilince P_opt ~1e-3 (p=2), p=1'de sabit açıyla
+tek çağrı (~37 ms) ([olculen-degerler §5.2](olculen-degerler.md),
+[hatalar #13](hatalar-ve-duzeltmeler.md)). **Sonuç değişmez**: kaba kuvvet
+kesin ve hâlâ mertebelerce hızlı.
+
 Üstelik kaba kuvvet **Python'da**; C'de bir iki mertebe daha.
 
 > Bir statevector emülatörü, **emüle edebildiği her boyutta**, aynı TSP'yi
@@ -159,7 +166,7 @@ Bunların her biri kulağa makul gelir ve her biri ilk soruda çöker.
 |---|---|
 | *"FPGA daha hızlı"* | **Değil.** n=16 yalnızca 65.536 genlik ≈ 1 MB; bir GPU'nun L2 önbelleğine sığar. Beklenti GPU'nun iki-üç kat büyüklük önde olduğu yönünde. Zaten CPU'ya karşı bile **başabaşız** (37,28 ms vs 32,75–41,93 ms) |
 | *"FPGA daha çok kübite ölçeklenir"* | **Tam tersi.** Biz 16 kübitte BRAM'e sıkıştık (%67 dolu). GPU 30+ kübite çıkar, çünkü GB'larca belleği var. Bu argüman kurulursa karşı taraf bir cümleyle yıkar |
-| *"FPGA daha az enerji harcar"* | **Henüz ölçülmedi.** Kaba hesap GPU'nun bu boyutta enerjide de önde olabileceğini söylüyor. Ölçmeden söylenirse Anayasa madde II ihlal edilir |
+| *"FPGA daha az enerji harcar"* | **Hâlâ söylenemez** — FPGA tarafı ölçülmedi (öbek 6). Dizüstü tarafı ölçüldü (3 Eki, [olculen-degerler §6.2](olculen-degerler.md)): aynı algoritma CPU tek iş parçacığı **0,0217 J/koşum**; GPU ~0,013 J (⚠️ güvenilmez işaretli). Ölçmeden söylenirse Anayasa madde II ihlal edilir |
 | *"Kuantum-esinli hesap özel donanım ister"* | İstemez. Yapılan iş doğrusal cebir; GPU'lar bunda mükemmeldir |
 | *"Rota optimizasyonunu hızlandırıyoruz"* | **Hayır.** Kaba kuvvet ~85.000× hızlı ve kesin (§0.5). Bu cümle projenin temelini çürütür |
 
@@ -444,7 +451,10 @@ protokol v1.1, iki katman — [ADR 0010](decisions/0010-gpu-tabani-iki-katman.md
 GPU kazandı — beklendiği gibi ve beklenen büyüklükte (ön kayıtlı G1: ≤ 1 ms,
 ≥ 36×; kıl payı tuttu). Kaybedilen eksen hız; FPGA'nın ölçülmüş üstünlüğü
 **belirlenimcilik** (§2.3) ve ölçülmemiş ama savunulan üstünlüğü **dağıtım
-zarfı** (§2.1). Enerji iki tarafta da henüz ölçülmedi (T068, öbek 6).
+zarfı** (§2.1). Enerji: dizüstü tarafı ölçüldü (T068, 3 Eki; GPU serileri
+güvenilmez işaretli — [olculen-degerler §6.2](olculen-degerler.md)), FPGA
+tarafı ölçülmedi (öbek 6). ⚠️ Pilde aynı GPU iş yükü 0,555 ms ölçüldü — 36,7×
+prizdeki T067 koşullarına aittir, fark açıklanana kadar öyle yazılır.
 
 ⚠️ Aer'le ölçülen GPU (29,94 ms) bu tabloya **girmez**: Aer QAOA'yı
 ayrıştırıyor, aynı GPU'da bizim algoritmadan 30× yavaş. Aer içinde GPU

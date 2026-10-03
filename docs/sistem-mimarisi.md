@@ -111,9 +111,15 @@ optimizer_iterations = 99
 
 Yani **bir alt problem = 99 FPGA çağrısı**, bir değil.
 
+> ⚠️ **3 Eki (6D)**: 99 **referans örneğine ve ayarına** özgü. 20 problemde
+> aynı ayarla medyan **66,5** çağrı; γ normalize edilince p=2'de hepsi 100'lük
+> tavana çarpıyor, p=1 sabit açıyla **1**. Ayrıntı §7,
+> [olculen-degerler §5.2](olculen-degerler.md). Aşağıdaki tablo 99 ile
+> hesaplanmış tarihsel tablodur.
+
 | | |
 |---|---|
-| 1 çağrı (p=2) | **37,28 ms** ⚠️ *sentez tahmini, kartta henüz ölçülmedi* |
+| 1 çağrı (p=2) | **37,28 ms** sentez tahmini — ✅ kartta **36,578 ms** ölçüldü (27 Eyl) |
 | 1 alt problem | 99 × 37,28 ms = **3,69 s** |
 | 60 alt problem | **221 s ≈ 3,7 dakika** |
 | 1000 alt problem | ≈ **62 dakika** |
@@ -163,7 +169,7 @@ en yakın komşu?) ve tur birleştirme yöntemi henüz seçilmedi.
 |---|---|
 | **Bellek** | ❌ hiç sınır değil. Çekirdek **durumsuzdur** ve aynı anda **tek** statevector tutar (2,36 Mbit BRAM). Rota verisi ARM'ın **512 MB DDR**'sinde durur; 60 rotanın metası birkaç KB |
 | **Zaman (toplu)** | ✅ bol bol yetiyor — 3,7 dk / gece |
-| **Zaman (artımlı)** | 🟡 3,69 s/alt problem — iyileştirilebilir (§7) |
+| **Zaman (artımlı)** | 🟡 3,69 s/alt problem (referans ayarı) → ✅ p=1 normalize sabit açıyla **1 çağrı ≈ 37 ms** (türetilmiş, §7) |
 | **Durak sayısı** | 🔴 **asıl sınır** — alt problem başına 4 teslimat |
 
 ### Railway ne için var
@@ -182,13 +188,21 @@ en yakın komşu?) ve tur birleştirme yöntemi henüz seçilmedi.
 
 Süreyi domine eden şey optimize edici döngüsüdür, tek çağrı değil.
 
-| Yaklaşım | Beklenen etki | Durum |
-|---|---|---|
-| **Sıcak başlangıç** — bir önceki çözümün (γ, β) değerleriyle başla | Artımlı yolda 99 → birkaç adım | ⬜ denenmedi |
-| **Sabit açı QAOA** — açılar önceden belirlenir, optimize edici kalkar | 99 → **1** çağrı | ⬜ denenmedi |
+✅ **Ölçüldü — 6D, 3 Eki** ([olculen-degerler §5.2](olculen-degerler.md),
+[kayıt](measurements/sicak-baslangic_20261003_f15dd47.json), 20 problem × 5
+tohum, adresi değişmiş problem üzerinde). Süreler `çağrı × 36,578 ms` ile
+**türetilmiştir**; P_opt = optimum turu ölçme olasılığı (rastgele: 1,5e-5).
 
-Artımlı güncelleme yolunda bu, 3,69 s'yi **saniyenin altına** indirir — ve
-gecikmenin gerçekten önemli olduğu tek yol orası.
+| Yaklaşım | Beklenen etki (eski) | Ölçülen | Durum |
+|---|---|---|---|
+| **Ölçekleme** — γ'yı s = max\|h\|,\|J\|'ye böl (konakta; çekirdek değişmez) | (öngörülmemişti) | P_opt **121×** (9,5e-6 → 1,1e-3, p=2); çağrı 66,5 → 100 (tavan) | ✅ **asıl kaldıraç** |
+| **Sıcak başlangıç** — bir önceki çözümün (γ, β) değerleriyle başla | Artımlı yolda 99 → birkaç adım | p=1 (normalize): 57 → **42** çağrı (−%26), kalite aynı; p=2: tasarruf yok (tavan), kalite biraz artıyor | 🟡 küçük |
+| **Sabit açı QAOA** — açılar önceden belirlenir, optimize edici kalkar | 99 → **1** çağrı | p=1 (normalize): **1 çağrı ≈ 37 ms**, P_opt 8,4e-4 — 20 test probleminin 20'sinde soğuk COBYLA'dan iyi ya da eşit. p=2: **çöküyor** (r −1,88) | ✅ p=1 / ❌ p=2 |
+
+Artımlı güncelleme yolu bu yüzden **saniyenin altına iner — ama yalnız p=1'de,
+normalize sabit açıyla.** Bugünkü ayar (ham γ, p=2, COBYLA) 2,43 s'de rastgele
+düzeyinde (P_opt düzgünün 0,62×'i) bir sonuç veriyor. ⚠️ Ölçüm float64'te;
+optimize edici kartta (18 bit) koşarsa ayrıca doğrulanmalı.
 
 ---
 
@@ -302,6 +316,11 @@ Bu projenin katkısı **birincisidir**. İkincisi p'yi artırmayı veya farklı
 parametre başlatması denemeyi gerektirir ve bu fazın kapsamında değildir.
 Karıştırılırsa savunma çöker.
 
+> ⚠️ **3 Eki (6D)**: parametre ölçeklemesi denendi — referansın P_opt'u
+> (2,4e-5) ayarın ürünüymüş; normalize edilince ~1e-3. Bu hâlâ küçük ve
+> kaba kuvvet hâlâ kesin ve ~85.000× hızlı: *"QAOA rotaları iyileştiriyor"*
+> yine **zayıf** kalıyor.
+
 ---
 
 ## 9. Açık kalanlar
@@ -311,8 +330,9 @@ Karıştırılırsa savunma çöker.
 | Kümeleme algoritması ve tur birleştirme yöntemi (§5) | |
 | ML zorluk tipi (A/B*/C) girdileri ve eşikleri | |
 | ESP32 haberleşme yolu: doğrudan mı Railway üzerinden mi — **hangi koşulda** | |
-| Sıcak başlangıç / sabit açı denemesi (§7) | |
-| 37,28 ms'nin **kartta** doğrulanması (Faz 5, öbek 4) | |
+| ~~Sıcak başlangıç / sabit açı denemesi (§7)~~ | ✅ 3 Eki, 6D |
+| ~~37,28 ms'nin **kartta** doğrulanması (Faz 5, öbek 4)~~ | ✅ 27 Eyl, 36,578 ms |
+| Optimize edici döngüsünün **kartta** (18 bit) koşması — normalize sabit açı / COBYLA | |
 
 ---
 

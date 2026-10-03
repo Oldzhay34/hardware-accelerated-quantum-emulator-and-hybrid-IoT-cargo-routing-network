@@ -46,6 +46,12 @@ Beklenti değeri gerçekten düştü, fakat olasılık kütlesi tek bir duruma *
 optimali ölçme olasılığı 2,4e-5; Shannon entropisi üzerinden etkin durum sayısı ~18.900/65536 —
 neredeyse uniform.
 
+> ⚠️ **3 Eki 2026 (6D)**: yoğunlaşmamanın nedeni bulundu — Hamiltonyen normalize
+> edilmeden γ [0, π]'den başlatılıyor; bu ölçekte manzara sözde rastgele. γ'yı
+> s = max|h|,|J|'ye bölünce 20 problemde P_opt 121× arttı (~1e-3).
+> [hatalar #13](../hatalar-ve-duzeltmeler.md), [olculen-degerler §5.2](../olculen-degerler.md).
+> Bu ADR'nin kararı (COBYLA) değişmedi; ölçekleme ayrı bir karardır.
+
 Bu bir uygulama hatası değil, **sığ-devre (p=1/2) QAOA'nın bilinen bir sınırlaması** (muhtemel
 katkı: tur-tersine-çevirme dejenereliği). `best_tour` yine de her koşumda kaba kuvvetle birebir
 eşleşiyor — Faz 2'yi engellemiyor. Ayrıntı ve tez için önerilen ifade:

@@ -1,0 +1,362 @@
+{
+ "ne": "Aer gecikme serisi (6B, katman 1)",
+ "protokol_surumu": "gpu-taban-protokolu v1.1",
+ "gecerli": true,
+ "gecersizlik_nedeni": null,
+ "etiket": "enerjiE2",
+ "damga": {
+  "stamped_at": "2026-10-03T12:23:20.897212+00:00",
+  "git_hash": "f15dd47",
+  "git_dirty": true,
+  "config": {
+   "device": "GPU",
+   "saniye": 170,
+   "p": 2
+  }
+ },
+ "kod_kirli_bas": false,
+ "kod_kirli_son": false,
+ "ortam": {
+  "qiskit": "1.4.6",
+  "qiskit_aer": "0.15.1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "nproc": 16,
+  "max_parallel_threads": 4,
+  "aer_is_parcacigi": 4,
+  "device_istenen": "GPU",
+  "device_metadata": "GPU",
+  "precision": "double",
+  "cuStateVec_enable": false,
+  "fusion": {
+   "applied": true,
+   "time_taken": 0.004244844,
+   "cost_factor": 1.8,
+   "parallelization": 1,
+   "max_fused_qubits": 5,
+   "method": "unitary",
+   "threshold": 14,
+   "enabled": true
+  },
+  "gpu": {
+   "ad": "NVIDIA GeForce RTX 4060 Laptop GPU",
+   "surucu": "616.92",
+   "guc_siniri_W": "[N/A]"
+  }
+ },
+ "kosullar_bas": {
+  "zaman": "2026-10-03T15:20:20+0300",
+  "loadavg": "0.29 0.99 0.57 1/369 577",
+  "gpu": {
+   "sicaklik_C": "57",
+   "sm_saat_MHz": "1470",
+   "guc_cekisi_W": "9.76"
+  },
+  "guc": {
+   "plan": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (Yüksek performans)",
+   "mod_overlay_ac": "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Power\\User\\PowerSchemes\r\n    ActiveOverlayAcPowerScheme    REG_SZ    ded574b5-45a0-4f42-8737-46345c09c238",
+   "batarya_durumu": "1",
+   "sebekede": false
+  }
+ },
+ "kosullar_son": {
+  "zaman": "2026-10-03T15:23:20+0300",
+  "loadavg": "0.96 1.00 0.65 1/366 615",
+  "gpu": {
+   "sicaklik_C": "61",
+   "sm_saat_MHz": "330",
+   "guc_cekisi_W": "5.92"
+  },
+  "guc": {
+   "plan": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (Yüksek performans)",
+   "mod_overlay_ac": "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Power\\User\\PowerSchemes\r\n    ActiveOverlayAcPowerScheme    REG_SZ    ded574b5-45a0-4f42-8737-46345c09c238",
+   "batarya_durumu": "1",
+   "sebekede": false
+  }
+ },
+ "dogrulama": {
+  "referans": "reference_20260915_c6ad872_p2_n5.json",
+  "referans_backend": "aer_simulator_statevector/0.17.2",
+  "fidelity": 0.9999999999999998,
+  "bir_eksi_F": 2.220446049250313e-16,
+  "max_genlik_farki": 5.233490025350928e-12,
+  "p_optimum_referans": 2.380275080015953e-05,
+  "p_optimum_bu_kosum": 2.3802750800159457e-05,
+  "esik": 0.999,
+  "gecti": true
+ },
+ "son_kosum_ayni": true,
+ "p": 2,
+ "kapi": 585,
+ "transpile_sonrasi": {
+  "cx": 336,
+  "rz": 168,
+  "u2": 16,
+  "u3": 16,
+  "r": 16,
+  "save_statevector": 1
+ },
+ "toplam_saniye": 170.003,
+ "zamanlanan_kosum": 6522,
+ "isinma_atilan": 3,
+ "verim_kosum_sn": 38.3641,
+ "seri": {
+  "konfig": "aer_GPU_n16_p2",
+  "kapsam": "kosum",
+  "kosum_sayisi": 6519,
+  "medyan_s": 0.025733880999950998,
+  "p25_s": 0.024623038500010352,
+  "p75_s": 0.027372721000006095,
+  "yayilim_s": 0.0027496824999957425,
+  "min_s": 0.014750923000065086,
+  "max_s": 0.05074713499993777,
+  "p95_s": 0.029950185999962284,
+  "p99_s": 0.03200528498002084,
+  "jitter_s": 0.035996211999872685,
+  "protokol_surumu": "gpu-taban-protokolu v1.1",
+  "yuzdelik_yontemi": "numpy.percentile, dogrusal ara degerleme (varsayilan)"
+ },
+ "ilk_ve_son": {
+  "ilk_50_kosum": {
+   "konfig": "aer_GPU_n16_p2",
+   "kapsam": "kosum",
+   "kosum_sayisi": 50,
+   "medyan_s": 0.019100748000028034,
+   "p25_s": 0.017074720500062313,
+   "p75_s": 0.02030188575005809,
+   "yayilim_s": 0.003227165249995778,
+   "min_s": 0.014750923000065086,
+   "max_s": 0.024714485999993485,
+   "p95_s": 0.022979655749992386,
+   "p99_s": 0.02437584259002051,
+   "jitter_s": 0.0099635629999284,
+   "protokol_surumu": "gpu-taban-protokolu v1.1",
+   "yuzdelik_yontemi": "numpy.percentile, dogrusal ara degerleme (varsayilan)"
+  },
+  "son_60_sn": {
+   "konfig": "aer_GPU_n16_p2",
+   "kapsam": "kosum",
+   "kosum_sayisi": 2295,
+   "medyan_s": 0.02588892999995096,
+   "p25_s": 0.024422341999979835,
+   "p75_s": 0.027375222999978632,
+   "yayilim_s": 0.002952880999998797,
+   "min_s": 0.021478563000073336,
+   "max_s": 0.03953889000001709,
+   "p95_s": 0.029604253400054858,
+   "p99_s": 0.031608786800024956,
+   "jitter_s": 0.018060326999943754,
+   "protokol_surumu": "gpu-taban-protokolu v1.1",
+   "yuzdelik_yontemi": "numpy.percentile, dogrusal ara degerleme (varsayilan)"
+  }
+ },
+ "pencereler": [
+  {
+   "bas_s": 0.0,
+   "n": 468,
+   "medyan_s": 0.021419459500009452,
+   "gpu": {
+    "t_s": 10.019,
+    "sicaklik_C": "58",
+    "sm_saat_MHz": "360",
+    "guc_cekisi_W": "5.70"
+   }
+  },
+  {
+   "bas_s": 10.0,
+   "n": 376,
+   "medyan_s": 0.026341998000020794,
+   "gpu": {
+    "t_s": 20.02,
+    "sicaklik_C": "58",
+    "sm_saat_MHz": "315",
+    "guc_cekisi_W": "5.74"
+   }
+  },
+  {
+   "bas_s": 20.0,
+   "n": 390,
+   "medyan_s": 0.02536312950002184,
+   "gpu": {
+    "t_s": 30.025,
+    "sicaklik_C": "59",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.76"
+   }
+  },
+  {
+   "bas_s": 30.0,
+   "n": 383,
+   "medyan_s": 0.025686572000040542,
+   "gpu": {
+    "t_s": 40.05,
+    "sicaklik_C": "59",
+    "sm_saat_MHz": "315",
+    "guc_cekisi_W": "5.76"
+   }
+  },
+  {
+   "bas_s": 40.0,
+   "n": 373,
+   "medyan_s": 0.026420662999953493,
+   "gpu": {
+    "t_s": 50.069,
+    "sicaklik_C": "59",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.78"
+   }
+  },
+  {
+   "bas_s": 50.0,
+   "n": 389,
+   "medyan_s": 0.025405503000001772,
+   "gpu": {
+    "t_s": 60.069,
+    "sicaklik_C": "59",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.85"
+   }
+  },
+  {
+   "bas_s": 60.0,
+   "n": 392,
+   "medyan_s": 0.02526258349996624,
+   "gpu": {
+    "t_s": 70.091,
+    "sicaklik_C": "60",
+    "sm_saat_MHz": "315",
+    "guc_cekisi_W": "5.80"
+   }
+  },
+  {
+   "bas_s": 70.0,
+   "n": 391,
+   "medyan_s": 0.02532790999998724,
+   "gpu": {
+    "t_s": 80.091,
+    "sicaklik_C": "60",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.83"
+   }
+  },
+  {
+   "bas_s": 80.0,
+   "n": 379,
+   "medyan_s": 0.025983343999996578,
+   "gpu": {
+    "t_s": 90.095,
+    "sicaklik_C": "60",
+    "sm_saat_MHz": "315",
+    "guc_cekisi_W": "5.86"
+   }
+  },
+  {
+   "bas_s": 90.0,
+   "n": 333,
+   "medyan_s": 0.029669364999904246,
+   "gpu": {
+    "t_s": 100.105,
+    "sicaklik_C": "60",
+    "sm_saat_MHz": "315",
+    "guc_cekisi_W": "5.89"
+   }
+  },
+  {
+   "bas_s": 100.0,
+   "n": 351,
+   "medyan_s": 0.02816222799992829,
+   "gpu": {
+    "t_s": 110.126,
+    "sicaklik_C": "60",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.85"
+   }
+  },
+  {
+   "bas_s": 110.0,
+   "n": 359,
+   "medyan_s": 0.027559515000007195,
+   "gpu": {
+    "t_s": 120.151,
+    "sicaklik_C": "61",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.89"
+   }
+  },
+  {
+   "bas_s": 120.0,
+   "n": 362,
+   "medyan_s": 0.027086195500032773,
+   "gpu": {
+    "t_s": 130.161,
+    "sicaklik_C": "61",
+    "sm_saat_MHz": "300",
+    "guc_cekisi_W": "5.88"
+   }
+  },
+  {
+   "bas_s": 130.0,
+   "n": 373,
+   "medyan_s": 0.02662800000007337,
+   "gpu": {
+    "t_s": 140.183,
+    "sicaklik_C": "61",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.90"
+   }
+  },
+  {
+   "bas_s": 140.0,
+   "n": 407,
+   "medyan_s": 0.02436755799999446,
+   "gpu": {
+    "t_s": 150.187,
+    "sicaklik_C": "61",
+    "sm_saat_MHz": "330",
+    "guc_cekisi_W": "5.89"
+   }
+  },
+  {
+   "bas_s": 150.0,
+   "n": 399,
+   "medyan_s": 0.024680256999999983,
+   "gpu": {
+    "t_s": 160.207,
+    "sicaklik_C": "61",
+    "sm_saat_MHz": "345",
+    "guc_cekisi_W": "5.94"
+   }
+  },
+  {
+   "bas_s": 160.0,
+   "n": 394,
+   "medyan_s": 0.024820940499978406,
+   "gpu": null
+  }
+ ],
+ "plato": {
+  "oturdu": false,
+  "son_medyanlar_s": [
+   0.027559515000007195,
+   0.027086195500032773,
+   0.02662800000007337,
+   0.02436755799999446,
+   0.024680256999999983,
+   0.024820940499978406
+  ],
+  "ortalama_s": 0.025857077666681032,
+  "en_buyuk_sapma_orani": 0.06584028385852332,
+  "tolerans": 0.005
+ },
+ "eski_tanim": {
+  "turbo_ms": 19.019,
+  "plato_ms": 25.728
+ },
+ "ham_iz": {
+  "dosya": "gpu-yuk-dongu_20261003_f15dd47_enerjiE2_p2.ham.json.gz",
+  "kosum": 6522,
+  "bicim": "[[baslangic_s, sure_ms], ...]",
+  "sha256_acik": "1a43bf758b88313498d7261a794950fa21a0e04b358e71705dbd0b8335331d47",
+  "sikistirma": "gzip -9, mtime=0"
+ }
+}

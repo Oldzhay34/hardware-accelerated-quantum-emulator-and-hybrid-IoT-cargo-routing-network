@@ -334,6 +334,94 @@ değil "ölçüme göre" kararı destekliyor.
 - ⚠️ **Ön kayıtlı beklenti B7 tutmadı**: `T_uctan_uca`'yı Python kodlamasının
   domine edeceği beklenmişti; kodlama yalnız **%22–27**, çekirdek **%69–75**.
 
+### 5.2 Optimize edici döngüsü — çağrı sayısı ve QAOA kalitesi (6D, 2026-10-03)
+
+Protokol: [sicak-baslangic-protokolu v1.0](measurements/sicak-baslangic-protokolu.md)
+(🔒 `786801a`). Kayıt: [sicak-baslangic_20261003_f15dd47](measurements/sicak-baslangic_20261003_f15dd47.json)
+— geçerli (kapı G1–G5 geçti, sonda belirlenimcilik bit bit aynı), 2000 koşum, 25 dk.
+Sentetik İstanbul verisinden **20 problem** (5 durak) × **5 tohum**; her problemin
+bir adresi aynı ilçede değişmiş hâli (matris değişimi medyan %2,8, optimum tur
+20'nin 2'sinde değişti). COBYLA `maxiter` 100, `tol` 1e-6 (referansla aynı).
+Amaç fonksiyonu çekirdeğin Python ikizi (Qiskit'e karşı ⟨E⟩ farkı 2e-8), float64.
+**Kart gerekmedi; süreler `çağrı × 36,578 ms` ile türetilmiştir.**
+
+**Ana bulgu — referansın ölçeklemesi QAOA'yı rastgele düzeyine indiriyor**
+(soğuk başlangıç, 100 koşumun dağılımı):
+
+| p=2 | **R** — ham H (referans gibi) | **N** — γ/s, s = max\|h\|,\|J\| |
+|---|---:|---:|
+| r = ⟨E⟩/E_opt (çeyrekler) | 0,062 / **0,098** / 0,134 | 0,670 / **0,788** / 0,846 |
+| P_opt medyan | 9,5e-6 (**düzgün dağılımın 0,62×'i**) | **1,14e-3** (düzgünün 75×'i) |
+| P_opt örnek düzeyi N/R | | **121×** (Wilcoxon p ≈ 0) |
+| Geçerli turların toplam olasılığı | %0,05 | %2,3 |
+| En olası geçerli tur = optimum | %5 (rastgele: 1/24 = %4,2) | %22 |
+| Çağrı (medyan) / tavana çarpan | 66,5 / %7 | **100 / %100** |
+
+Referansın normalize edilmemiş Hamiltonyen'inde (spektral genişlik ~2,3e5) γ
+[0, π]'den başlatılıyor; bu ölçekte ⟨E⟩(γ) COBYLA'nın adım ölçeğinde sözde
+rastgele (referans örneğinde 4001 noktada 2889 yerel uç). Sonuç: **CLAUDE.md ve
+belgelerdeki "doğru olma olasılığı 2,4e-05" QAOA'nın değil bu ayarın ürünü**
+([hatalar #13](hatalar-ve-duzeltmeler.md)). N'de bile P_opt ~1e-3 — kaba
+kuvvetin kesin çözümüyle (43,2 µs) kıyas **değişmez**.
+
+**Artımlı yol** (adresi değişmiş problem, I_k'):
+
+| Koşul (p=2) | R: çağrı · r · P_opt | N: çağrı · r · P_opt |
+|---|---|---|
+| C1 soğuk, rhobeg 1 | 63 · 0,096 · 1,1e-5 | 100 · 0,775 · 1,17e-3 |
+| C2 soğuk, rhobeg 0,1 | 56,5 · 0,069 · 1,1e-5 | 100 · 0,786 · 8,5e-4 |
+| W1 sıcak, rhobeg 1 | 62 · 0,103 · 1,1e-5 | 100 · 0,826 · 1,27e-3 |
+| W2 sıcak, rhobeg 0,1 | 54 · 0,091 · 1,3e-5 | 100 · 0,824 · 1,19e-3 |
+
+| Koşul (p=1) | R: çağrı · r | N: çağrı · r · P_opt |
+|---|---|---|
+| C1 soğuk | 41 · 0,089 | 57 · 0,705 · 6,0e-4 |
+| W2 sıcak, rhobeg 0,1 | 35,5 · 0,081 | **42** · 0,702 · 6,0e-4 |
+| **S sabit açı** (I1–I10'dan, test: 20 problem) | 1 · ≈0 (rastgele) | **1 · 0,82 · 8,4e-4** |
+
+| Seçenek | Çağrı | Kart süresi (türetilmiş) | P_opt |
+|---|---:|---:|---:|
+| Bugünkü sistem (R, p=2, soğuk) | 66,5 | 2,43 s | 9,5e-6 |
+| N, p=2, COBYLA | 100 (tavan) | 3,66 s | 1,1e-3 |
+| N, p=1, sıcak başlangıç (W2) | 42 | 1,54 s | 6,0e-4 |
+| **N, p=1, sabit açı** | **1** | **0,037 s** | **8,4e-4** |
+
+**Ne gösteriyor**:
+* **Ölçekleme, sıcak başlangıçtan çok daha büyük bir kaldıraç.** Konak
+  tarafında γ'yı s'ye bölmek (çekirdek değişmez) P_opt'u 121× artırıyor.
+* **Sıcak başlangıç küçük ve koşullu.** N, p=2: kalite anlamlı ama küçük artıyor
+  (r 0,801 → 0,825, W2–C2, p = 0,03), çağrı tasarrufu yok (hepsi tavanda).
+  N, p=1: çağrı 57 → 42 (−%26), kalite aynı. R'de bilgi taşımıyor (p = 0,12).
+* **Sabit açı p=1'de COBYLA'dan iyi, p=2'de felaket.** p=1, N: 20 test
+  probleminin **20'sinde** tek çağrı, soğuk COBYLA'nın medyanından iyi ya da
+  eşit — COBYLA'nın soğuk koşumlarının %39'u r < 0,4'lük kötü bir yerel
+  optimumda kalıyor, sabit açı kalmıyor (açılar örnekler arası taşınıyor). p=2,
+  N: eğitim örneklerinin farklı optimumlarının bileşen bileşen medyanı anlamsız
+  bir noktaya düşüyor (r −1,88, P_opt 2,8e-9) — kural p=2'de geçersiz.
+* **Saniye altı yalnız sabit açıyla** — COBYLA'lı hiçbir koşul ≤ 27 çağrıya inmedi.
+
+**Ön kayıtlı beklentiler** (manşet p=2; p=1 ikincil):
+
+| # | Beklenti | p=2 | p=1 |
+|---|---|---|---|
+| H1 | R'de tohum duyarlılığı N'den büyük (r aralığı, ≥ 15/20) | ❌ **ters**: 1/20 | ❌ 2/20 |
+| H2 | P_opt N/R ≥ 2 ve p < 0,05 | ✅ 121× | ✅ 47× |
+| H3 | N: r(W2) > r(C2) anlamlı **ve** çağrı W2 ≤ 0,5 × C1 | ❌ kalite ✅ (p 0,03), çağrı 100/100 | ❌ 42/57, kalite farkı yok |
+| H4 | R: sıcak başlangıç bilgi taşımaz | ✅ p 0,12 | ✅ p 0,14 |
+| H5 | Sabit açı N ≥ 0,5, R < 0,5 (P_opt oranı) | ❌ N 0,0 | ❌ N 1,56 ✅, R 0,98 ✗ |
+| H6 | COBYLA'lı hiçbir koşul ≤ 27 çağrı | ✅ | ✅ |
+
+H1'in tersine dönmesinin nedeni: R'de bütün tohumlar **aynı derecede kötü**
+(r ≈ 0,1); duyarlılık yolda, sonuçta değil. H5 p=1'de N yarısıyla tuttu ama R
+de rastgele düzeyde olduğu için "R < 0,5" yarısı tutmadı.
+
+⚠️ **Sınırlar**: (a) float64 — optimize edici döngüsü kartta (18 bit) koşarsa
+özellikle R'de yol ayrılır, **ölçülmedi**; (b) sentetik veri, N=5;
+(c) sabit açı p=1 için eğitim/test ayrımı tek bölünme (I1–I10 / I11–I20);
+(d) koşu 25 dk sürdü (protokoldeki ~10 dk planlama tahminiydi); ilk başlatma
+SciPy içe aktarılırken Windows Uygulama Denetimi'nin geçici engeline takıldı
+(koşum yapılmadan), yeniden başlatıldı.
+
 ---
 
 ## 6. CPU tabanı — TEMİZ ÖLÇÜM (2026-09-19)
@@ -481,6 +569,63 @@ başka bir süreç kullanıyordu, kaynağı bilinmiyor.
 | G3 | FP64/FP32 < 2 | ✅ 1,09 (p=2) / 1,14 (p=1) |
 | G4 | FP32 ≥ H; FP64 belirgin iyi değil | ✅ ikisi de 0,999999897 (p=2) |
 
+### 6.2 GPU tabanı — ENERJİ (2026-10-03, 6B T068, protokol v1.1)
+
+Protokol: [gpu-enerji-protokolu v1.1](measurements/gpu-enerji-protokolu.md)
+(🔒 `8b4e393`). Batarya delta yöntemi (19 Eyl CPU ölçümüyle aynı alet ve hesap),
+**tüm dizüstü kapsamı**; her seri [boş 180 sn] → [yük 180 sn]. Koşullar: fişten
+çıkık (pil %85,8 → %48,3), parlaklık %0 (beyan), tek ekran, pilde "En iyi
+performans", ekran/uyku engeli ve WSL ölçüm boyunca açık, git `f15dd47` (temiz),
+p=2. Dört iş yükünün doğrulaması geçti; kaydedici her yük penceresinde gerçek
+kipte denetlendi. Kayıtlar: `enerji-batarya_20261003_f15dd47_E{1..4}.json`,
+koşullar [enerji-kosullar](measurements/enerji-kosullar_20261003_f15dd47.json).
+
+⛔ Aynı gün 13:59'daki ilk koşu **geçersiz** (çalıştırıcı yük penceresine sahte
+kaydedici bağladı — [hatalar #12](hatalar-ve-duzeltmeler.md)); dosyaları repoya
+girmedi.
+
+| Seri | İş yükü (katman) | P boş / yük | ΔP | Koşum | **J/koşum (A)** | B ile | A/B sapma boş/yük | Durum |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| E1 | Aer CPU, T=4 (1) | 24,93 / 32,93 W | 8,00 W | 5.917 | **0,243** | 0,290 | %4,8 / %7,6 | ✅ geçerli |
+| E2 | Aer GPU (1) | 24,37 / 34,62 W | 10,25 W | 6.522 | 0,282 | 0,334 | %8,2 / **%10,5** | ⚠️ güvenilmez |
+| E3 | Aynı algoritma, GPU FP32 (2) | 24,81 / 43,07 W | 18,26 W | 257.768 | 0,0127 | 0,0142 | **%11,1 / %10,9** | ⚠️ güvenilmez |
+| E4 | Aynı algoritma, CPU float, tek iş parçacığı (2) | 26,57 / 33,77 W | 7,20 W | 59.408 | **0,0217** | 0,0262 | %7,9 / %9,8 | ✅ geçerli (sınırda) |
+
+**Kural (protokol §6)**: A/B sapması %10'u aşan seri raporlanır ama **kıyasa
+girmez** → katman 1'in (E2/E1) ve katman 2'nin (E3/E4) **resmi kıyası
+kurulamaz**. Kullanıcı kararı (3 Eki): yeniden koşulmaz, protokol olduğu gibi
+uygulanır.
+
+**Bilgi olarak** (güvenilmez işaretli seriler dahil; B yöntemiyle de **yön
+aynı**):
+* Aynı algoritmada GPU koşum başına tek iş parçacıklı CPU'dan ~1,7× az enerji
+  harcıyor (A 1,71×, B 1,85×) — 2,5× daha fazla ek güç çekip 4,3× daha çok
+  koşum yaparak.
+* Aer içinde GPU ~1,1× hızlı ama koşum başına ~%16 **daha fazla** enerji.
+* **A/B ayrışması sistematik**: 8 pencerenin 8'inde B (kapasite farkı) A'dan
+  (güç integrali) %5–12 büyük — 19 Eyl'de %3,6/%0,9 idi. Nedeni bilinmiyor
+  (pil göstergesi?); A manşettir (protokol §5), B duyarlılık olarak verilir.
+
+**Ön kayıtlı beklentiler**:
+
+| # | Beklenti | Sonuç |
+|---|---|---|
+| N1 | E3 < 0,1 J/koşum | ◐ 0,0127 J — ama E3 güvenilmez |
+| N2 | E3, E1 ve E2'den ≥ 10× az | ◐ 19× / 22× — E3 güvenilmez; ⚠️ ayrıca **katmanlar arası** bir kıyas, protokol §7 bunu yasaklıyor (protokol iç çelişkisi) → bilgi, sonuç değil |
+| N3 | E2/E1 0,5–2 | ◌ 1,16 — E2 güvenilmez, **değerlendirilemez** |
+| N4 | E3 < E4 | ◌ 1,71× az — E3 güvenilmez, **değerlendirilemez** |
+| N5 | Pilde GPU verimi prizdekinin < %80'i | ❌ **ters**: pilde 3,5× yüksek (⚠️ kör değildi — geçersiz koşuda görülmüştü) |
+| N6 | Bütün pencerelerde A/B ≤ %10 | ❌ 3 pencere aştı |
+
+⚠️ **Açık gözlem — pilde prizdekinden hızlı** (iki koşuda tekrarlandı): aynı
+iş yüklerinin pildeki medyanları T067'nin prizdeki değerlerinden kısa —
+GPU aynı algoritma **0,555** vs 0,997 ms, Aer CPU 27,96 vs 36,23 ms, Aer GPU
+25,73 vs 29,94 ms, `bench_kernel` 2,91 vs 3,273 ms. Güç planı iki ölçümde de
+aynı ("Yüksek performans" + "En iyi performans"); T067'de GPU ölçüm başında
+75 °C, bugün 58 °C. **Nedeni bilinmiyor.** §6.1'in "GPU FPGA'dan 36,7× hızlı"
+değeri T067'ye dayanır — prizde, soğuk GPU'yla kısa bir kontrol ölçümü
+açıklığa kavuşturur (açık iş).
+
 ---
 
 ## 7. NE İDDİA EDİLEBİLİR, NE EDİLEMEZ
@@ -508,25 +653,43 @@ başka bir süreç kullanıyordu, kaynağı bilinmiyor.
 - ✅ **GPU tabanı ölçüldü** (30 Eyl, §6.1): aynı algoritma GPU'da 0,997 ms
   (FPGA'dan 36,7× hızlı); FPGA'nın gecikmesi belirlenimci (p99/medyan
   1,0004), GPU'nunki değil (20). Aer içinde GPU CPU'dan yalnız 1,2× hızlı.
+  ⚠️ Pilde aynı GPU iş yükü 0,555 ms ölçüldü (3 Eki, §6.2) — prizdeki değerin
+  nedeni açıklanana kadar 36,7× **prizdeki T067 koşullarına** aittir.
+- ✅ **Dizüstü enerjisi ölçüldü** (3 Eki, §6.2, tüm dizüstü kapsamı, pilde):
+  Aer CPU 0,243 J/koşum, aynı algoritma CPU tek iş parçacığı **0,0217 J/koşum**
+  (ikisi de geçerli). GPU serileri (0,282 / 0,0127 J) **güvenilmez** işaretli
+  (A/B > %10) — yalnız bilgi olarak, kıyas kurulmadan yazılır.
+- ✅ **Optimize edici döngüsü ölçüldü** (6D, 3 Eki, §5.2): referansın
+  ölçeklemesiyle QAOA rastgele düzeyinde (P_opt düzgünün 0,62×'i); γ/s
+  normalizasyonu P_opt'u 121× artırıyor; p=1'de normalize **sabit açı** tek
+  çağrıyla (türetilmiş 37 ms) soğuk COBYLA'dan iyi. Sıcak başlangıç çağrıyı
+  en fazla %26 azaltıyor.
 
 **EDİLEMEZ**:
 
 - ❌ **Genel bir hızlanma iddiası.** Geçerli tek hızlanma PS↔PL 2,30×'tir;
   aynı çekirdek dizüstü CPU'da FPGA'dan **11,2× hızlı** (3,273 ms vs
   36,578 ms). "FPGA hızlandırıyor" cümlesi tabansız kurulamaz.
-- ⚠️ **Enerji karşılaştırması** — CPU tarafı ölçüldü (0,644 J/koşum), **FPGA
-  tarafı ölçülmedi**. Tek taraflı rakam karşılaştırma üretmez.
+- ⚠️ **FPGA ile enerji karşılaştırması** — dizüstü tarafı ölçüldü (§6.2;
+  19 Eyl'in 0,644 J'si farklı ortamdır, kıyasa girmez), **FPGA tarafı
+  ölçülmedi** (öbek 6, INA219). Tek taraflı rakam karşılaştırma üretmez.
+- ⛔ **"GPU daha verimli" ya da "GPU daha verimsiz"** — GPU serileri güvenilmez
+  işaretli (§6.2); yön bilgi olarak yazılabilir, sonuç olarak yazılamaz.
 - ❌ **Rota optimizasyonunda herhangi bir hızlanma.** Kaba kuvvet aynı makinede
   **43,2 µs**'de kesin sonucu veriyor; QAOA yolu 3,69 s ve doğru olma olasılığı
   2,4e-05 — **~85.000× kaba kuvvet lehine**, ölçüldü
   ([kaba-kuvvet-kiyas](measurements/kaba-kuvvet-kiyas_20260921_c504294.json)).
   Bu yapısaldır ve donanımla ilgisizdir; ayrıntı: [neden-fpga.md](neden-fpga.md).
+  ⚠️ **3 Eki**: 2,4e-05 referansın ölçeklemesinin ürünü (§5.2, hatalar #13);
+  normalize edilince P_opt ~1e-3 (p=2) — süre farkı ve sonuç (kaba kuvvet
+  kesin ve ~85.000× hızlı) **değişmez**.
 - ❌ **"FPGA GPU'dan hızlı" — ölçümle yanlış** (30 Eyl, §6.1): aynı algoritma
   RTX 4060 Laptop'ta **0,997 ms**, FPGA'dan **36,7×** hızlı. Yazılabilecek
   olan: *"GPU hızda 36,7× önde; FPGA belirlenimcilikte önde (p99/medyan
   1,0004'e karşı 20)"* — ikisi birlikte, tabanlarıyla.
-- ⚠️ **GPU enerjisi ölçülmedi** (T068). "GPU daha verimli/verimsiz" yazılamaz;
-  FPGA'nın savunması **dağıtım zarfı** (~5 W, konaksız), hız değil.
+- ⚠️ FPGA'nın savunması **dağıtım zarfı** (~5 W, konaksız), hız değil —
+  GPU iş yükü altında dizüstünün tamamı **43 W** çekti (§6.2; GPU'nun kendi
+  payı ayrıca ölçülmedi).
 - ❌ **Aer rakamlarını FPGA'yla kıyaslamak** — Aer katmanı (§6.1) yalnız
   "Aer içinde GPU/CPU oranı" (1,2×) için geçerli.
 - ⚠️ **n=16 RTL eşdeğerliği kısmen** — çıkış portu bit bit doğrulandı, ancak
@@ -558,6 +721,16 @@ varyant (#7, #6'nın alt kümesi) daha kötü yerleşti ve zamanlamayı tutturam
 **Çıkan kural**: *kaynak gerekçesiyle bir varyant elenecekse gerekçe
 implementasyondan gelmelidir.* HLS tahmini yalnızca hangi varyantların
 ölçülmeye değer olduğunu sıralamaya yarar.
+
+**Ölçümle yanlışlanan varsayımlar ve tutmayan ön kayıtlı beklentiler (3 Eki)**:
+
+| Varsayım / beklenti | Ölçüm | Sonuç |
+|---|---|---|
+| QAOA'nın düşük optimum olasılığı (2,4e-5) problemin/QAOA'nın özelliği | Normalize γ ile P_opt 121× (§5.2) | Referansın **ölçeklemesinin** ürünü; R'de QAOA rastgele düzeyinde |
+| "99 iterasyon" alt problemin sabit bir özelliği | 20 problemde R medyanı 66,5; N'de hepsi 100'lük tavanda | Ayarın ve optimize edicinin özelliği |
+| Sıcak başlangıç artımlı yolda "99 → birkaç adım" (sistem-mimarisi §7) | En fazla −%26 (p=1, N); p=2'de sıfır | Ana kaldıraç değil; sabit açı (p=1) ve ölçekleme |
+| H1: R'de sonuç tohuma daha duyarlı | Ters (1/20) | R'de bütün tohumlar aynı derecede kötü |
+| N5: pilde GPU verimi düşer | Pilde 3,5× **yüksek** (kör değildi) | Nedeni bilinmiyor — prizdeki T067 değerleri sorgulanmalı (§6.2) |
 
 ---
 

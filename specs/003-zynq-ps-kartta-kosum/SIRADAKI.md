@@ -15,15 +15,10 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Hedef (tek cümle)**: 6B **T068** — ⛔ 3 Eki ilk koşu **geçersiz** (hata #12: yük penceresinde sahte kaydedici; E4 /tmp ikilisi kayboldu). Düzeltildi, protokol **v1.1 taslağı onay bekliyor** (§9). Onay → commit → batarya ≥ %80 → fişi çek → aynı komut. Aşağıdaki eski metin v1.0 içindir: enerji protokolü taslağı
-([gpu-enerji-protokolu.md](../../docs/measurements/gpu-enerji-protokolu.md)) ve
-kod hazır, **kullanıcı onayı** bekleniyor. Sonra: commit → **fişi çek**
-(batarya ≥ %80, ekran parlaklığı sabit ve beyan edilir, harici monitör yok) →
-`powershell -ExecutionPolicy Bypass -File scripts\enerji_serileri.ps1` (~26 dk,
-dokunulmaz) → N1–N6 ile karşılaştır. Sonra T069 (kıyas matrisi).
-⚠️ `.wslconfig` `processors=16` hâlâ açık (T068 de WSL'de koşuyor — bitince 6'ya geri alınabilir).
+**Hedef (tek cümle)**: 6B **T069** — kıyas matrisi (T051–T055 betiği + GPU sütunu). Kartsız yazılabilir; FPGA enerji hücresi `null` + not (T053). ⚠️ **Önce karar**: iş yükleri **pilde prizdekinden hızlı** ölçüldü (GPU aynı algoritma 0,555 vs 0,997 ms) — §6.1'in 36,7×'i prizdeki T067'ye dayanıyor. Matrise girmeden önce prizde, soğuk GPU'yla kısa bir kontrol ölçümü önerilir (ön kayıtlı protokol gerekir).
+⚠️ `.wslconfig` `processors=16` hâlâ açık — kontrol ölçümü yapılacaksa aynı ortamda kalmalı; sonra 6'ya geri alınabilir.
 
-**Kartsız paralel iş (2 Eki)**: 6D protokol taslağı [sicak-baslangic-protokolu.md](../../docs/measurements/sicak-baslangic-protokolu.md) — onaylanınca commit → `.venv\Scripts\python.exe scripts\sicak_baslangic.py` (~10 dk, bilgisayar kullanılabilir; enerji ölçümüyle **aynı anda koşulmaz**).
+**3 Eki kapananlar**: ✅ **T068** enerji (v1.1; E1 0,243 / E4 0,0217 J geçerli, E2/E3 güvenilmez — [olculen-degerler §6.2](../../docs/olculen-degerler.md)); ✅ **6D** (T074–T077; ölçekleme P_opt'u 121× artırıyor, p=1 sabit açı tek çağrı — [§5.2](../../docs/olculen-degerler.md)). Hata kaydı **#12** (enerji çalıştırıcısında sahte kaydedici) ve **#13** (referans QAOA kalitesi ölçekleme ürünü).
 
 **Dokunulacak dosyalar**: `scripts/cpu_load_loop.py` (doğrulama),
 `services/reference/` (referansın nasıl üretildiği), T065b için yeni GPU
@@ -152,7 +147,7 @@ durum** (üçgen döngüler); **RTL simülasyonu 36,5464 ms**, kart 31 µs üst�
 kart RTL'i koşuyor. ⬜ Döngü döngü dağılım kapanmadı (manşeti değiştirmez).
 Ön kayıtlı **B7 tutmadı**. Kayıt: [olculen-degerler §5.1](../../docs/olculen-degerler.md).
 
-**Son güncelleme**: 2026-09-27, Faz 5.10 (öbek 5 ve 6C kapandı; sıradaki kartsız iş 6B)
+**Son güncelleme**: 2026-10-03, Faz 5 (T068 ve 6D kapandı; sıradaki kartsız iş T069, önce prizde/pilde kontrol ölçümü kararı)
 
 ---
 
@@ -271,9 +266,9 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
 | 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
-| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T067 + T065b ✅ (30 Eyl: GPU aynı algoritmada 36,7× hızlı, FPGA belirlenimci); T068 protokol taslağı (onay bekliyor), T069 kaldı |
+| 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T068 + T065b ✅ (30 Eyl gecikme, 3 Eki enerji — GPU serileri güvenilmez işaretli); T069 kaldı |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |
-| 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | 📝 protokol taslağı + `sicak_baslangic.py` hazır (2 Eki), **onay bekliyor** — kart ve FPGA gerekmez |
+| 6D | **Sıcak başlangıç** (2026-09-21 eklendi) | T074–T077 | ✅ **kapandı** (3 Eki) — referans ayarı QAOA'yı rastgele düzeyine indiriyor; normalize p=1 sabit açı tek çağrıda saniye altı |
 | 7 | — faz kapanışı | T056–T063 | bekliyor |
 
 **MVP**: T001–T038 → *"16 kübitlik statevector emülatörü FPGA'da çalışıyor ve

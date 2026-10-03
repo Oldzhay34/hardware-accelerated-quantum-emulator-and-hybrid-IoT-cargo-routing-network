@@ -35,7 +35,9 @@ geliyordu ve **geçersizdir**.
 
 **Bu proje bir rota optimizasyonu ürünü DEĞİLDİR.** Kaba kuvvet çözücü aynı
 makinede N=5'i **43,2 µs**'de kesin olarak çözüyor; QAOA yolu 3,69 s ve doğru
-olma olasılığı 2,4e-05 — **~85.000× fark**, ölçüldü. Bu yapısaldır
+olma olasılığı 2,4e-05 (⚠️ ölçeklemesiz referans ayarının ürünü; γ normalize
+edilince ~1e-3 — [hatalar #13](docs/hatalar-ve-duzeltmeler.md), 3 Eki) —
+**~85.000× fark**, ölçüldü. Bu yapısaldır
 (statevector `2^((N-1)²)`, çözüm uzayı `(N-1)!`) ve donanımla ilgisizdir.
 TSP/QAOA burada **çözülecek problem değil, altın referansı olduğu için
 doğrulanabilir bir iş yüküdür**.

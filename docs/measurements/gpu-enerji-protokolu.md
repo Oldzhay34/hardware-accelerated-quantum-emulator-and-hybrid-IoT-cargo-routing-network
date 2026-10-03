@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, ilk enerji serisinden önce. ⛔ v1.0 ile yapılan tek koşu (3 Eki 13:59–14:22, git `d1e714b`) **GEÇERSİZ** — çalıştırıcı hatası, [hata #12](../hatalar-ve-duzeltmeler.md). 🔒 **v1.1 DONDURULDU — 2026-10-03**, kullanıcı onayıyla, yeniden koşudan önce |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, ilk enerji serisinden önce. ⛔ v1.0 ile yapılan tek koşu (3 Eki 13:59–14:22, git `d1e714b`) **GEÇERSİZ** — çalıştırıcı hatası, [hata #12](../hatalar-ve-duzeltmeler.md). 🔒 **v1.1 DONDURULDU — 2026-10-03**, kullanıcı onayıyla, yeniden koşudan önce. ✅ **v1.1 koşuldu** 3 Eki 15:11–15:36 (git `f15dd47`): E1, E4 geçerli; E2, E3 **güvenilmez** (A/B > %10) — kullanıcı kararıyla yeniden koşulmadı. Sonuç: [olculen-degerler §6.2](../olculen-degerler.md) |
 | **Sürüm** | **v1.1** — değişiklikler **§9**'da, ⚠️ **geçersiz koşudan, bazı gerçek değerler görüldükten sonra**. Enerji kayıtları `gpu-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `8b4e393`, git içerik özeti `10b5e44815dfd9ec2cbcf885e797295798d6c799`; sonrasında yalnız durum/sürüm satırları ve §9 başlığı değişti (`git diff 8b4e393 -- <bu dosya>`) |
 | **Onaylanan metin** | commit `38f85b3`, git içerik özeti `b04397ba79caf4c5d0c620f365bd8cc769189e30` (`git rev-parse 38f85b3:docs/measurements/gpu-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §4'e eklenen **"Ekran kapanması / uyku"** satırı değişti (3 Eki ön denetiminde bulundu, **ölçümden önce**): `git diff 38f85b3 -- <bu dosya>` |
 | **Görev** | T068 (bu belge + ölçüm), T069'un enerji sütunu |
