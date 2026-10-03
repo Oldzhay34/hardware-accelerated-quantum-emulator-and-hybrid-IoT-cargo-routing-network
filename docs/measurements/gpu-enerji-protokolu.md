@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanıp dondurulmadan hiçbir enerji serisi koşulmaz |
-| **Sürüm** | v1.0 (taslak) — enerji kayıtları `gpu-enerji-protokolu v1.0` taşır |
-| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Durum** | 🔒 **DONDURULDU — 2026-10-03**, kullanıcı onayıyla, **ilk enerji serisinden önce** |
+| **Sürüm** | v1.0 — enerji kayıtları `gpu-enerji-protokolu v1.0` taşır |
+| **Onaylanan metin** | commit `38f85b3`, git içerik özeti `b04397ba79caf4c5d0c620f365bd8cc769189e30` (`git rev-parse 38f85b3:docs/measurements/gpu-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı ve §4'e eklenen **"Ekran kapanması / uyku"** satırı değişti (3 Eki ön denetiminde bulundu, **ölçümden önce**): `git diff 38f85b3 -- <bu dosya>` |
 | **Görev** | T068 (bu belge + ölçüm), T069'un enerji sütunu |
 | **Dayanak** | FR-009b/c/d, FR-011, FR-013, FR-014, SC-009 · [gpu-taban-olcum-protokolu v1.1](gpu-taban-olcum-protokolu.md) (gecikme; aynı iş yükleri) · [ADR 0010](../decisions/0010-gpu-tabani-iki-katman.md) · CPU yöntemi: [faz2-sentez §19](faz2-sentez.md) |
 
@@ -69,6 +69,7 @@ E3 beklentisi bunlar **bilinerek** yazıldı.
 | Batarya | Başta **≥ %80** (yalnız başlangıç koşulu — ölçüm sırasında %80'in altına inmesi beklenir ve serbesttir); herhangi bir seri başında < %30 ise ölçüm durur. Tahmini tüketim 15–17 Wh (37,7 Wh'nin %40–45'i) → %97'den başlanırsa ~%52–57'de biter. Pil tasarrufu otomatik eşiği pilde **%0** (`ESBATTTHRESHOLD`, 1 Eki) — ölçüm sırasında kendiliğinden devreye girmez. Batarya seviyesi seriden seriye düştüğü için sıra etkisi (§5) raporda yazılır |
 | Ekran | Harici monitör yok; parlaklık ölçümden önce **kullanıcı tarafından sabitlenir** ve değeri beyan edilir, ölçüm boyunca **değiştirilmez**. (WMI bu dizüstünde parlaklığı `0` döndürüyor — okunamıyor; kayıtta `0` görünür, beyan edilen değer rapora yazılır.) |
 | Güç modu | Pilde "En iyi performans" (`ActiveOverlayDcPowerScheme`), kaydedilir |
+| Ekran kapanması / uyku | ⚠️ 3 Eki ön denetimi: bu güç planında pilde ekran **180 sn** sonra kapanır, makine **180 sn** sonra uyur — ölçüm 26 dk dokunulmadan sürdüğü için ilk serinin ortasında devreye girerdi. Çalıştırıcı ölçüm boyunca `SetThreadExecutionState` (ES_CONTINUOUS \| ES_SYSTEM_REQUIRED \| ES_DISPLAY_REQUIRED) ile ikisini de engeller; **kalıcı ayar değişmez**, istek onu tutan süreç bitince kalkar. Boş ve yük pencerelerinde aynı durum → farkta sadeleşir. Her serinin koşullarına `ekran_uyku_engeli` yazılır. (Aynı denetimde pil tasarrufu eşiği pilde yine **%0**, ekran koruyucu yok, tek monitör.) |
 | Makine | Vivado/Vitis/noVNC kapalı; klavye/fare kullanılmaz; ağ ve Bluetooth durumu değiştirilmez |
 | Ortam | WSL, `/root/qir-gpu-venv` (gecikme protokolüyle aynı), Aer T=4 |
 | Git | Kod commit'lenmiş (`_kod_kirli` kuralı) |
