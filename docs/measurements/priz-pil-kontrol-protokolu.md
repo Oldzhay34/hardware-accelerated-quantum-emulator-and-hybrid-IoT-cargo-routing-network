@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanıp dondurulmadan ölçüm koşulmaz |
-| **Sürüm** | v1.0 (taslak) — kayıtlar `priz-pil-kontrol-protokolu v1.0` taşır |
-| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Durum** | 🔒 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, **ölçümden önce** |
+| **Sürüm** | v1.0 — kayıtlar `priz-pil-kontrol-protokolu v1.0` taşır |
+| **Onaylanan metin** | commit `8860e79`, git içerik özeti `90dabf13e7d15aae72c634f5dc49df03704133cb` (`git rev-parse 8860e79:docs/measurements/priz-pil-kontrol-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti. Yürütücü (`priz_pil_kontrol.ps1`, `_ozet.py`) `8860e79`'daki hâliyle donar; ölçüm kodunda o tarihten beri yalnız `measure_latency.py`'nin bir yorum satırı (kullanım örneği) değişti, davranış aynı |
 | **Görev** | T069'un girdisi: §6.1'deki GPU (0,997 ms → 36,7×) ve CPU (3,273 ms → 11,2×) değerleri prizde yeniden üretiliyor mu |
 | **Dayanak** | FR-011, SC-009 · [gpu-taban-olcum-protokolu v1.1](gpu-taban-olcum-protokolu.md) (aynı iş yükü, aynı istatistik) · [olculen-degerler §6.2](../olculen-degerler.md) açık gözlem |
 | **Yürütücü** | `scripts/priz_pil_kontrol.ps1` (**kullanıcı çalıştırır** — fiş uyarılarını görmesi gerekir), özet `scripts/priz_pil_kontrol_ozet.py`; karar kuralları **kodda**, protokolle birlikte donar |
