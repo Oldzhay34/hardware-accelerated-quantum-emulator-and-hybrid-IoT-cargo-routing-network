@@ -15,7 +15,7 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Kart işi (4 Eki, bu fazda)**: öbek 6 — kart enerjisi. ✅ INA219 konuşuyor (VCC lehimi açıktı, düzeltildi; SCL/SDA düz). 📝 [kart-enerji-protokolu](../../docs/measurements/kart-enerji-protokolu.md) taslağı + `agent/ina219.py`, `calibrate_ina219.py`, `measure_energy.py` hazır, **onay bekliyor**. Sıra: onay → **T048 kalibrasyon** (5 V pini + bilinen direnç; adaptör gerekmez — kullanıcıda uygun direnç var mı?) → **T046** (DC jak klemens adaptörleri **yok**, temin) → T049–T050. Kart JP5 = REG, adaptörle. ⚠️ Kablo değişikliği yalnız kart kapalıyken.
+**Kart işi (4 Eki, bu fazda)**: öbek 6 — kart enerjisi. ✅ INA219 konuşuyor (VCC lehimi açıktı, düzeltildi; SCL/SDA düz). 🔒 [kart-enerji-protokolu v1.0](../../docs/measurements/kart-enerji-protokolu.md) donduruldu (`be2abfc`) + `agent/ina219.py`, `calibrate_ina219.py`, `measure_energy.py` hazır. Sıra: **T048 kalibrasyon** (5 V pini + bilinen direnç; adaptör gerekmez — kullanıcıda uygun direnç var mı?) → **T046** (DC jak klemens adaptörleri **yok**, temin) → T049–T050. Kart JP5 = REG, adaptörle. ⚠️ Kablo değişikliği yalnız kart kapalıyken.
 
 **Hedef (tek cümle)**: 6B **T069** — kıyas matrisi (T051–T055 betiği + GPU sütunu). Kartsız yazılabilir; FPGA enerji hücresi `null` + not (T053). ⚠️ **Önce karar**: iş yükleri **pilde prizdekinden hızlı** ölçüldü (GPU aynı algoritma 0,555 vs 0,997 ms) — §6.1'in 36,7×'i prizdeki T067'ye dayanıyor. Matrise girmeden önce prizde, soğuk GPU'yla kısa bir kontrol ölçümü önerilir (ön kayıtlı protokol gerekir).
 ⚠️ `.wslconfig` `processors=16` hâlâ açık — kontrol ölçümü yapılacaksa aynı ortamda kalmalı; sonra 6'ya geri alınabilir.

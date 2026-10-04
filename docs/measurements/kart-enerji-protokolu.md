@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Durum** | 📝 **TASLAK — onay bekliyor.** Onaylanıp dondurulmadan kalibrasyon ve enerji ölçümü koşulmaz |
-| **Sürüm** | v1.0 (taslak) — kayıtlar `kart-enerji-protokolu v1.0` taşır |
-| **Onaylanan metin** | — (dondurulunca commit ve git içerik özeti buraya) |
+| **Durum** | 🔒 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, **ilk kalibrasyondan önce** |
+| **Sürüm** | v1.0 — kayıtlar `kart-enerji-protokolu v1.0` taşır |
+| **Onaylanan metin** | commit `be2abfc`, git içerik özeti `c84a4d73756030bb0e5cddade68b8d0dd1636fce` (`git rev-parse be2abfc:docs/measurements/kart-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff be2abfc -- <bu dosya>`. Yürütücü kod `be2abfc`'deki hâliyle donar |
 | **Görev** | T046 (düzenek), T048 (kalibrasyon), T049–T050 (ölçüm), T069'un FPGA enerji hücresi |
 | **Dayanak** | FR-009, FR-009c/d, FR-010, FR-011, SC-005, SC-006, SC-009 · [data-model §3, §3b](../../specs/003-zynq-ps-kartta-kosum/data-model.md) · dizüstü tarafı: [gpu-enerji-protokolu v1.1](gpu-enerji-protokolu.md) (**aynı yöntem**) · F2 iş yükü: [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (**aynı kod**) |
 | **Yürütücü** | `agent/ina219.py` (sürücü, örnekleyici, hesap), `agent/calibrate_ina219.py` (T048), `agent/measure_energy.py` (T049). Sabitler kodda; `agent/tests/test_ina219.py` kodu bu belgeye bağlar |
