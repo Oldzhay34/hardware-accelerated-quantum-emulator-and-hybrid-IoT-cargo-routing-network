@@ -11,7 +11,11 @@ Konakta 3.13 koşuyor; aynı kod ikisinde de çalışmak zorunda.
 | `cost_vectors.py` | İzdüşüm vektörü üreticisi (T023) | gerekmez |
 | `board.py` | AXI-Lite sürücüsü, çağrı sırası (T026–T030) | **evet** |
 | `run_board.py` | İzdüşüm doğrulaması / G3 kapısı (T031) | **evet** |
-| `tests/` | 78 test — **hiçbiri kart istemez** (Prensip V) | gerekmez |
+| `measure_latency.py` | Kart gecikme ölçümü (T040–T044) | **evet** |
+| `ina219.py` | INA219 sürücüsü (`/dev/i2c-0`, ek paket yok), örnekleyici süreci, güç/enerji hesabı | sürücü **evet**, hesap gerekmez |
+| `calibrate_ina219.py` | Kalibrasyon, bilinen yüke karşı (T048) | **evet** |
+| `measure_energy.py` | Kart enerji ölçümü F2/P2, delta yöntemi (T049–T050) | **evet** |
+| `tests/` | 111 test — **hiçbiri kart istemez** (Prensip V) | gerekmez |
 
 ## Doğrulama hattı
 

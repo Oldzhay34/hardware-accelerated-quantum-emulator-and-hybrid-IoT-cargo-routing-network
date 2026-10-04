@@ -12,7 +12,7 @@ Kullanım (kartta; uzun seriler `nohup` ile — bağlantı düşse de sürer):
     sudo nohup python3 -m agent.measure_latency --seri A --p 2 \\
         --bit qir_20260920_d350605.bit \\
         --reference reference_20260915_c6ad872_p2_n5 \\
-        --beklenen-bits 3188759494 --besleme USB \\
+        --beklenen-bits 3204875187 --besleme USB \\
         --cikti seri-A.json > seri-A.log 2>&1 &
 
 --------------------------------------------------------------------------

@@ -20,7 +20,9 @@
 #                                        basligina takilan INA219'a hic
 #                                        ulasilamaz.
 #   hdmi_in_ddc           U14 / U15  -> HDMI DDC. Bizim isimiz degil.
-#   arduino_direct_iic    P15 / P16  -> Arduino baslinin ozel SDA/SCL hatti.
+#   arduino_direct_iic    P15 = SCL, P16 = SDA -> Arduino basliginin SCL/SDA
+#                                        etiketli pinleri (4 Eki: etikete gore
+#                                        DUZ baglantiyla INA219 0x40 cevap verdi).
 #                                        ✅ Disariya acik olan bu.
 #
 # Secilen: Arduino basligi. INA219 breakout'u oraya baglanir; ayni baslikta
