@@ -155,6 +155,26 @@
   3. Tezde "öğrenmeli karar motoru için veri hacmi yetersiz kaldı, eşik tabanlı yönlendirme uygulandı" olarak yazılır — bu dürüst ve yeterli bir sonuçtur.
 - **KAYIP**: ML anlatısı. Kural tabanlı yönlendirme kıyas verisinden türetildiği için aslında **daha savunulabilir**.
 
+> ⚠️ **Not — 5 Eki 2026 (Faz 5 sırasında araştırma; uygulama Faz 3'e kaldı)**:
+> 1. **Etiket artık sabit.** "Hangi çözücü kazandı" sorusunun cevabı ölçümle
+>    belli: kaba kuvvet ~85.000× hızlı ve kesin; aynı çekirdek dizüstü CPU'da
+>    FPGA'dan 11× hızlı ([olculen-degerler §6.1, §7](../../docs/olculen-degerler.md)).
+>    Bu etiketle eğitilen model sabit bir cevap öğrenir — 3.3'ün **görevi Faz 3
+>    başında yeniden tanımlanmalı**. "Zorluk tipi (A/B*/C)" (sistem-mimarisi §1–§2)
+>    hiçbir belgede tanımlı değil.
+> 2. **Aday görevler**: teslim süresi (ETA) tahmini; rota/bölge zorluk sınıfı;
+>    gecelik ilçe başına kargo sayısı tahmini (alt problem tablosunun girdisi).
+> 3. **Aday veri setleri** (açık bir İstanbul son kilometre veri seti
+>    bulunamadı):
+>    | Veri seti | Kapsam | Lisans |
+>    |---|---|---|
+>    | [Amazon Last Mile Routing Challenge 2021](https://registry.opendata.aws/amazon-last-mile-challenges/) | ABD 5 şehir, 9.184 gerçek rota; durak/rota/paket özellikleri | CC BY-NC 4.0 |
+>    | [LaDe (Cainiao)](https://huggingface.co/datasets/Cainiao-AI/LaDe) | Çin 5 şehir, 10,7 M paket, 21 bin kurye; koordinat + zaman damgası | Apache 2.0 |
+>    | [İBB Saatlik Trafik Yoğunluğu](https://data.ibb.gov.tr/dataset/hourly-traffic-density-data-set) | **İstanbul**, kare × saat araç sayısı ve hız, 2020– | İBB Açık Veri Lisansı |
+>    | ~~[Kaggle Logistics Operations Database](https://www.kaggle.com/datasets/yogape/logistics-operations-database)~~ | kurgusal ABD tır şirketi (uzun yol) — son kilometre değil, **elendi** | |
+> 4. **Karar**: görev + veri seti seçimi Faz 3 başında kısa bir karşılaştırma
+>    raporuyla, kullanıcı onayıyla (Prensip I). Bu not karar değildir.
+
 ---
 
 ### K-10 · 🔴 FPGA hiçbir eksende kazanmıyor
