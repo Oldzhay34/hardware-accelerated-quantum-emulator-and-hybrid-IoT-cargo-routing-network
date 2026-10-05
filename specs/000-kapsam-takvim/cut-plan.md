@@ -156,14 +156,22 @@
 - **KAYIP**: ML anlatısı. Kural tabanlı yönlendirme kıyas verisinden türetildiği için aslında **daha savunulabilir**.
 
 > ⚠️ **Not — 5 Eki 2026 (Faz 5 sırasında araştırma; uygulama Faz 3'e kaldı)**:
-> 1. **Etiket artık sabit.** "Hangi çözücü kazandı" sorusunun cevabı ölçümle
->    belli: kaba kuvvet ~85.000× hızlı ve kesin; aynı çekirdek dizüstü CPU'da
->    FPGA'dan 11× hızlı ([olculen-degerler §6.1, §7](../../docs/olculen-degerler.md)).
->    Bu etiketle eğitilen model sabit bir cevap öğrenir — 3.3'ün **görevi Faz 3
->    başında yeniden tanımlanmalı**. "Zorluk tipi (A/B*/C)" (sistem-mimarisi §1–§2)
->    hiçbir belgede tanımlı değil.
-> 2. **Aday görevler**: teslim süresi (ETA) tahmini; rota/bölge zorluk sınıfı;
->    gecelik ilçe başına kargo sayısı tahmini (alt problem tablosunun girdisi).
+> 1. **Görev tanımları çelişiyor.** Bu risk (K-09) karar motorunun etiketini
+>    "hangi problem FPGA'ya, hangisi CPU'ya" diye tanımlıyor; o soru ölçümle
+>    kapandı (kaba kuvvet ~85.000× hızlı ve kesin, CPU FPGA'dan 11× hızlı —
+>    [olculen-degerler §6.1, §7](../../docs/olculen-degerler.md)), böyle bir
+>    model sabit cevap öğrenir. **Faz 3 prompt belgesi** ise ("Spec-Kit Görev
+>    Promptları", Faz 3 · 3.3) görevi başka tanımlıyor: **dinamik adres
+>    değişikliğinde "aynı gün mü, ertesi gün mü"** (girdiler: rota ilerlemesi,
+>    kalan süre, en yakın kümeye sürüş süresi, araç doluluğu, vardiya bitişi,
+>    teslimat penceresi). Bu görev ölçüm sonuçlarından **etkilenmez** ve
+>    geçerli tanım odur; K-09'un ölçütü ("problem özellikleri → hangi çözücü
+>    kazandı") Faz 3 başında buna göre düzeltilmeli. "Zorluk tipi (A/B*/C)"
+>    (sistem-mimarisi §1–§2) hiçbir belgede tanımlı değil.
+> 2. **Veri ihtiyacı**: etiket (aynı gün / ertesi gün) için açık veri yok;
+>    prompt belgesi sentetik/simülasyon verisine izin veriyor ve "sentetik"
+>    diye belgelenmesini istiyor. Aşağıdaki kaynaklar simülasyonu
+>    **gerçekçi dağılımlarla** beslemek için.
 > 3. **Aday veri setleri** (açık bir İstanbul son kilometre veri seti
 >    bulunamadı):
 >    | Veri seti | Kapsam | Lisans |

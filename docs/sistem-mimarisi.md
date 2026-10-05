@@ -328,7 +328,7 @@ Karıştırılırsa savunma çöker.
 | ⬜ | Konu |
 |---|---|
 | Kümeleme algoritması ve tur birleştirme yöntemi (§5) | |
-| ML zorluk tipi (A/B*/C) girdileri ve eşikleri — ⚠️ A/B*/C hiçbir yerde tanımlı değil; görev ve veri seti Faz 3 başında seçilecek ([cut-plan K-09 notu](../specs/000-kapsam-takvim/cut-plan.md), 5 Eki) | |
+| ML zorluk tipi (A/B*/C) girdileri ve eşikleri — ⚠️ A/B*/C hiçbir yerde tanımlı değil. Faz 3 prompt belgesine göre karar motorunun görevi "dinamik adres → aynı gün mü, ertesi gün mü"; veri adayları [cut-plan K-09 notu](../specs/000-kapsam-takvim/cut-plan.md) (5 Eki) | |
 | ESP32 haberleşme yolu: doğrudan mı Railway üzerinden mi — **hangi koşulda** | |
 | ~~Sıcak başlangıç / sabit açı denemesi (§7)~~ | ✅ 3 Eki, 6D |
 | ~~37,28 ms'nin **kartta** doğrulanması (Faz 5, öbek 4)~~ | ✅ 27 Eyl, 36,578 ms |

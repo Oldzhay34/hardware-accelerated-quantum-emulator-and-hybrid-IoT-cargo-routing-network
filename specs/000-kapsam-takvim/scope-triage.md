@@ -178,7 +178,7 @@ Her iki cümle de savunulabilir. B, dürüst bir mühendislik sonucudur — "ba�
 |---------|--------|---------|
 | 3.1 Servis çatısı kararı | H | Onay kapısı gerektiren mimari karar (Prensip I); ama çekirdek kıyas onsuz koşar. |
 | 3.2 Servis sözleşmeleri ve veri modeli | H | Panel + kıyas servisinin konuşabilmesi için minimum. |
-| 3.3 Karar motoru: veri, eğitim, dürüst değerlendirme | İ | Eğitim verisi üretimi başlı başına bir proje (bkz. K-08). ⚠️ 5 Eki: eski etiket ("hangi çözücü kazandı") ölçümle sabitlendi → görev Faz 3 başında yeniden tanımlanacak; aday görevler ve veri setleri [cut-plan K-09 notu](cut-plan.md). |
+| 3.3 Karar motoru: veri, eğitim, dürüst değerlendirme | İ | Eğitim verisi üretimi başlı başına bir proje (bkz. K-08). ⚠️ 5 Eki: görev "dinamik adres → aynı gün mü, ertesi gün mü" (Faz 3 prompt belgesi); K-09'daki "FPGA mı CPU mu" tanımı ölçümle anlamsızlaştı ve düzeltilecek. Veri adayları: [cut-plan K-09 notu](cut-plan.md). |
 | 3.4 Kuyruk, idempotency ve geri basınç | İ | Tek kullanıcılı demoda yük yok. |
 | 6.1 Rol matrisi ve yetkilendirme | İ | Tek kullanıcılı demoda rol ayrımı gösteriş. |
 | 6.2 Kimlik doğrulama ve Railway dağıtımı | İ | Yerel demo yeterli. |
