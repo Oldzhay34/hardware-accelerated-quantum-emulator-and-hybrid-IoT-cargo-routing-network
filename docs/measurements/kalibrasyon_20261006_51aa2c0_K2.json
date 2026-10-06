@@ -1,0 +1,43 @@
+{
+ "bilinen_yuk_w": 0.1021205505457997,
+ "okunan_w": 0.13204838400000002,
+ "sapma_yuzde": 29.306376918500927,
+ "gecti": false,
+ "zaman_damgasi": "2026-10-06T22:55:00+0000",
+ "zaman_damgasi_unix": 1791327300.7147639,
+ "boot_id": "c92c832a-1cac-495f-ac52-5c93ac263285",
+ "yontem": "V^2 / R (multimetre; R kart kapaliyken)",
+ "duzen": "K2 v1.1: K1 ile ayni devre; K1 sonrasi yalniz BASTIRARAK yeniden oturtma (lehim degismedi). R=105.35 (K1 olcumu), V=3.28 (20V DC, VIN- lehimi - sari sira, yuk altinda, oturtmadan sonra)",
+ "multimetre": "kullanicinin el multimetresi (model kaydedilmedi); 200 ohm ve 20 V DC kademeleri",
+ "referans": {
+  "gerilim_v": 3.28,
+  "direnc_ohm": 105.35,
+  "akim_ma": null,
+  "akim_a_turetilen": 0.031134314190792597
+ },
+ "okunan": {
+  "gerilim_v": 3.264000000000007,
+  "akim_a": 0.040456000000000006
+ },
+ "gerilim_sapma_yuzde": -0.4878048780485643,
+ "akim_sapma_yuzde": 29.94023170731709,
+ "r_sont_nominal_ohm": 0.1,
+ "ina219_yapilandirma": "0x17FF",
+ "pencere": {
+  "n": 150,
+  "bas_s": 1538.79335498,
+  "son_s": 1568.823427486,
+  "sure_s": 30.030072505999897,
+  "ort_guc_w": 0.13204838400000002,
+  "std_guc_w": 0.000162563483554074,
+  "se_guc_w": 1.3273252850560203e-05,
+  "min_guc_w": 0.1318656,
+  "maks_guc_w": 0.132192,
+  "ort_gerilim_v": 3.264000000000007,
+  "ort_akim_a": 0.040456000000000006,
+  "doygun_ornek": 0,
+  "ovf_ornek": 0
+ },
+ "ornek_dosyasi": "kalibrasyon_20261006_51aa2c0_K2.ornekler.csv",
+ "protokol_surumu": "kart-enerji-protokolu v1.1"
+}
