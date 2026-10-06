@@ -1,4 +1,4 @@
-"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.0).
+"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.1).
 
 # PYTHON 3.6 UYUMU ZORUNLU — KARTTA koşar. ⛔ `sudo` ile koşulmalı.
 
@@ -31,7 +31,7 @@ import time
 
 from agent import ina219 as ina
 
-PROTOKOL_SURUMU = "kart-enerji-protokolu v1.0"
+PROTOKOL_SURUMU = "kart-enerji-protokolu v1.1"
 
 # --- protokol v1.0 sabitleri ----------------------------------------------
 BOS_S = 170.0                   # §5

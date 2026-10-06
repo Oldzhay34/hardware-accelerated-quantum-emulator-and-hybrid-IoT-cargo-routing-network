@@ -24,7 +24,7 @@ def _protokol():
 # --- protokol bağı --------------------------------------------------------
 def test_sabitler_protokolle_ayni():
     m = _protokol()
-    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.0" and "v1.0" in m
+    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.1" and "v1.1" in m
     assert "`0x17FF`" in m and ina.YAPILANDIRMA == 0x17FF
     assert "**0,1 Ω**" in m and ina.R_SONT_OHM == 0.1
     assert "**5 Hz** (0,2 sn)" in m and me.PERIYOT_S == 0.2

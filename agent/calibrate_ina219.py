@@ -13,7 +13,7 @@ Referans (multimetre değerleri komut satırından verilir, ölçümden ÖNCE ok
 Kullanım (kartta):
     sudo python3 -m agent.calibrate_ina219 --bit qir_20260920_d350605.bit \\
         --direnc-ohm 99.6 --gerilim-v 4.981 \\
-        --duzen "5V pini -> VIN+ ; VIN- -> 100 ohm -> GND" \\
+        --duzen "3.3V (VCC sutunu) -> VIN+ ; VIN- -> 200 ohm || 220 ohm -> GND" \\
         --multimetre "model, kademeler" --cikti kalibrasyon-1.json
 """
 # PYTHON 3.6 UYUMU ZORUNLU (yukarı bakın)
@@ -26,6 +26,12 @@ from agent import ina219 as ina
 
 SURE_S = 30.0                   # protokol §4: 30 sn ortalama
 PERIYOT_S = 0.2                 # protokol §3: 5 Hz (ölçümle aynı örnekleyici)
+
+
+def me_surum():
+    """Protokol sürümü TEK yerde: measure_energy.PROTOKOL_SURUMU."""
+    from agent import measure_energy as me
+    return me.PROTOKOL_SURUMU
 
 
 def bilinen_yuk(a):
@@ -89,7 +95,7 @@ def main(argv=None):
         r_sont_nominal_ohm=ina.R_SONT_OHM,
         ina219_yapilandirma="0x{:04X}".format(geri),
         pencere=ozet, ornek_dosyasi=ornek_dosyasi,
-        protokol_surumu="kart-enerji-protokolu v1.0")
+        protokol_surumu=me_surum())
     with open(a.cikti, "w") as f:
         json.dump(kayit, f, indent=1)
     print("bilinen {:.4f} W, okunan {:.4f} W -> sapma %{:.2f} ({}); "
