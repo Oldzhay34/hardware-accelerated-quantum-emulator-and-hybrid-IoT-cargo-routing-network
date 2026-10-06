@@ -1,0 +1,43 @@
+{
+ "bilinen_yuk_w": 0.10026103464641671,
+ "okunan_w": 0.13056526933333334,
+ "sapma_yuzde": 30.225336087731762,
+ "gecti": false,
+ "zaman_damgasi": "2026-10-06T22:34:15+0000",
+ "zaman_damgasi_unix": 1791326055.723823,
+ "boot_id": "c92c832a-1cac-495f-ac52-5c93ac263285",
+ "yontem": "V^2 / R (multimetre; R kart kapaliyken)",
+ "duzen": "K1 v1.1: kart 3.3V -> kirmizi -> VCC sutunu -> kahverengi kopru -> VIN+ ; VIN- -> 200R||220R -> sari -> kart GND(2). R=ort(105.3,105.6)-0.10 (200 ohm kademesi, sari karttan ayrik, kart kapali); V=3.25 (20V DC, VIN- lehimi - sari sira, yuk altinda). On gorulen: ina219_test.sh tek okuma (acilis yapilandirmasi) bara 3.152 V, sont 3.83 mV",
+ "multimetre": "kullanicinin el multimetresi (model kaydedilmedi); 200 ohm ve 20 V DC kademeleri",
+ "referans": {
+  "gerilim_v": 3.25,
+  "direnc_ohm": 105.35,
+  "akim_ma": null,
+  "akim_a_turetilen": 0.030849549121974372
+ },
+ "okunan": {
+  "gerilim_v": 3.2479999999999936,
+  "akim_a": 0.04019866666666653
+ },
+ "gerilim_sapma_yuzde": -0.061538461538659724,
+ "akim_sapma_yuzde": 30.305524102563652,
+ "r_sont_nominal_ohm": 0.1,
+ "ina219_yapilandirma": "0x17FF",
+ "pencere": {
+  "n": 150,
+  "bas_s": 293.801644977,
+  "son_s": 323.831730682,
+  "sure_s": 30.030085704999976,
+  "ort_guc_w": 0.13056526933333334,
+  "std_guc_w": 3.7378607000497846e-05,
+  "se_guc_w": 3.0519504815747656e-06,
+  "min_guc_w": 0.1302448,
+  "maks_guc_w": 0.1305696,
+  "ort_gerilim_v": 3.2479999999999936,
+  "ort_akim_a": 0.04019866666666653,
+  "doygun_ornek": 0,
+  "ovf_ornek": 0
+ },
+ "ornek_dosyasi": "kalibrasyon_20261006_fd100e5_K1.ornekler.csv",
+ "protokol_surumu": "kart-enerji-protokolu v1.1"
+}
