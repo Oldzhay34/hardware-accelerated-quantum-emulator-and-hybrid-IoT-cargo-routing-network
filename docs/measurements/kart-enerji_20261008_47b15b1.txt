@@ -1,0 +1,13 @@
+0 F2: bos 170.0 sn
+0 F2: yuk
+1 P2: bos 170.0 sn
+1 P2: yuk
+2 F2: bos 170.0 sn
+2 F2: yuk
+3 P2: bos 170.0 sn
+3 P2: yuk
+0 F2: P_bos 1.4481 W, P_yuk 1.7943 W, dP 0.3462 W, N 3435, 0.01716 J/kosum
+1 P2: P_bos 1.4451 W, P_yuk 1.6337 W, dP 0.1886 W, N 2012, 0.01597 J/kosum
+2 F2: P_bos 1.4454 W, P_yuk 1.7923 W, dP 0.3469 W, N 3444, 0.01714 J/kosum
+3 P2: P_bos 1.4455 W, P_yuk 1.6109 W, dP 0.1654 W, N 2026, 0.01390 J/kosum
+bitti: gecerli=True neden=None -> kart-enerji_20261008_47b15b1.json

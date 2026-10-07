@@ -1,0 +1,45 @@
+P2 (PS) is yuku ikilisi — kart-enerji-protokolu v1.3, olcum kart-enerji_20261008_47b15b1
+Derleme: 8 Eki 2026, KARTTA (PYNQ-Z2, Cortex-A9, g++ 7.3.0 Ubuntu/Linaro)
+
+Kaynaklar (protokol §5: "21 Eyl ARM tabaniyla ayni"):
+  hls/src/*                      git 34eb9a8 (T045b, 21 Eyl ARM tabani; trig tablosu bitstream d350605 ile ayni)
+  hls/tb/meta_reader.hpp         git 34eb9a8 (HEAD ile ayni)
+  hls/tb/ap_fixed_mock.hpp       git 34eb9a8 (HEAD ile ayni)
+  hls/tb/bench_kernel.cpp        git 47b15b1 (34eb9a8'den farki yalniz --saniye dongusu ve kosum_sayisi satiri, 31f462a)
+
+  sha256 (git show ciktisi, LF):
+    1226a17899128435...  hls/src/gates_diagonal.hpp
+    94a69e6a795e7bc8...  hls/src/gates_pairing.hpp
+    89ca0627ee897c58...  hls/src/qir_kernel.cpp
+    ccd100f2c414bbcf...  hls/src/qir_kernel.hpp
+    09d30da02c4b089b...  hls/src/qir_types.hpp
+    582b396523392097...  hls/src/statevector.hpp
+    717049f098795ba2...  hls/src/trig.hpp
+    75e690e54744e242...  hls/src/trig_lut.hpp
+    895b1a9853317f43...  hls/tb/ap_fixed_mock.hpp
+    2d4bdeebf7a7fb8b...  hls/tb/bench_kernel.cpp
+    314ab88e0556e0ff...  hls/tb/meta_reader.hpp
+
+Komut (kartta, /home/xilinx/qir/arm21):
+  g++ -std=c++17 -O3 -DQIR_NO_VITIS -DQIR_N_QUBITS=16 -DQIR_REAL_FLOAT \
+      -Ihls/src -Ihls/tb hls/tb/bench_kernel.cpp hls/src/qir_kernel.cpp -o bench_float_arm
+  rc=0 (yalniz GCC 7.1 ABI notlari)
+
+Ikili: arm21/bench_float_arm
+  sha256 18fb49c3400382bef96078940d7bcbadf92fa7441a731d65e9e66102b2381a92
+
+Dogruluk denemesi (olcumden once, INA219 ornekleyicisi KAPALI):
+  ./arm21/bench_float_arm --reference reference_20260915_c6ad872_p2_n5 --saniye 3 --isinma 1
+  kosum_sayisi   : 36  (isinma 1 haric)
+  beklenen_deger : -3950.990722656   <- protokol §5 ile ayni
+  medyan         : 84.316 ms         (21 Eyl: 84.132 ms)
+
+Elenen ikili — HEAD (47b15b1) kaynaklarindan, ayni komut, /home/xilinx/qir/arm:
+  sha256 3d77087cac4d66ae20f28430d690a67d123b9e24ab4f6051f680b538b7c12865
+  beklenen_deger : -3950.989990234   <- protokolden FARKLI (P2 gecersiz olurdu)
+  medyan         : 84.441 ms
+  Neden: 6C (29b253c, 27 Eyl) trig tablosunu genislikten bagimsiz yapti; float
+  derleme artik tablodan daha hassas degerler okuyor. Sabit noktali yol (W=18,
+  bitstream) iki tabloda bit bit ayni; float yolun son basamaklari degisti.
+  Dizustu/GPU float serileri (30 Eyl sonrasi) -3950.989990234 kullanir. Is
+  miktari (kapi ve islem sayisi) iki surumde ayni.
