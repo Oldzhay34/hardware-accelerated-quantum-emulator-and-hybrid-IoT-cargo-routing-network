@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce |
-| **Sürüm** | **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce. 📝 **v1.2 taslağı** (§12: etkin şönt direnci) onay bekliyor |
+| **Sürüm** | **v1.2 (taslak, 8 Eki)** — değişiklik **§12**'de, ⚠️ **kalibrasyon sonuçları (K1–K3) görüldükten sonra**. Kayıtlar `kart-enerji-protokolu v1.2` taşır. — v1.1: **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
 | **Onaylanan metin** | commit `be2abfc`, git içerik özeti `c84a4d73756030bb0e5cddade68b8d0dd1636fce` (`git rev-parse be2abfc:docs/measurements/kart-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff be2abfc -- <bu dosya>`. Yürütücü kod `be2abfc`'deki hâliyle donar |
 | **Görev** | T046 (düzenek), T048 (kalibrasyon), T049–T050 (ölçüm), T069'un FPGA enerji hücresi |
 | **Dayanak** | FR-009, FR-009c/d, FR-010, FR-011, SC-005, SC-006, SC-009 · [data-model §3, §3b](../../specs/003-zynq-ps-kartta-kosum/data-model.md) · dizüstü tarafı: [gpu-enerji-protokolu v1.1](gpu-enerji-protokolu.md) (**aynı yöntem**) · F2 iş yükü: [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (**aynı kod**) |
@@ -213,3 +213,62 @@ Görülen tek değer, ağ devredeyken ölçülen "094" (kartın devresi paralel
 girdiği için **geçersiz**, kullanılmaz). Kalibrasyon noktası artık 3,3 V /
 31,5 mA (ölçüm noktası 12 V, ~0,2–0,4 A) — §4'teki aralık beyanı aynen
 geçerli.
+
+---
+
+## 12. v1.2 — etkin şönt direnci (8 Eki) — 📝 onay bekliyor
+
+**Neden**: §11'in yöntemiyle üç kalibrasyonun üçü de kaldı — K1 **%30,2**, K2
+**%29,3** (bastırarak yeniden oturtma), K3 **%28,8** (VIN+/VIN− başlık pinleri
+yeniden lehimlendi). Gerilim kanalı her seferinde multimetreyle ±%0,5 içinde;
+INA219'un akım okuması bağımsız ölçülen akımın **1,303 / 1,299 / 1,290** katı.
+Yük devreden çıkarılınca okuma −0,1 mA (ek yük yok, teşhis kaydı). Sonuç:
+modüle özgü **sabit kazanç hatası** ([hatalar #14](../hatalar-ve-duzeltmeler.md)).
+Kullanıcı kararı (8 Eki): modülün **etkin şönt direnciyle** düzelterek devam.
+
+⚠️ **Sonuç görüldükten sonra yazıldı.** Bu yüzden katsayı K1–K3'ten **alınmaz**:
+bu sürümün yeni ölçümünden (K4) çıkarılır ve K4'te kullanılmayan **iki farklı
+yükte** (K5, K6) bağımsız doğrulanır. K1–K3 ve sonuçları raporda kalır.
+
+| Adım | Yük (kartın 3,3 V'u) | Akım | Ne |
+|---|---|---:|---|
+| **K4 — katsayı** | 200 Ω ∥ 220 Ω (mevcut) | ~31 mA | art arda **3 × 30 sn**; her pencerede R_etkin = (INA219'un 0,1 Ω ile bulduğu akım × 0,1 Ω) / (V / R); pencereler arası yayılım **< %1** ("kararlı"); R_etkin = üç pencerenin ortalaması |
+| **K5 — doğrulama** | 200 Ω ∥ 220 Ω ∥ 1 kΩ | ~35 mA | güç R_etkin ile hesaplanır; sapma **< %5** |
+| **K6 — doğrulama** | 200 Ω tek başına | ~16,5 mA | aynı |
+
+Kurallar:
+- Doğrulama yüklerinde akım **≥ 10 mA** (INA219'un sıfır akımdaki ofseti
+  −0,1 mA ölçüldü → ≤ %1). §4'ün 20 mA kuralı yalnız doğrulama için gevşetildi.
+- İki doğrulama yükü akımca en az **1,5 kat** farklı (orantılılığı sınamak
+  için).
+- Her direnç anma gücünün ≤ %25'i (§4, değişmedi): 3,3 V'ta 200 Ω 54 mW (%22),
+  220 Ω 50 mW (%20), 1 kΩ 11 mW (%4).
+- Her doğrulamada R ağ yalıtılmışken yeniden ölçülür (§11 Δ3); V yük altında
+  yeniden okunur.
+- Sıra K4 → K5 → K6; doğrulamalar katsayıdan **sonra**, aynı R_etkin ile.
+
+Geçerlilik: K4 kararsızsa (yayılım ≥ %1) ya da doğrulamalardan biri ≥ %5
+saparsa **katsayı geçersiz, enerji ölçümü yapılmaz**; alet kararı kullanıcıya
+döner. `measure_energy` bu kuralların hepsini denetler.
+
+Ölçümde: enerji hesabı **R_etkin** ile yapılır; her seri için nominal 0,1 Ω ile
+hesap da kaydedilir (yalnız bilgi, manşet değil).
+
+**Sınırlar (beyan)**:
+- Doğrulama **16–35 mA** aralığında; kartın ölçümü ~0,2–0,8 A'de olacak. Ölçüm
+  döngüsü içindeki sabit bir direncin yarattığı hata akımla **orantılıdır** ve
+  INA219'un ADC'si doğrusaldır; ama yüksek akımda şönt ve bakır yol ısınabilir
+  (bakır +%0,39/K). Ölçüm akımına taşıma bir **varsayımdır**, orada
+  doğrulanmadı.
+- PGA /4 ile tam ölçek ±160 mV → etkin ~0,13 Ω'da ~1,2 A; ölçüm için yeterli.
+- Kök neden doğrulanmadı (ölçüm uçlarının şönt dışında PCB yolu içermesi
+  olası); multimetrenin R100 üzerinde okuduğu 1,5–1,6 mV açıklanamadı.
+
+**Ön kayıtlı beklentiler (v1.2)**:
+
+| # | Beklenti | Not |
+|---|---|---|
+| V1 | K4 yayılımı < %0,5 | K1–K3 aynı yükte 1,290–1,303 — görüldü |
+| V2 | R_etkin 0,128–0,131 Ω | K1–K3'ten türetilebilir — **kör değil** |
+| V3 | K5 ve K6 sapması < %2 | etki dirençselse orantılıdır |
+| V4 | K5 ve K6'da nominal okuma / gerçek akım oranı, K4'ünkinin ±%1 içinde | orantılılık |

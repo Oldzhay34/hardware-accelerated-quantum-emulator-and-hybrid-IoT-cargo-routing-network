@@ -1,4 +1,4 @@
-"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.1).
+"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.2).
 
 # PYTHON 3.6 UYUMU ZORUNLU — KARTTA koşar. ⛔ `sudo` ile koşulmalı.
 
@@ -31,7 +31,7 @@ import time
 
 from agent import ina219 as ina
 
-PROTOKOL_SURUMU = "kart-enerji-protokolu v1.1"
+PROTOKOL_SURUMU = "kart-enerji-protokolu v1.2"
 
 # --- protokol v1.0 sabitleri ----------------------------------------------
 BOS_S = 170.0                   # §5
@@ -41,6 +41,7 @@ MIN_ORNEK_ORANI = 0.9           # §7 — pencere örnek sayısı ≥ beklenenin
 SIRA = ("F2", "P2", "F2", "P2") # §5
 ARM_ISINMA = 3                  # §5 — gecikme protokolüyle aynı
 FCLK_TOLERANS = 0.01            # §7
+DOGRULAMA_AKIM_ORANI = 1.5     # §12 — iki doğrulama yükü akımca ≥ 1,5 kat farklı
 
 
 class SeriGecersiz(RuntimeError):
@@ -51,15 +52,35 @@ class SeriGecersiz(RuntimeError):
 # Saf yardımcılar — kart gerekmez
 # =========================================================================
 def kalibrasyonlari_denetle(kayitlar, simdi_unix):
-    """§4 / FR-010: her kalibrasyon geçmiş (< %5) ve ölçümden ÖNCE alınmış olmalı."""
-    if not kayitlar:
-        raise SeriGecersiz("kalibrasyon kaydi yok (FR-010)")
-    for k in kayitlar:
+    """§12 (v1.2) / FR-010: TEK kararlı `katsayi` kaydı + en az iki geçmiş
+    `dogrulama` kaydı. Doğrulamalar katsayıdan SONRA, aynı R_etkin ile, akımca
+    en az DOGRULAMA_AKIM_ORANI kat farklı iki yükte; hepsi ölçümden ÖNCE.
+    Döner: (r_sont_etkin_ohm, doğrulamaların en büyük sapması)."""
+    katsayi = [k for k in kayitlar if k.get("rol") == "katsayi"]
+    dogrulama = [k for k in kayitlar if k.get("rol") == "dogrulama"]
+    if len(katsayi) != 1:
+        raise SeriGecersiz("tam bir katsayi kaydi gerekli, {} var (§12)".format(len(katsayi)))
+    kat = katsayi[0]
+    if not kat.get("kararli"):
+        raise SeriGecersiz("katsayi kararsiz: yayilim %{:.3f} (§12)".format(
+            kat.get("yayilim_yuzde", float("nan"))))
+    r = kat["r_sont_etkin_ohm"]
+    if len(dogrulama) < 2:
+        raise SeriGecersiz("en az iki dogrulama kaydi gerekli (§12)")
+    for k in dogrulama:
         if not (k.get("gecti") and k["sapma_yuzde"] < 5.0):
-            raise SeriGecersiz("kalibrasyon gecmedi: sapma %{:.2f}".format(k["sapma_yuzde"]))
+            raise SeriGecersiz("dogrulama gecmedi: sapma %{:.2f}".format(k["sapma_yuzde"]))
+        if abs(k["r_sont_kullanilan_ohm"] - r) > 1e-12:
+            raise SeriGecersiz("dogrulama farkli R_etkin ile yapilmis (§12)")
+        if k["zaman_damgasi_unix"] <= kat["zaman_damgasi_unix"]:
+            raise SeriGecersiz("dogrulama katsayidan ONCE (§12)")
+    akimlar = [k["referans"]["akim_a_turetilen"] for k in dogrulama]
+    if max(akimlar) < DOGRULAMA_AKIM_ORANI * min(akimlar):
+        raise SeriGecersiz("dogrulama yukleri akimca yeterince farkli degil (§12)")
+    for k in kayitlar:
         if k["zaman_damgasi_unix"] >= simdi_unix:
             raise SeriGecersiz("kalibrasyon olcumden ONCE degil (FR-010)")
-    return max(k["sapma_yuzde"] for k in kayitlar)
+    return r, max(k["sapma_yuzde"] for k in dogrulama)
 
 
 def bench_ciktisi_coz(metin):
@@ -88,16 +109,21 @@ def pencere_denetle(ozet, ad):
         raise SeriGecersiz("{} penceresinde {} OVF ornegi".format(ad, ozet["ovf_ornek"]))
 
 
-def seri_sonucu(ornekler, bos_aralik, yuk_aralik, kosum_sayisi):
-    bos = ina.pencere_ozeti(ornekler, *bos_aralik)
-    yuk = ina.pencere_ozeti(ornekler, *yuk_aralik)
+def seri_sonucu(ornekler, bos_aralik, yuk_aralik, kosum_sayisi, r_sont):
+    """`r_sont`: §12'nin etkin şönt direnci. Şeffaflık için nominal (0,1 Ω)
+    hesap da döner — manşet DEĞİL."""
+    bos = ina.pencere_ozeti(ornekler, *bos_aralik, r_sont=r_sont)
+    yuk = ina.pencere_ozeti(ornekler, *yuk_aralik, r_sont=r_sont)
     pencere_denetle(bos, "bos")
     pencere_denetle(yuk, "yuk")
     if yuk["ort_guc_w"] <= bos["ort_guc_w"]:
         raise SeriGecersiz("P_yuk {:.4f} <= P_bos {:.4f} W".format(
             yuk["ort_guc_w"], bos["ort_guc_w"]))
-    e = ina.enerji_hesabi(bos, yuk, yuk_aralik[1] - yuk_aralik[0], kosum_sayisi)
-    return bos, yuk, e
+    sure = yuk_aralik[1] - yuk_aralik[0]
+    e = ina.enerji_hesabi(bos, yuk, sure, kosum_sayisi)
+    e_nominal = ina.enerji_hesabi(ina.pencere_ozeti(ornekler, *bos_aralik),
+                                  ina.pencere_ozeti(ornekler, *yuk_aralik), sure, kosum_sayisi)
+    return bos, yuk, e, e_nominal
 
 
 # =========================================================================
@@ -169,7 +195,7 @@ def main(argv=None):
     for y in a.kalibrasyon:
         with open(y) as f:
             kal.append(json.load(f))
-    en_buyuk_sapma = kalibrasyonlari_denetle(kal, time.time())
+    r_etkin, en_buyuk_sapma = kalibrasyonlari_denetle(kal, time.time())
 
     with open(a.reference + ".json") as f:
         ref = json.load(f)
@@ -190,10 +216,11 @@ def main(argv=None):
              "fclk_bas_mhz": kart.olculen_fclk, "boot_id": _oku("/proc/sys/kernel/random/boot_id"),
              "kart_saati": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
              "ina219_yapilandirma_bas": "0x{:04X}".format(yap_bas),
-             "r_sont_nominal_ohm": ina.R_SONT_OHM, "ornek_periyodu_s": PERIYOT_S}
+             "r_sont_nominal_ohm": ina.R_SONT_OHM, "r_sont_etkin_ohm": r_etkin,
+             "ornek_periyodu_s": PERIYOT_S}
     cikti = {"ne": "Kart enerji olcumu (US3, T049-T050)", "protokol_surumu": PROTOKOL_SURUMU,
-             "alet": "INA219-0.1ohm", "kapsam": "tum-kart", "yontem": "delta (FR-009c)",
-             "kalibrasyon": kal, "kalibrasyon_en_buyuk_sapma_yuzde": en_buyuk_sapma,
+             "alet": "INA219-0.1ohm (etkin sont duzeltmeli, §12)", "kapsam": "tum-kart", "yontem": "delta (FR-009c)",
+             "kalibrasyon": kal, "dogrulama_en_buyuk_sapma_yuzde": en_buyuk_sapma,
              "kosullar": kosul, "ornek_dosyasi": ornek_dosyasi, "seriler": [],
              "gecerli": False, "gecersizlik_nedeni": None}
 
@@ -235,9 +262,10 @@ def main(argv=None):
     ornekler = ina.Ornekleyici.oku(ornek_dosyasi)
     for k in araliklar:
         try:
-            bos, yuk, e = seri_sonucu(ornekler, k["bos_aralik"], k["yuk_aralik"],
-                                      k["kosum_sayisi"])
-            k.update({"bos": bos, "yuk": yuk, "enerji": e, "gecerli": True})
+            bos, yuk, e, e_nom = seri_sonucu(ornekler, k["bos_aralik"], k["yuk_aralik"],
+                                             k["kosum_sayisi"], r_etkin)
+            k.update({"bos": bos, "yuk": yuk, "enerji": e, "enerji_nominal_sont": e_nom,
+                      "gecerli": True})
         except SeriGecersiz as hata:
             k.update({"gecerli": False, "neden": str(hata)})
             if cikti["gecersizlik_nedeni"] is None:

@@ -24,7 +24,7 @@ def _protokol():
 # --- protokol bağı --------------------------------------------------------
 def test_sabitler_protokolle_ayni():
     m = _protokol()
-    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.1" and "v1.1" in m
+    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.2" and "v1.2" in m
     assert "`0x17FF`" in m and ina.YAPILANDIRMA == 0x17FF
     assert "**0,1 Ω**" in m and ina.R_SONT_OHM == 0.1
     assert "**5 Hz** (0,2 sn)" in m and me.PERIYOT_S == 0.2
@@ -33,6 +33,11 @@ def test_sabitler_protokolle_ayni():
     assert "beklenenin %90'ı" in m and me.MIN_ORNEK_ORANI == 0.9
     assert "--isinma 3" in m and me.ARM_ISINMA == 3
     assert "**30 sn**" in m
+    from agent import calibrate_ina219 as ki
+    assert "art arda **3 × 30 sn**" in m and ki.KATSAYI_PENCERE == 3
+    assert "yayılım **< %1**" in m and ki.KATSAYI_YAYILIM_ESIK == 1.0
+    assert "akım **≥ 10 mA**" in m and ki.DOGRULAMA_MIN_MA == 10.0
+    assert "en az **1,5 kat**" in m and me.DOGRULAMA_AKIM_ORANI == 1.5
 
 
 def test_protokol_dondurulmus():
@@ -116,14 +121,14 @@ def test_seri_sonucu_yuk_bostan_buyuk_olmali():
     orn = [_ornek(t * 0.2, 0.30) for t in range(850)] + \
           [_ornek(170 + t * 0.2, 0.25) for t in range(850)]
     with pytest.raises(me.SeriGecersiz):
-        me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000)
+        me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, ina.R_SONT_OHM)
 
 
 def test_seri_sonucu_eksik_ornek_gecersiz():
     orn = [_ornek(t * 0.2, 0.25) for t in range(850)] + \
           [_ornek(170 + t * 0.4, 0.30) for t in range(425)]     # yuk'te yarisi
     with pytest.raises(me.SeriGecersiz):
-        me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000)
+        me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, ina.R_SONT_OHM)
 
 
 # --- kalibrasyon ----------------------------------------------------------
@@ -133,15 +138,56 @@ def test_kalibrasyon_esigi():
     assert not ina.kalibrasyon_kaydi(0.25, 0.2625, "t")["gecti"]       # %5 -> kalir
 
 
-def test_kalibrasyon_once_ve_gecmis_olmali():
-    iyi = {"gecti": True, "sapma_yuzde": 1.2, "zaman_damgasi_unix": 100.0}
-    assert me.kalibrasyonlari_denetle([iyi], 200.0) == 1.2
-    with pytest.raises(me.SeriGecersiz):
-        me.kalibrasyonlari_denetle([], 200.0)
-    with pytest.raises(me.SeriGecersiz):
-        me.kalibrasyonlari_denetle([dict(iyi, zaman_damgasi_unix=300.0)], 200.0)
-    with pytest.raises(me.SeriGecersiz):
-        me.kalibrasyonlari_denetle([dict(iyi, gecti=False, sapma_yuzde=6.0)], 200.0)
+def _kat(ts=100.0, r=0.13, kararli=True):
+    return {"rol": "katsayi", "kararli": kararli, "r_sont_etkin_ohm": r,
+            "yayilim_yuzde": 0.4 if kararli else 2.0, "gecti": kararli,
+            "sapma_yuzde": 29.0, "zaman_damgasi_unix": ts}
+
+
+def _dog(ts, akim_a, r=0.13, sapma=1.2):
+    return {"rol": "dogrulama", "gecti": sapma < 5.0, "sapma_yuzde": sapma,
+            "r_sont_kullanilan_ohm": r, "zaman_damgasi_unix": ts,
+            "referans": {"akim_a_turetilen": akim_a}}
+
+
+def test_kalibrasyon_v12_kurallari():
+    iyi = [_kat(), _dog(110.0, 0.0165), _dog(120.0, 0.0348, sapma=2.0)]
+    assert me.kalibrasyonlari_denetle(iyi, 200.0) == (0.13, 2.0)
+    kotu = {
+        "katsayi yok": iyi[1:],
+        "iki katsayi": [_kat(), _kat(105.0)] + iyi[1:],
+        "kararsiz": [_kat(kararli=False)] + iyi[1:],
+        "tek dogrulama": iyi[:2],
+        "dogrulama kaldi": [_kat(), _dog(110.0, 0.0165), _dog(120.0, 0.0348, sapma=6.0)],
+        "farkli R": [_kat(), _dog(110.0, 0.0165), _dog(120.0, 0.0348, r=0.1)],
+        "katsayidan once": [_kat(), _dog(90.0, 0.0165), _dog(120.0, 0.0348)],
+        "akimlar yakin": [_kat(), _dog(110.0, 0.0313), _dog(120.0, 0.0348)],
+        "olcumden sonra": [_kat(), _dog(110.0, 0.0165), _dog(250.0, 0.0348)],
+    }
+    for ad, kayitlar in kotu.items():
+        with pytest.raises(me.SeriGecersiz):
+            me.kalibrasyonlari_denetle(kayitlar, 200.0)
+            pytest.fail(ad)
+
+
+def test_etkin_sont_ve_katsayi_ozeti():
+    from agent import calibrate_ina219 as ki
+    # INA219 nominal hesapla 40,4 mA, gerçek 31,0 mA -> 0,1303 ohm
+    assert ina.etkin_sont_ohm(0.0404, 0.0310) == pytest.approx(0.130322, rel=1e-5)
+    oz = ki.katsayi_ozeti([0.0404, 0.0405, 0.0404], 0.0310)
+    assert oz["kararli"] and oz["yayilim_yuzde"] == pytest.approx(0.2475, rel=1e-3)
+    assert not ki.katsayi_ozeti([0.0400, 0.0405, 0.0410], 0.0310)["kararli"]
+    with pytest.raises(ValueError):
+        ina.etkin_sont_ohm(0.04, 0.0)
+
+
+def test_seri_sonucu_etkin_sont_ve_nominal():
+    orn = [_ornek(t * 0.2, 0.25) for t in range(850)] + \
+          [_ornek(170 + t * 0.2, 0.30) for t in range(850)]
+    bos, yuk, e, e_nom = me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, 0.13)
+    # aynı ham şönt gerilimi, 0,13 ohm ile 0,1'e göre 1/1,3 kat akım
+    assert e["guc_farki_w"] == pytest.approx(e_nom["guc_farki_w"] / 1.3, rel=1e-3)
+    assert e_nom["guc_farki_w"] == pytest.approx(0.6, rel=1e-3)
 
 
 def test_bench_ciktisi():

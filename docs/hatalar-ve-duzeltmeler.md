@@ -39,8 +39,9 @@ Sayılar kaynağından (ölçüm dosyası, rapor, yazmaç) alınır, hafızadan 
 | 11 | 28 Eyl | Aer CPU tabanı **16 iş parçacığıyla** — sanal makinede aşırı abonelik | ölçüm yöntemi (taban yapılandırması) | ilk serinin kuyruğu (p99 525 ms) + ön kayıtlı tarama | CPU/GPU oranı GPU lehine çarpık |
 | 12 | 3 Eki | Enerji ölçümünde yük penceresine **sahte kaydedici** bağlandı | ölçüm aracı (PowerShell argüman kipi) | üç serinin yük gücünün **birebir aynı** (30.000,0 mW) çıkması | uydurma güç verisiyle hesaplanmış GPU/CPU enerji sonuçları |
 | 13 | 2–3 Eki | Referans QAOA'nın düşük kalitesi (P_opt 2,4e-5, "99 iterasyon") **ayarın ürünü** — normalize edilmemiş H | ölçüm yorumu (referans yapılandırması) | 6D fizibilitesi: iki yolda aynı fonksiyon, farklı minimum → γ taraması | QAOA'nın kalitesi ve artımlı yolun süresi yanlış nedene bağlanırdı |
+| 14 | 7–8 Eki | INA219 modülü akımı **~%30 fazla** okuyor (gerilimi doğru) | ölçüm aracı (modül) | bilinen yükle kalibrasyon (SC-005), 3 tekrar + teşhis | kart enerjisi ve PS↔PL enerji oranı %30 şişik raporlanırdı |
 
-**Desen**: 13 hatanın **8'i ölçümde** (yöntem, taban, yorum, araç: 3, 4, 5, 6, 9, 11, 12, 13),
+**Desen**: 14 hatanın **9'u ölçümde** (yöntem, taban, yorum, araç: 3, 4, 5, 6, 9, 11, 12, 13, 14),
 5'i tasarım, gerekçe, yapılandırma ve araç zincirinde (1, 2, 7, 8, 10). Hiçbiri çekirdeğin hesabında değil — çekirdek her aşamada
 altın referansla bit bit karşılaştırıldığı için. Hatalar, karşılaştırmanın
 **olmadığı** yerlerde birikti.
@@ -544,6 +545,48 @@ ile kalitesi (iyi parametre buluyor mu) ayrı sorulardır; ikincisi de tek bir
 
 ---
 
+## 14. INA219 modülü akımı ~%30 fazla okuyor — kalibrasyon yakaladı (2026-10-07/08, Faz 5 T048)
+
+**Belirti**: Kart enerjisinden önce zorunlu kalibrasyonda (kart-enerji-protokolu
+v1.1 §4/§11), kartın 3,3 V'undan beslenen bilinen bir yükte (200 Ω ∥ 220 Ω,
+multimetreyle 104,7–105,35 Ω; üzerindeki gerilim 3,25–3,28 V → 30,9–31,3 mA)
+INA219 **40,2–40,5 mA** okudu. Gerilim kanalı multimetreyle ±%0,5 içinde.
+
+**Nasıl yakalandı**: Protokolün kalibrasyon kapısı (sapma < %5) — üç denemenin
+üçü de kaldı: K1 %30,2, K2 %29,3 (bastırarak yeniden oturtma), K3 %28,8
+(VIN+/VIN− başlık pinleri yeniden lehimlendi). Teşhis kaydı (3 dk canlı okuma):
+yük devreden çıkınca −0,1 mA → **ek yük yok**; okuma ile gerçek akımın oranı
+üç oturumda **1,290–1,303**.
+
+**Kök neden (en olası, doğrulanmadı)**: Modüle özgü **sabit kazanç hatası** —
+INA219 şönt yerine ~0,13 Ω görüyor; ucuz modülde ölçüm uçları şöntün dışında
+bir parça PCB yolunu da içine alıyor olabilir. ⚠️ Açık nokta: multimetre R100'ün
+kendi uçlarında beklenen 3,1 mV yerine 1,5–1,6 mV okudu; açıklanamadı.
+
+**Yanlış teşhis (aynı gün düzeltildi)**: K2'den sonra hata "dirençli ve kararsız
+lehim"e bağlandı (pinler arası multimetre okumaları 5–30 mV arasında oynuyordu).
+Lehim gerçekten kötüydü ve yeniden yapıldı, ama oran değişmedi (K3) — oynayan
+okumalar büyük ihtimalle probun lehim topağına temasından geliyordu.
+
+**Yakalanmasaydı**: Kartın enerjisi (koşum başına J), mutlak gücü ("5 W zarfı")
+ve PS↔PL enerji oranı ~%30 fazla raporlanırdı — dizüstüyle kıyas FPGA aleyhine
+çarpık çıkardı.
+
+**Düzeltme**: Yok (henüz). Düzeltme katsayısı **uygulanmadı**; kalibrasyon
+geçmeden enerji ölçümü yapılmaz (SC-005). Alet kararı kullanıcıda: ikinci INA219,
+etkin şönt direnciyle yeni protokol sürümü + bağımsız doğrulama, ya da başka alet.
+
+**Kanıt**: [K1](measurements/kalibrasyon_20261006_fd100e5_K1.json),
+[K2](measurements/kalibrasyon_20261006_51aa2c0_K2.json),
+[K3](measurements/kalibrasyon_20261007_0050434_K3.json),
+[teşhis](measurements/ina219-teshis_20261006_51aa2c0.txt).
+
+**Rapor için ders**: *Ölçüm aletinin kalibrasyonu formalite değildir: ucuz bir
+modül, gerilimi kusursuz ölçerken akımı %30 yanlış ölçebilir. Kalibrasyon
+kapısı olmasaydı bu hata enerji sonuçlarına sessizce girerdi.*
+
+---
+
 ## Hataları ne yakaladı — rapor için çapraz bakış
 
 | Mekanizma | Yakaladığı |
@@ -559,6 +602,7 @@ ile kalitesi (iyi parametre buluyor mu) ayrı sorulardır; ikincisi de tek bir
 | **Komşu tasarım noktalarını gerçekten üretip ölçmek** (parametre taraması) | 10, 11 |
 | **Kuyruğa bakmak** (medyan değil p99/maks) | 11 |
 | **Aynı şeyi iki bağımsız yoldan hesaplayıp tutarsızlığın peşine düşmek** | 13 |
+| **Ön kayıtlı kalibrasyon kapısı** (bilinen yük, < %5) | 14 |
 
 **Rapora girecek genel sonuç**: Çekirdeğin kendisinde hata kalmadı, çünkü
 her aşamada (C-sim → RTL → kart) bir altın referansa **bit düzeyinde**

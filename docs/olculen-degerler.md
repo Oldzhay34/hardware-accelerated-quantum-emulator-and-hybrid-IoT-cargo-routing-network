@@ -626,6 +626,43 @@ aynı ("Yüksek performans" + "En iyi performans"); T067'de GPU ölçüm başın
 değeri T067'ye dayanır — prizde, soğuk GPU'yla kısa bir kontrol ölçümü
 açıklığa kavuşturur (açık iş).
 
+### 6.3 Kart enerjisi — ölçüm aletinin kalibrasyonu (T048, 7–8 Eki)
+
+⚠️ **Kartın enerjisi henüz ölçülmedi.** Bu bölüm, ölçümden önce zorunlu olan
+alet kalibrasyonunun (SC-005: bilinen yükte sapma < %5) sonuçlarıdır.
+Protokol: [kart-enerji-protokolu v1.1](measurements/kart-enerji-protokolu.md)
+(§11: kartın 3,3 V'u + 200 Ω ∥ 220 Ω ağı). Alet: INA219 modülü (HW-831B,
+R100 şönt), kartın kendi PS'inden EMIO I2C ile okunuyor; 30 sn, 5 Hz, 150 örnek.
+Referans: multimetreyle R (ağ yalıtılmışken) ve V (yük altında).
+
+| | Durum | R | V | Gerçek akım (V/R) | INA219 | Oran | Güç sapması |
+|---|---|---:|---:|---:|---:|---:|---:|
+| [K1](measurements/kalibrasyon_20261006_fd100e5_K1.json) | ilk kurulum | 105,35 Ω | 3,25 V | 30,85 mA | 40,20 mA | 1,303 | **%30,2 ❌** |
+| [K2](measurements/kalibrasyon_20261006_51aa2c0_K2.json) | bastırarak yeniden oturtma | 105,35 Ω | 3,28 V | 31,13 mA | 40,45 mA | 1,299 | **%29,3 ❌** |
+| [K3](measurements/kalibrasyon_20261007_0050434_K3.json) | VIN+/VIN− yeniden lehimlendi | 104,7 Ω | 3,28 V | 31,33 mA | 40,41 mA | 1,290 | **%28,8 ❌** |
+
+- **Gerilim kanalı doğru**: INA219 ile multimetre arasında −%0,06 / −%0,49 /
+  −%0,12.
+- **Teşhis** ([kayıt](measurements/ina219-teshis_20261006_51aa2c0.txt),
+  3 dk canlı okuma): yük takılı 40,4 mA (kararlı); yük çıkarılınca **−0,1 mA**
+  → şöntten başka yere akım yok; yükte gerilim 3,300 → 3,264 V (beslenme
+  yolunda ~1 Ω); pinlere bastırınca okuma zıplıyor.
+- **Multimetreyle** (200 mV): R100'ün uçlarında 1,5–1,6 mV (beklenen 3,1 mV —
+  **açıklanamadı**); VIN+ ↔ VIN− pinleri arasında 30,3 / 5,4 mV (prob temasıyla
+  oynadı).
+- **Kısa devre kontrolü** (yeniden lehim sonrası, modül serbestken): VCC–GND,
+  VIN±–GND, VIN±–VCC, SDA–VIN− açık; SCL/SDA–VCC 9,98 / 9,99 kΩ; çip diyotları
+  433 / 625 / 622 mV.
+
+**Sonuç**: Modül akımı **sabit ~1,30 kat** fazla okuyor — oturtma ve yeniden
+lehimden bağımsız. Sabit kazanç hatası: INA219 şönt yerine ~0,13 Ω görüyor
+gibi ([hatalar #14](hatalar-ve-duzeltmeler.md)). Kalibrasyon geçmediği için
+**enerji ölçümü yapılmadı**. Kullanıcı kararı (8 Eki): etkin şönt direnciyle
+düzeltme — [protokol v1.2 §12](measurements/kart-enerji-protokolu.md) (taslak):
+katsayı yeni bir ölçümden (K4) çıkarılacak, iki farklı yükte (K5, K6)
+bağımsız doğrulanacak. ⚠️ Doğrulama 16–35 mA aralığında; kartın ölçümü
+0,2–0,8 A'de olacak (orantılılık varsayımı, beyan edildi).
+
 ---
 
 ## 7. NE İDDİA EDİLEBİLİR, NE EDİLEMEZ

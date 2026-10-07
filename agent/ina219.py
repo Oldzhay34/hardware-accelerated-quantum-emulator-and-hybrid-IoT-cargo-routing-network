@@ -122,6 +122,14 @@ def enerji_hesabi(bos, yuk, sure_s, kosum_sayisi):
     }
 
 
+def etkin_sont_ohm(ort_akim_nominal_a, ref_akim_a, r_nominal=R_SONT_OHM):
+    """v1.2 §12: modülün ETKİN şönt direnci. INA219'un gördüğü gerilim
+    (= nominal hesapla bulunan akım × nominal direnç) / bağımsız ölçülen akım."""
+    if ref_akim_a <= 0:
+        raise ValueError("referans akim > 0 olmali")
+    return ort_akim_nominal_a * r_nominal / ref_akim_a
+
+
 def kalibrasyon_kaydi(bilinen_yuk_w, okunan_w, zaman_damgasi, **ek):
     """`Kalibrasyon` (data-model §3b). Değişmez: sapma ≥ %5 → alet geçersiz."""
     sapma = abs(okunan_w - bilinen_yuk_w) / bilinen_yuk_w * 100.0
