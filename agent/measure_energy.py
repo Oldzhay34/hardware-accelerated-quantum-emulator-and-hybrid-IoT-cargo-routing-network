@@ -1,6 +1,9 @@
-"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.2).
+"""Kart enerji ölçümü — görevler T049–T050 (kart-enerji-protokolu v1.3).
 
 # PYTHON 3.6 UYUMU ZORUNLU — KARTTA koşar. ⛔ `sudo` ile koşulmalı.
+
+Ölçüm noktası (v1.3 §13): JP5 — REG pini → INA219 → orta pin, yani kartın
+5 V GİRİŞİ (12 V → 5 V giriş regülatörü hariç).
 
 Delta yöntemi (FR-009c/d), dizüstü ölçümüyle AYNI yöntem: her seri
 [boş BOS_S] → [yük YUK_S]. Güç INA219'dan, ayrı bir süreçte, PERIYOT_S
@@ -17,7 +20,7 @@ Kullanım (kartta; bağlantı düşse de sürsün diye nohup):
     sudo nohup python3 -m agent.measure_energy --bit qir_20260920_d350605.bit \\
         --reference reference_20260915_c6ad872_p2_n5 --beklenen-bits 3204875187 \\
         --arm-bench ./bench_float_arm --arm-beklenen -3950.990722656 \\
-        --kalibrasyon kalibrasyon-1.json --besleme REG \\
+        --kalibrasyon K4.json K5.json K6.json --besleme JP5-REG-INA219 \\
         --cikti kart-enerji.json > kart-enerji.log 2>&1 &
 """
 # PYTHON 3.6 UYUMU ZORUNLU (yukarı bakın)
@@ -31,7 +34,7 @@ import time
 
 from agent import ina219 as ina
 
-PROTOKOL_SURUMU = "kart-enerji-protokolu v1.2"
+PROTOKOL_SURUMU = "kart-enerji-protokolu v1.3"
 
 # --- protokol v1.0 sabitleri ----------------------------------------------
 BOS_S = 170.0                   # §5
@@ -42,6 +45,10 @@ SIRA = ("F2", "P2", "F2", "P2") # §5
 ARM_ISINMA = 3                  # §5 — gecikme protokolüyle aynı
 FCLK_TOLERANS = 0.01            # §7
 DOGRULAMA_AKIM_ORANI = 1.5     # §12 — iki doğrulama yükü akımca ≥ 1,5 kat farklı
+MIN_GERILIM_V = 4.6             # §13 — kartın 5 V girişi hiçbir örnekte bunun altına inmez
+ON_DENETIM_S = 10.0             # §13 — kör ön denetimin süresi
+ON_DENETIM_ARALIK = 0.8         # §13 — şönt gerilimi PGA tam ölçeğinin %80'inin altında
+KAPSAM = "kart-5v-girisi (JP5 REG->orta; 12V->5V giris regulatoru haric, §13)"
 
 
 class SeriGecersiz(RuntimeError):
@@ -98,7 +105,7 @@ def bench_ciktisi_coz(metin):
 
 
 def pencere_denetle(ozet, ad):
-    """§7: yeterli örnek, doyma yok, taşma yok."""
+    """§7: yeterli örnek, doyma yok, taşma yok. §13: kart girişi ≥ MIN_GERILIM_V."""
     beklenen = ozet["sure_s"] / PERIYOT_S
     if ozet["n"] == 0 or ozet["n"] < MIN_ORNEK_ORANI * beklenen:
         raise SeriGecersiz("{} penceresinde {} ornek < %{:.0f} x {:.0f}".format(
@@ -107,6 +114,29 @@ def pencere_denetle(ozet, ad):
         raise SeriGecersiz("{} penceresinde {} doymus ornek".format(ad, ozet["doygun_ornek"]))
     if ozet["ovf_ornek"]:
         raise SeriGecersiz("{} penceresinde {} OVF ornegi".format(ad, ozet["ovf_ornek"]))
+    if ozet["min_gerilim_v"] < MIN_GERILIM_V:
+        raise SeriGecersiz("{} penceresinde kart girisi {:.3f} V < {} V (§13)".format(
+            ad, ozet["min_gerilim_v"], MIN_GERILIM_V))
+
+
+def on_denetim_karari(ornekler, pga=ina.PGA_4):
+    """§13 — KÖR ön denetim: yalnız EVET/HAYIR ve gerilim döner; akım ve güç
+    SAYI olarak dönmez (B1–B3 ölçümden önce görülmesin)."""
+    if not ornekler:
+        return {"ornek_sayisi": 0, "gecti": False}
+    sont = [ina.sont_uv(s) for _, s, _ in ornekler]
+    gerilim = [ina.bara(b)[0] * 1e-3 for _, _, b in ornekler]
+    k = {
+        "ornek_sayisi": len(ornekler),
+        "min_gerilim_v": min(gerilim), "ort_gerilim_v": sum(gerilim) / len(gerilim),
+        "gerilim_yeterli": min(gerilim) >= MIN_GERILIM_V,
+        "akim_yonu_dogru": min(sont) > 0,
+        "akim_aralikta": max(abs(x) for x in sont) < ON_DENETIM_ARALIK * ina.PGA_TAM_OLCEK_UV[pga],
+        "ovf_yok": not any(ina.bara(b)[2] for _, _, b in ornekler),
+    }
+    k["gecti"] = all(k[a] for a in ("gerilim_yeterli", "akim_yonu_dogru", "akim_aralikta",
+                                     "ovf_yok"))
+    return k
 
 
 def seri_sonucu(ornekler, bos_aralik, yuk_aralik, kosum_sayisi, r_sont):
@@ -175,14 +205,14 @@ def yuk_p2(bench, reference, arm_beklenen):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Kart enerji olcumu (kart-enerji-protokolu v1.0)")
+    ap = argparse.ArgumentParser(description="Kart enerji olcumu (" + PROTOKOL_SURUMU + ")")
     ap.add_argument("--bit", required=True)
     ap.add_argument("--reference", required=True, help="taban ad (.json'suz)")
     ap.add_argument("--beklenen-bits", type=int, required=True)
     ap.add_argument("--arm-bench", required=True, help="kartta derlenmis bench_kernel (float)")
     ap.add_argument("--arm-beklenen", required=True, help="ARM float beklenen_deger metni")
     ap.add_argument("--kalibrasyon", nargs="+", required=True)
-    ap.add_argument("--besleme", required=True, help="JP5 duzeni (REG)")
+    ap.add_argument("--besleme", required=True, help="JP5 duzeni (JP5-REG-INA219, §13)")
     ap.add_argument("--cikti", required=True)
     a = ap.parse_args(argv)
 
@@ -219,7 +249,7 @@ def main(argv=None):
              "r_sont_nominal_ohm": ina.R_SONT_OHM, "r_sont_etkin_ohm": r_etkin,
              "ornek_periyodu_s": PERIYOT_S}
     cikti = {"ne": "Kart enerji olcumu (US3, T049-T050)", "protokol_surumu": PROTOKOL_SURUMU,
-             "alet": "INA219-0.1ohm (etkin sont duzeltmeli, §12)", "kapsam": "tum-kart", "yontem": "delta (FR-009c)",
+             "alet": "INA219-0.1ohm (etkin sont duzeltmeli, §12)", "kapsam": KAPSAM, "yontem": "delta (FR-009c)",
              "kalibrasyon": kal, "dogrulama_en_buyuk_sapma_yuzde": en_buyuk_sapma,
              "kosullar": kosul, "ornek_dosyasi": ornek_dosyasi, "seriler": [],
              "gecerli": False, "gecersizlik_nedeni": None}

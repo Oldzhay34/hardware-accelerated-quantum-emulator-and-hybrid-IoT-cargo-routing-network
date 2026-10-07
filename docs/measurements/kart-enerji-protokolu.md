@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.2 DONDURULDU — 2026-10-08**, kullanıcı onayıyla, K4'ten önce. ✅ **Kalibrasyon geçti** (8 Eki): R_etkin 0,12896 Ω, doğrulama %0,03 / %0,23 — [olculen-degerler §6.3](../olculen-degerler.md) |
-| **Sürüm** | **v1.2** — değişiklik **§12**'de, ⚠️ **kalibrasyon sonuçları (K1–K3) görüldükten sonra**. Kayıtlar `kart-enerji-protokolu v1.2` taşır. **Onaylanan v1.2 metni**: commit `19eb1af`, git içerik özeti `7599efcd6c52b96d33e1507d604d0a86bbf95107`; sonrasında yalnız durum/sürüm satırları ve §12 başlığı değişti. Yürütücü kod `19eb1af`'teki hâliyle donar. — v1.1: **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.2 DONDURULDU — 2026-10-08**, kullanıcı onayıyla, K4'ten önce. ✅ **Kalibrasyon geçti** (8 Eki): R_etkin 0,12896 Ω, doğrulama %0,03 / %0,23 — [olculen-degerler §6.3](../olculen-degerler.md). 📝 **v1.3 TASLAK** (8 Eki) — ölçüm noktası JP5 (§13); onay bekliyor, INA219 bu düzende henüz okunmadı |
+| **Sürüm** | **v1.3** — değişiklik **§13**'te, kalibrasyondan sonra, ⚠️ **yeni ölçüm noktasında hiçbir okuma yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.3` taşır. — v1.2: **v1.2** — değişiklik **§12**'de, ⚠️ **kalibrasyon sonuçları (K1–K3) görüldükten sonra**. Kayıtlar `kart-enerji-protokolu v1.2` taşır. **Onaylanan v1.2 metni**: commit `19eb1af`, git içerik özeti `7599efcd6c52b96d33e1507d604d0a86bbf95107`; sonrasında yalnız durum/sürüm satırları ve §12 başlığı değişti. Yürütücü kod `19eb1af`'teki hâliyle donar. — v1.1: **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
 | **Onaylanan metin** | commit `be2abfc`, git içerik özeti `c84a4d73756030bb0e5cddade68b8d0dd1636fce` (`git rev-parse be2abfc:docs/measurements/kart-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff be2abfc -- <bu dosya>`. Yürütücü kod `be2abfc`'deki hâliyle donar |
 | **Görev** | T046 (düzenek), T048 (kalibrasyon), T049–T050 (ölçüm), T069'un FPGA enerji hücresi |
 | **Dayanak** | FR-009, FR-009c/d, FR-010, FR-011, SC-005, SC-006, SC-009 · [data-model §3, §3b](../../specs/003-zynq-ps-kartta-kosum/data-model.md) · dizüstü tarafı: [gpu-enerji-protokolu v1.1](gpu-enerji-protokolu.md) (**aynı yöntem**) · F2 iş yükü: [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (**aynı kod**) |
@@ -272,3 +272,53 @@ hesap da kaydedilir (yalnız bilgi, manşet değil).
 | V2 | R_etkin 0,128–0,131 Ω | K1–K3'ten türetilebilir — **kör değil** |
 | V3 | K5 ve K6 sapması < %2 | etki dirençselse orantılıdır |
 | V4 | K5 ve K6'da nominal okuma / gerçek akım oranı, K4'ünkinin ±%1 içinde | orantılılık |
+
+---
+
+## 13. v1.3 — ölçüm noktası JP5 (8 Eki) — 📝 TASLAK
+
+**Neden**: §3'ün 12 V hattı için gereken DC jak klemensleri elde yok.
+Kullanıcı kararı (8 Eki): **JP5 yolu**. JP5 kartın besleme seçicisidir: alt
+pin **REG** (adaptörün 12 V'undan kartın giriş regülatörüyle üretilen 5 V),
+orta pin kartın **5 V girişi**, üst pin **USB** (bilgisayarın USB'si).
+Köprü REG'e takılıyken REG orta pine bağlanır; köprü yerine INA219 konunca
+kartın 5 V girişinin bütün akımı şöntten geçer.
+
+Pin gerilimleri (8 Eki; adaptör takılı, anahtar ON, köprü çıkarılmış → kart
+beslemesiz; siyah prob GND): REG **5,04 V**, orta **0 V** (önce ~0,50 V
+gösterip yavaşça 0'a indi — kalıntı yükün boşalması; sürekli bir kaynak
+yok), USB **5,16 V** (micro-USB kablosu takılıydı).
+
+| # | Değişiklik |
+|---|---|
+| Δ1 | Ölçüm noktası: **JP5 REG pini → INA219 VIN+ → şönt → VIN− → JP5 orta pini** (dişi-erkek jumper'lar ve breadboard üzerinden). JP5 köprüsü takılmaz; adaptör ve kartın güç jakı değişmez. JP5 düzeni kaydı: `--besleme JP5-REG-INA219` |
+| Δ2 | Kapsam `tum-kart` → **`kart-5v-girisi`**: 12 V → 5 V giriş regülatörünün kaybı **ölçüm dışındadır**. Regülatörün tipi ve verimi doğrulanmadı → sonuç 12 V'taki toplam güce **çevrilmez**. VIN−'den orta pine giden jumper'ın I²R kaybı ölçüme dahildir (beyan) |
+| Δ3 | **micro-USB (PROG/UART) kablosu ölçüm boyunca çıkarılır**: JP5'in USB pini enerjisiz ve **boşta** kalır; hiçbir kablo ya da prob onu REG ya da orta pine köprülemez. Kartla Ethernet üzerinden SSH ile konuşulur |
+| Δ4 | **Kart girişi alt sınırı**: ölçüm yolu (jumper + breadboard + şönt) kartın girişini düşürür. Boş ya da yük penceresinde **tek bir örnekte bile** bara gerilimi (VIN−, yani kartın girişi) **4,6 V**'un altındaysa seri **geçersiz** |
+| Δ5 | **Kör ön denetim** (`agent/on_denetim.py`), ölçümden önce bir kez: bitstream yüklü, **10 sn** örnek. Yazdığı yalnız **gerilim** ve EVET/HAYIR: gerilim ≥ 4,6 V; akım yönü doğru (şönt gerilimi her örnekte > 0); şönt gerilimi PGA tam ölçeğin **%80**'inin altında (R_etkin ile ~0,99 A); OVF yok. **Akım ve güç sayı olarak gösterilmez, örnekler diske yazılmaz** — B1–B3 ölçümden önce görülmez. KALDI → ölçüm başlamaz; düzenek kart kapalıyken düzeltilir, ön denetim yinelenir |
+| Δ6 | **Güç vermeden önce süreklilik denetimi** (kart kapalı, adaptör çekili, multimetre bip kademesinde): REG ↔ VIN+ ve orta ↔ VIN− **bip**; USB pini ↔ REG, orta, VIN+, VIN− **bip yok**; VIN+ ↔ GND ve VIN− ↔ GND **bip yok**. Biri tutmazsa kart açılmaz |
+
+**Değişmeyen**: kalibrasyon K4–K6 ve **R_etkin** (§12) — modül yeniden
+lehimlenmedi, yapılandırma değişmedi (§4 Geçerlik). INA219 gerilimi kendi
+VIN+/VIN− pinleri arasında ölçer; değişen yalnız bu pinlere bağlanan dış
+kablolar, onların direnci şöntün dışında kalır (kartın gerilimini düşürür,
+akım okumasını değiştirmez). Seriler, süreler, hesap, öteki geçerlilik
+kuralları, çıktı (§5–§9).
+
+**Ön kayıtlı beklentiler**: B1–B7 **değişmez**. B1 (boştaki toplam güç
+1,5–4,0 W) artık kartın 5 V girişine uygulanır; giriş regülatörü hariç
+olduğu için 12 V'takinden küçük okunur — aralık buna göre **değiştirilmez**
+(beyan).
+
+**Ön kayıt beyanı**: v1.3 yazılırken INA219 bu düzende **hiç okunmadı**;
+kartın 5 V girişindeki akım ya da güç hiç görülmedi. Görülenler yalnız
+yukarıdaki pin gerilimleri.
+
+**Sınırlar (beyan)**:
+- R_etkin 16,7–34,6 mA'de doğrulandı; kart girişinin akımı ~0,3–0,8 A
+  beklenir (§12'nin sınırı aynen geçerli).
+- §1'in sorusu ("kartın tamamı, 12 V girişi") bu sürümde **kartın 5 V
+  girişi** için cevaplanır; tez cümlesindeki "5 W zarfı" bu kapsamla yazılır.
+- PGA /4: şönt tam ölçeği ±160 mV → R_etkin ile ~1,24 A.
+- Jumper ve breadboard kontakları ~1 A sınıfı. Kontak direnci değişirse kart
+  girişinin gerilimi değişir (Δ4 bunu yakalar), akım okuması değişmez.

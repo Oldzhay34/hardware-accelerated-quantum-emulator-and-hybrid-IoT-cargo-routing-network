@@ -24,7 +24,7 @@ def _protokol():
 # --- protokol bağı --------------------------------------------------------
 def test_sabitler_protokolle_ayni():
     m = _protokol()
-    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.2" and "v1.2" in m
+    assert me.PROTOKOL_SURUMU == "kart-enerji-protokolu v1.3" and "v1.3" in m
     assert "`0x17FF`" in m and ina.YAPILANDIRMA == 0x17FF
     assert "**0,1 Ω**" in m and ina.R_SONT_OHM == 0.1
     assert "**5 Hz** (0,2 sn)" in m and me.PERIYOT_S == 0.2
@@ -38,6 +38,10 @@ def test_sabitler_protokolle_ayni():
     assert "yayılım **< %1**" in m and ki.KATSAYI_YAYILIM_ESIK == 1.0
     assert "akım **≥ 10 mA**" in m and ki.DOGRULAMA_MIN_MA == 10.0
     assert "en az **1,5 kat**" in m and me.DOGRULAMA_AKIM_ORANI == 1.5
+    assert "**4,6 V**" in m and me.MIN_GERILIM_V == 4.6
+    assert "**10 sn**" in m and me.ON_DENETIM_S == 10.0
+    assert "tam ölçeğin **%80**" in m and me.ON_DENETIM_ARALIK == 0.8
+    assert "`kart-5v-girisi`" in m and me.KAPSAM.startswith("kart-5v-girisi")
 
 
 def test_protokol_dondurulmus():
@@ -129,6 +133,29 @@ def test_seri_sonucu_eksik_ornek_gecersiz():
           [_ornek(170 + t * 0.4, 0.30) for t in range(425)]     # yuk'te yarisi
     with pytest.raises(me.SeriGecersiz):
         me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, ina.R_SONT_OHM)
+
+
+def test_kart_girisi_gerilim_alt_siniri():
+    """§13: tek bir örnek bile 4,6 V'un altına inerse seri geçersiz."""
+    orn = [_ornek(t * 0.2, 0.50, 5.0) for t in range(850)] + \
+          [_ornek(170 + t * 0.2, 0.60, 5.0) for t in range(850)]
+    bos, yuk, e, _ = me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, ina.R_SONT_OHM)
+    assert bos["min_gerilim_v"] == pytest.approx(5.0) and e["guc_farki_w"] > 0
+    orn[900] = _ornek(orn[900][0], 0.60, 4.5)
+    with pytest.raises(me.SeriGecersiz):
+        me.seri_sonucu(orn, (0.0, 170.0), (170.0, 340.0), 4000, ina.R_SONT_OHM)
+
+
+def test_on_denetim_kor_ve_kararlar():
+    iyi = [_ornek(t * 0.2, 0.50, 5.0) for t in range(50)]
+    k = me.on_denetim_karari(iyi)
+    assert k["gecti"] and k["gerilim_yeterli"] and k["akim_yonu_dogru"] and k["akim_aralikta"]
+    # kor: akim ya da guc SAYI olarak donmez
+    assert not any(("akim" in a or "guc" in a) and not isinstance(v, bool) for a, v in k.items())
+    assert not me.on_denetim_karari([_ornek(0.0, 0.50, 4.5)])["gerilim_yeterli"]
+    assert not me.on_denetim_karari([_ornek(0.0, -0.50, 5.0)])["akim_yonu_dogru"]
+    assert not me.on_denetim_karari([_ornek(0.0, 1.40, 5.0)])["akim_aralikta"]   # 140 mV > 128 mV
+    assert not me.on_denetim_karari([])["gecti"]
 
 
 # --- kalibrasyon ----------------------------------------------------------

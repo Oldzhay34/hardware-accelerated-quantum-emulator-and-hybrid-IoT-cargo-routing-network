@@ -98,7 +98,8 @@ def pencere_ozeti(ornekler, bas, son, r_sont=R_SONT_OHM, pga=PGA_4):
         "ort_guc_w": ort, "std_guc_w": std,
         "se_guc_w": std / math.sqrt(n) if n > 1 else None,
         "min_guc_w": min(p), "maks_guc_w": max(p),
-        "ort_gerilim_v": sum(v) / n, "ort_akim_a": sum(i) / n,
+        "ort_gerilim_v": sum(v) / n, "min_gerilim_v": min(v),
+        "ort_akim_a": sum(i) / n, "maks_akim_a": max(i),
         "doygun_ornek": sum(1 for _, s, _ in secili if doygun(sont_uv(s), pga)),
         "ovf_ornek": sum(1 for _, _, b in secili if bara(b)[2]),
     }
