@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce. 📝 **v1.2 taslağı** (§12: etkin şönt direnci) onay bekliyor |
-| **Sürüm** | **v1.2 (taslak, 8 Eki)** — değişiklik **§12**'de, ⚠️ **kalibrasyon sonuçları (K1–K3) görüldükten sonra**. Kayıtlar `kart-enerji-protokolu v1.2` taşır. — v1.1: **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
+| **Durum** | 🔒 v1.0 **DONDURULDU — 2026-10-04**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.1 DONDURULDU — 2026-10-07**, kullanıcı onayıyla, ilk kalibrasyondan önce. 🔒 **v1.2 DONDURULDU — 2026-10-08**, kullanıcı onayıyla, K4'ten önce |
+| **Sürüm** | **v1.2** — değişiklik **§12**'de, ⚠️ **kalibrasyon sonuçları (K1–K3) görüldükten sonra**. Kayıtlar `kart-enerji-protokolu v1.2` taşır. **Onaylanan v1.2 metni**: commit `19eb1af`, git içerik özeti `7599efcd6c52b96d33e1507d604d0a86bbf95107`; sonrasında yalnız durum/sürüm satırları ve §12 başlığı değişti. Yürütücü kod `19eb1af`'teki hâliyle donar. — v1.1: **v1.1** — değişiklik **§11**'de, **hiçbir kalibrasyon ya da ölçüm yapılmadan önce**. Kayıtlar `kart-enerji-protokolu v1.1` taşır. **Onaylanan v1.1 metni**: commit `bb0d484`, git içerik özeti `2b71be2ee4482a5cb24f65af475c7a9f021147dc`; sonrasında yalnız bu iki satır ve §11 başlığı değişti (`git diff bb0d484 -- <bu dosya>`). Yürütücü kod `bb0d484`'teki hâliyle donar |
 | **Onaylanan metin** | commit `be2abfc`, git içerik özeti `c84a4d73756030bb0e5cddade68b8d0dd1636fce` (`git rev-parse be2abfc:docs/measurements/kart-enerji-protokolu.md`). Dondurmadan sonra yalnız bu üç durum satırı değişti: `git diff be2abfc -- <bu dosya>`. Yürütücü kod `be2abfc`'deki hâliyle donar |
 | **Görev** | T046 (düzenek), T048 (kalibrasyon), T049–T050 (ölçüm), T069'un FPGA enerji hücresi |
 | **Dayanak** | FR-009, FR-009c/d, FR-010, FR-011, SC-005, SC-006, SC-009 · [data-model §3, §3b](../../specs/003-zynq-ps-kartta-kosum/data-model.md) · dizüstü tarafı: [gpu-enerji-protokolu v1.1](gpu-enerji-protokolu.md) (**aynı yöntem**) · F2 iş yükü: [kart-olcum-protokolu v1.0](kart-olcum-protokolu.md) (**aynı kod**) |
@@ -216,7 +216,7 @@ geçerli.
 
 ---
 
-## 12. v1.2 — etkin şönt direnci (8 Eki) — 📝 onay bekliyor
+## 12. v1.2 — etkin şönt direnci (8 Eki) — 🔒 onaylandı
 
 **Neden**: §11'in yöntemiyle üç kalibrasyonun üçü de kaldı — K1 **%30,2**, K2
 **%29,3** (bastırarak yeniden oturtma), K3 **%28,8** (VIN+/VIN− başlık pinleri
