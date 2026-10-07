@@ -15,7 +15,7 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Kart işi — 7 Eki durumu**: protokol v1.1 🔒 (`bb0d484`). **T048 K1–K3 KALDI (%30,2 / %29,3 / %28,8)** — yeniden lehim düzeltmedi; INA219 sabit ~1,30× okuyor → modüle özgü kazanç hatası. Sıradaki: alet kararı (ikinci INA219 / v1.2 etkin şönt + doğrulama / başka alet) → yeni kalibrasyon → T046 (12 V hattı ya da JP5 yolu — karar bekliyor). ⚠️ Kablo değişikliği yalnız kart kapalıyken.
+**Kart işi — 7 Eki durumu**: protokol v1.1 🔒 (`bb0d484`). **T048 ✅ (8 Eki, v1.2)**: K1–K3 kaldı (modül ~1,30× okuyor, hata #14) → etkin şönt R_etkin = 0,12896 Ω (K4), K5 %0,03 / K6 %0,23 ile doğrulandı. **Sıradaki: T046** — INA219'u kartın güç yoluna sok: 12 V hattı (DC jak adaptörü YOK) ya da JP5 yolu (REG pini → VIN+, VIN− → orta pin; protokol sürümü + pin doğrulaması gerekir) → T049–T050 → T046 (12 V hattı ya da JP5 yolu — karar bekliyor). ⚠️ Kablo değişikliği yalnız kart kapalıyken.
 
 **Kart işi (4 Eki, bu fazda)**: öbek 6 — kart enerjisi. ✅ INA219 konuşuyor (VCC lehimi açıktı, düzeltildi; SCL/SDA düz). 🔒 [kart-enerji-protokolu v1.0](../../docs/measurements/kart-enerji-protokolu.md) donduruldu (`be2abfc`) + `agent/ina219.py`, `calibrate_ina219.py`, `measure_energy.py` hazır. Sıra: **T048 kalibrasyon** (5 V pini + bilinen direnç; adaptör gerekmez — kullanıcıda uygun direnç var mı?) → **T046** (DC jak klemens adaptörleri **yok**, temin) → T049–T050. Kart JP5 = REG, adaptörle. ⚠️ Kablo değişikliği yalnız kart kapalıyken.
 

@@ -1,0 +1,66 @@
+{
+ "bilinen_yuk_w": 0.05494467005076142,
+ "okunan_w": 0.054816196636659764,
+ "sapma_yuzde": 0.2338232516146894,
+ "gecti": true,
+ "zaman_damgasi": "2026-10-07T21:57:11+0000",
+ "rol": "dogrulama",
+ "zaman_damgasi_unix": 1791410231.3383646,
+ "boot_id": "79a37eed-9830-40d7-8071-931e60f28eb1",
+ "yontem": "V^2 / R (multimetre; R ag yalitilmisken)",
+ "duzen": "K6 v1.2 dogrulama: yalniz 200R (220R ve 1k cikarildi), VIN- sirasi - sari sira. R=198-1 (2k kademesi, tek okuma, ag yalitilmis, kart kapali); V=3.29 (20V DC, VIN- lehimi - sari sira, yuk altinda). R_etkin K4 kaydindan.",
+ "multimetre": "kullanicinin el multimetresi (model kaydedilmedi); 2k ohm ve 20 V DC kademeleri",
+ "referans": {
+  "gerilim_v": 3.29,
+  "direnc_ohm": 197.0,
+  "akim_ma": null,
+  "akim_a_turetilen": 0.016700507614213198
+ },
+ "okunan": {
+  "gerilim_v": 3.2880000000000074,
+  "akim_a": 0.0166715926510523
+ },
+ "gerilim_sapma_yuzde": -0.060790273556008335,
+ "akim_sapma_yuzde": -0.17313822926129338,
+ "r_sont_nominal_ohm": 0.1,
+ "r_sont_kullanilan_ohm": 0.12896188414634147,
+ "nominal_ile": {
+  "okunan_w": 0.07069199999999994,
+  "akim_a": 0.021500000000000043
+ },
+ "ina219_yapilandirma": "0x17FF",
+ "pencere": {
+  "n": 150,
+  "bas_s": 147.456434182,
+  "son_s": 177.456434182,
+  "sure_s": 30.0,
+  "ort_guc_w": 0.054816196636659764,
+  "std_guc_w": 9.050781798169772e-17,
+  "se_guc_w": 7.389932392928515e-18,
+  "min_guc_w": 0.054816196636659854,
+  "maks_guc_w": 0.054816196636659854,
+  "ort_gerilim_v": 3.2880000000000074,
+  "ort_akim_a": 0.0166715926510523,
+  "doygun_ornek": 0,
+  "ovf_ornek": 0
+ },
+ "pencereler": [
+  {
+   "n": 150,
+   "bas_s": 147.456434182,
+   "son_s": 177.456434182,
+   "sure_s": 30.0,
+   "ort_guc_w": 0.07069199999999994,
+   "std_guc_w": 6.962139844745979e-17,
+   "se_guc_w": 5.684563379175782e-18,
+   "min_guc_w": 0.070692,
+   "maks_guc_w": 0.070692,
+   "ort_gerilim_v": 3.2880000000000074,
+   "ort_akim_a": 0.021500000000000043,
+   "doygun_ornek": 0,
+   "ovf_ornek": 0
+  }
+ ],
+ "ornek_dosyasi": "kalibrasyon_20261007_dbb3884_K6.ornekler.csv",
+ "protokol_surumu": "kart-enerji-protokolu v1.2"
+}

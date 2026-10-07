@@ -658,10 +658,21 @@ Referans: multimetreyle R (ağ yalıtılmışken) ve V (yük altında).
 lehimden bağımsız. Sabit kazanç hatası: INA219 şönt yerine ~0,13 Ω görüyor
 gibi ([hatalar #14](hatalar-ve-duzeltmeler.md)). Kalibrasyon geçmediği için
 **enerji ölçümü yapılmadı**. Kullanıcı kararı (8 Eki): etkin şönt direnciyle
-düzeltme — [protokol v1.2 §12](measurements/kart-enerji-protokolu.md) (taslak):
-katsayı yeni bir ölçümden (K4) çıkarılacak, iki farklı yükte (K5, K6)
-bağımsız doğrulanacak. ⚠️ Doğrulama 16–35 mA aralığında; kartın ölçümü
-0,2–0,8 A'de olacak (orantılılık varsayımı, beyan edildi).
+düzeltme — [protokol v1.2 §12](measurements/kart-enerji-protokolu.md) (🔒 `19eb1af`):
+katsayı yeni bir ölçümden çıkarıldı, iki farklı yükte bağımsız doğrulandı:
+
+| | Yük | Gerçek akım | Nominal okuma / gerçek | Sonuç |
+|---|---|---:|---:|---|
+| [K4](measurements/kalibrasyon_20261007_dbb3884_K4.json) katsayı | 200 ∥ 220 (104,7 Ω, 3,28 V) | 31,33 mA | 1,2896 | **R_etkin = 0,12896 Ω**, 3 × 30 sn yayılım %0,000 (kararlı) |
+| [K5](measurements/kalibrasyon_20261007_dbb3884_K5.json) doğrulama | 200 ∥ 220 ∥ 1k (94,5 Ω, 3,27 V) | 34,60 mA | 1,2892 | sapma **%0,03** ✅ |
+| [K6](measurements/kalibrasyon_20261007_dbb3884_K6.json) doğrulama | 200 (197 Ω, 3,29 V) | 16,70 mA | 1,2874 | sapma **%0,23** ✅ |
+
+Ön kayıtlı V1–V4'ün dördü de tuttu (V2 kör değildi). `measure_energy`'nin
+denetimi üç kaydı kabul etti. **Alet, R_etkin ile kalibre** — en büyük
+doğrulama sapması %0,23. ⚠️ Doğrulama **16,7–34,6 mA** aralığında; kartın
+ölçümü 0,2–0,8 A'de olacak — orantılılık bu aralıkta sınandı (oran %0,17
+içinde sabit), ölçüm akımına taşıma **varsayımdır** (beyan edildi). K4'ün
+çözünürlüğü INA219'un 10 µV LSB'siyle sınırlı (~%0,25).
 
 ---
 

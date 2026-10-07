@@ -572,9 +572,12 @@ okumalar büyük ihtimalle probun lehim topağına temasından geliyordu.
 ve PS↔PL enerji oranı ~%30 fazla raporlanırdı — dizüstüyle kıyas FPGA aleyhine
 çarpık çıkardı.
 
-**Düzeltme**: Yok (henüz). Düzeltme katsayısı **uygulanmadı**; kalibrasyon
-geçmeden enerji ölçümü yapılmaz (SC-005). Alet kararı kullanıcıda: ikinci INA219,
-etkin şönt direnciyle yeni protokol sürümü + bağımsız doğrulama, ya da başka alet.
+**Düzeltme**: Kullanıcı kararıyla (8 Eki) protokol **v1.2** — modülün **etkin
+şönt direnci** yeni bir ölçümden belirlendi (K4: **0,12896 Ω**, kararlı) ve
+K4'te kullanılmayan iki farklı yükte bağımsız doğrulandı (K5 %0,03, K6 %0,23;
+16,7–34,6 mA). Sonuç görüldükten sonra yazıldığı beyan edildi; enerji
+kayıtlarında nominal (0,1 Ω) hesap da tutulur. ⚠️ Ölçüm akımında (0,2–0,8 A)
+doğrulanmadı — orantılılık varsayımı.
 
 **Kanıt**: [K1](measurements/kalibrasyon_20261006_fd100e5_K1.json),
 [K2](measurements/kalibrasyon_20261006_51aa2c0_K2.json),
