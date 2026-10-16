@@ -12,6 +12,7 @@
 
 Kök seviyedeki dosyalar (`risk-register.md`, `repo-conventions.md`, `cost.md`, `secrets-audit.md`, `data-governance.md`, `backup.md`, `siradaki-standardi.md`, `faz-sonu-kontrol.md`) Faz 0 alt dallarının çıktılarıdır ve tek dosya olarak kalır.
 - [neden-fpga.md](neden-fpga.md) — *"GPU varken neden FPGA?"* savunması; kullanılacak ve **kullanılmayacak** argümanlar
+- [kart-secimi-ve-donanim-sinirlari.md](kart-secimi-ve-donanim-sinirlari.md) — kart seçimi (bütçe) ve sınırları: neden ping-pong yok, neden tek kelebek birimi, neden II = 2; KV260 / Kintex-7 / ZCU102'de ne değişirdi; *"neden KV260 değil?"* savunması
 - [sistem-mimarisi.md](sistem-mimarisi.md) — uçtan uca mimari, iki çalışma kipi, kapasite ve gerçek sınır (alt problem başına 4 durak)
 - [mimari-gerekce.md](mimari-gerekce.md) — hızlandırıcı seçiminin derin teknik gerekçesi; her iddia [Ö]/[T]/[?] etiketli
 - [hatalar-ve-duzeltmeler.md](hatalar-ve-duzeltmeler.md) — **bitirme raporu için**: yanlış sonuç üreten/üretecek 9 hata; belirti, nasıl yakalandı, kök neden, düzeltme, ders. Yeni hata bulunduğu gün buraya yazılır

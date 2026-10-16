@@ -5,6 +5,9 @@
 Bu belge tek bir soruya cevap verir: *"Makinende RTX 4060 varken bu işi neden
 FPGA'da yaptın?"*
 
+Kart seçimiyle ilgili sorular (*"neden KV260 / daha büyük kart değil?"*, ping-pong, çoklu kelebek, II = 1):
+[kart-secimi-ve-donanim-sinirlari.md](kart-secimi-ve-donanim-sinirlari.md).
+
 Bu, savunmada sorulacak **ilk** sorudur. Zayıf bir cevap, hiç cevap
 vermemekten kötüdür — çünkü zayıf argüman sorgulanınca çöker ve geri kalan
 her şeyi şüpheli hâle getirir. Bu yüzden belge iki bölümdür: **kullanılacak**
