@@ -180,6 +180,15 @@ Her iki cümle de savunulabilir. B, dürüst bir mühendislik sonucudur — "ba�
 | 3.2 Servis sözleşmeleri ve veri modeli | H | Panel + kıyas servisinin konuşabilmesi için minimum. |
 | 3.3 Karar motoru: veri, eğitim, dürüst değerlendirme | İ | Eğitim verisi üretimi başlı başına bir proje (bkz. K-08). ⚠️ 5 Eki: görev "dinamik adres → aynı gün mü, ertesi gün mü" (Faz 3 prompt belgesi); K-09'daki "FPGA mı CPU mu" tanımı ölçümle anlamsızlaştı ve düzeltilecek. Veri adayları: [cut-plan K-09 notu](cut-plan.md). |
 | 3.4 Kuyruk, idempotency ve geri basınç | İ | Tek kullanıcılı demoda yük yok. |
+
+> ⚠️ **16 Eki — tur birleştirme eklendi.** Faz 3'ün ARAŞTIR adımında
+> makro-kümelemeyle **birlikte** seçilir: mikro-küme (depo + 4 durak)
+> turlarının bir araç rotasına nasıl bağlanacağı. Hiçbir alt dalda
+> tanımlı değildi; oysa 10.1'in (M) boru hattı ekseni birleşmiş toplam tur
+> uzunluğunu kıyaslıyor. Büyük planın kalitesini QAOA değil bu iki klasik
+> katman belirler ([sistem-mimarisi §5](../../docs/sistem-mimarisi.md)).
+> Faz 3.1/3.2 kesilse bile (cut-plan §3) kümeleme + birleştirme 10.1 için
+> en az bir betik olarak kalır.
 | 6.1 Rol matrisi ve yetkilendirme | İ | Tek kullanıcılı demoda rol ayrımı gösteriş. |
 | 6.2 Kimlik doğrulama ve Railway dağıtımı | İ | Yerel demo yeterli. |
 | 6.3 Mühendis konsolu: FPGA durumu, podlar, Grafana | H | Jüri demosunda gösterilecek **tek** ekran. |

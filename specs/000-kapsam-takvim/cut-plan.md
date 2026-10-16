@@ -220,7 +220,7 @@ Tampon 1 (H8) veya Tampon 2 (H11) **1 haftadan fazla** yendiğinde, aşağıdaki
 | Sıra | Kesilen | Neden bu sırada |
 |------|---------|----------------|
 | 1 | Faz 6/8'in H işleri (6.3 hariç) | Panel yüzeyi; ölçüme sıfır katkı |
-| 2 | Faz 3.1 / 3.2 (backend iskeleti) | Kıyas servisi tek bir Python betiğiyle de koşar |
+| 2 | Faz 3.1 / 3.2 (backend iskeleti) | Kıyas servisi tek bir Python betiğiyle de koşar. ⚠️ 16 Eki: **kümeleme + tur birleştirme kesilmez** — 10.1'in (M) boru hattı ekseni onlara bağlı; servis yerine betik olarak kalır |
 | 3 | Faz 11.1 (katmanlı CI/CD) | 11.5 (M) korunur, gerisi düşer |
 | 4 | Faz 10.2 (karşılaştırma ekranı) | Tablo + statik figür M'yi karşılar |
 | 5 | Faz 5.1 (fpga-agent servisi) | Kartta koşum elle de tetiklenebilir |

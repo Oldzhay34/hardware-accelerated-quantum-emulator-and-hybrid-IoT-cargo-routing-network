@@ -156,7 +156,11 @@ Bu meşru bir yaklaşımdır ama **açıkça yazılmalıdır** — *"QAOA ile ka
 rotası optimize ediyoruz"* cümlesi bundan fazlasını ima eder.
 
 ⬜ **Açık tasarım kararı**: kümeleme algoritması (k-means? coğrafi ızgara?
-en yakın komşu?) ve tur birleştirme yöntemi henüz seçilmedi.
+en yakın komşu?) ve tur birleştirme yöntemi henüz seçilmedi. → **Faz 3'ün
+başında, ARAŞTIR adımında birlikte seçilir** (16 Eki planlandı; karşılaştırma
+raporu + onay, Prensip I). Büyük planın kalitesini QAOA değil bu iki klasik
+katman belirler: bir mikro-kümede depo sabitken yalnız 24 sıralama var ve
+kaba kuvvet onu 43,2 µs'de kesin çözüyor.
 
 ---
 
@@ -327,7 +331,7 @@ Karıştırılırsa savunma çöker.
 
 | ⬜ | Konu |
 |---|---|
-| Kümeleme algoritması ve tur birleştirme yöntemi (§5) | |
+| Kümeleme algoritması ve tur birleştirme yöntemi (§5) | → Faz 3 başı, ARAŞTIR adımı (16 Eki planlandı); Faz 10.1 boru hattı ekseni (M) ikisine bağlı |
 | ML zorluk tipi (A/B*/C) girdileri ve eşikleri — ⚠️ A/B*/C hiçbir yerde tanımlı değil. Faz 3 prompt belgesine göre karar motorunun görevi "dinamik adres → aynı gün mü, ertesi gün mü"; veri adayları [cut-plan K-09 notu](../specs/000-kapsam-takvim/cut-plan.md) (5 Eki) | |
 | ESP32 haberleşme yolu: doğrudan mı Railway üzerinden mi — **hangi koşulda** | |
 | ~~Sıcak başlangıç / sabit açı denemesi (§7)~~ | ✅ 3 Eki, 6D |
