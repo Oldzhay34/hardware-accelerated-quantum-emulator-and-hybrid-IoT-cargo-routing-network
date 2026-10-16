@@ -150,7 +150,7 @@ Değişen tek şey, o işin **ne olduğunun doğru adlandırılması**.
 | ⬜ | Konu |
 |---|---|
 | ~~GPU hiç ölçülmedi~~ → **30 Eyl ölçüldü**: aynı algoritma GPU'da 0,997 ms, FPGA'dan 36,7× hızlı; FPGA belirlenimci (olculen-degerler §6.1) | |
-| FPGA enerjisi ölçülmedi — tek taraflı karşılaştırma yapılamaz (dizüstü tarafı 3 Eki ölçüldü, olculen-degerler §6.2) | |
+| ~~FPGA enerjisi ölçülmedi — tek taraflı karşılaştırma yapılamaz (dizüstü tarafı 3 Eki ölçüldü, olculen-degerler §6.2)~~ | ✅ 8 Eki ölçüldü (kartın 5 V girişi, olculen-degerler §6.4): E(P2)/E(F2) = 0,87 |
 | Genişlik Pareto eğrisi — Phase 6C (T070–T073) | |
 | 37,28 ms hâlâ **sentez tahmini**, kartta doğrulanmadı (T044) | |
 | Jitter argümanı beklenenden zayıf — ARM 30 koşumda %1,5 yayılım | |

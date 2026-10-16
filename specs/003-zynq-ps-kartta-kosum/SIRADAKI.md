@@ -15,11 +15,11 @@
 > 6B/6C/6D kilitleri resmen kalktı. Önerilen sıra yine de öbek 5 → 6 → 7:
 > 2,26×'in FPGA tarafı hâlâ **tahmin** ve onu T044 kapatır.
 
-**Kart işi — 7 Eki durumu**: protokol v1.1 🔒 (`bb0d484`). **T048 ✅ (8 Eki, v1.2)**: K1–K3 kaldı (modül ~1,30× okuyor, hata #14) → etkin şönt R_etkin = 0,12896 Ω (K4), K5 %0,03 / K6 %0,23 ile doğrulandı. **Sıradaki: T046** — INA219'u kartın güç yoluna sok: 12 V hattı (DC jak adaptörü YOK) ya da JP5 yolu (REG pini → VIN+, VIN− → orta pin; protokol sürümü + pin doğrulaması gerekir) → T049–T050 → T046 (12 V hattı ya da JP5 yolu — karar bekliyor). ⚠️ Kablo değişikliği yalnız kart kapalıyken.
+**Kart işi — ✅ öbek 6 BİTTİ (8 Eki)**: T046 JP5 yolu (protokol v1.3 🔒 `47b15b1`) → T049–T050 ölçüldü, **4/4 seri geçerli**: kartın 5 V girişi boşta **1,446 W**; koşum başına ek enerji F2 **0,01715 J**, P2 **0,01493 J** → **E(P2)/E(F2) = 0,87** (B4 tutmadı — PL yolu %15 fazla; boştaki güç dahil 1,54× az, ön kayıtlı değil) — [olculen-degerler §6.4](../../docs/olculen-degerler.md). ⚠️ **Kart düzeni**: JP5 köprüsü çıkarılmış, INA219 REG→VIN+ / orta→VIN−, micro-USB çıkarılmış. USB beslemeye dönmek için önce INA219 jumper'ları sökülür, sonra köprü takılır; kablo değişikliği yalnız kart kapalıyken.
 
-**Kart işi (4 Eki, bu fazda)**: öbek 6 — kart enerjisi. ✅ INA219 konuşuyor (VCC lehimi açıktı, düzeltildi; SCL/SDA düz). 🔒 [kart-enerji-protokolu v1.0](../../docs/measurements/kart-enerji-protokolu.md) donduruldu (`be2abfc`) + `agent/ina219.py`, `calibrate_ina219.py`, `measure_energy.py` hazır. Sıra: **T048 kalibrasyon** (5 V pini + bilinen direnç; adaptör gerekmez — kullanıcıda uygun direnç var mı?) → **T046** (DC jak klemens adaptörleri **yok**, temin) → T049–T050. Kart JP5 = REG, adaptörle. ⚠️ Kablo değişikliği yalnız kart kapalıyken.
+*(geçmiş)* **Kart işi (4 Eki, bu fazda)**: öbek 6 — kart enerjisi. ✅ INA219 konuşuyor (VCC lehimi açıktı, düzeltildi; SCL/SDA düz). 🔒 [kart-enerji-protokolu v1.0](../../docs/measurements/kart-enerji-protokolu.md) donduruldu (`be2abfc`) + `agent/ina219.py`, `calibrate_ina219.py`, `measure_energy.py` hazır. Sıra: **T048 kalibrasyon** (5 V pini + bilinen direnç; adaptör gerekmez — kullanıcıda uygun direnç var mı?) → **T046** (DC jak klemens adaptörleri **yok**, temin) → T049–T050. Kart JP5 = REG, adaptörle. ⚠️ Kablo değişikliği yalnız kart kapalıyken.
 
-**Hedef (tek cümle)**: 6B **T069** — kıyas matrisi (T051–T055 betiği + GPU sütunu). Kartsız yazılabilir; FPGA enerji hücresi `null` + not (T053). ⚠️ **Önce karar**: iş yükleri **pilde prizdekinden hızlı** ölçüldü (GPU aynı algoritma 0,555 vs 0,997 ms) — §6.1'in 36,7×'i prizdeki T067'ye dayanıyor. Matrise girmeden önce prizde, soğuk GPU'yla kısa bir kontrol ölçümü önerilir (ön kayıtlı protokol gerekir).
+**Hedef (tek cümle)**: 6B **T069** — matris betiği hazır (T051–T054 ✅ 16 Eki, tasarım v1: aynı algoritma katmanı ARM/FPGA/CPU/GPU, oranlar FPGA'ya göre, enerji oranı yalnız aynı kapsamda, Aer ayrı tablo). **Sıradaki adım: priz/pil kontrol ölçümü** (kullanıcı çalıştırır, ~45 dk, prize takılı başlar, dizüstünde başka iş yok: `powershell -ExecutionPolicy Bypass -File scripts\priz_pil_kontrol.ps1`) → temiz ağaçta `build_comparison_matrix.py --yaz --kontrol ...` → yorum `olculen-degerler`'e. Kontrol ölçümü gecikme hücrelerinin **yerine geçmez** (protokol §5); kararı not olarak eklenir.
 ⚠️ `.wslconfig` `processors=16` hâlâ açık — kontrol ölçümü yapılacaksa aynı ortamda kalmalı; sonra 6'ya geri alınabilir.
 
 **3 Eki kapananlar**: ✅ **T068** enerji (v1.1; E1 0,243 / E4 0,0217 J geçerli, E2/E3 güvenilmez — [olculen-degerler §6.2](../../docs/olculen-degerler.md)); ✅ **6D** (T074–T077; ölçekleme P_opt'u 121× artırıyor, p=1 sabit açı tek çağrı — [§5.2](../../docs/olculen-degerler.md)). Hata kaydı **#12** (enerji çalıştırıcısında sahte kaydedici) ve **#13** (referans QAOA kalitesi ölçekleme ürünü).
@@ -201,7 +201,7 @@ T001-T005 yerine bu dosya karta kopyalanıp probe_test.py koşulabilir.
 | | |
 |---|---|
 | Kart | **AÇIK** (2026-09-27; T035 için bir kez `sudo reboot` edildi, geri geldi) |
-| IP | **`192.168.1.6`** (RJ45, **DHCP**, 2026-09-27) — MAC `00-05-6b-04-42-a1`. Önceki adresler: `.1.2` (20 Eyl). DHCP adresi değişebilir: **`pynq.local`** (mDNS) çalışıyor, ya da `arp -a \| Select-String 00-05-6b`.
+| IP | ⚠️ **8 Eki: `192.168.1.5`** (DHCP değiştirdi). — **`192.168.1.6`** (RJ45, **DHCP**, 2026-09-27) — MAC `00-05-6b-04-42-a1`. Önceki adresler: `.1.2` (20 Eyl). DHCP adresi değişebilir: **`pynq.local`** (mDNS) çalışıyor, ya da `arp -a \| Select-String 00-05-6b`.
 Ayrıca **`192.168.2.99`** (eth0 statik yedeği) |
 | Seri konsol | **COM3**, 115200 8N1 — **parolasız açık** (`xilinx@pynq`). Yedek yol; ağ düşerse buradan girilir |
 | SSH | ✅ **anahtarla parolasız** (2026-09-20). Anahtar: `%USERPROFILE%\.ssh\pynq` (şifresiz), parmak izi `SHA256:8rUb5U7k8QIVMYgYM3ZK5g0cX6rNNPogP0s4Gxxtiqw`.<br>`ssh -i $env:USERPROFILE\.ssh\pynq xilinx@192.168.1.2` · `scp` 157 KB = **1,6 sn** |
@@ -209,9 +209,9 @@ Ayrıca **`192.168.2.99`** (eth0 statik yedeği) |
 | `import pynq` | ✅ root altında çalışıyor — PYNQ **2.5**, `Overlay`/`Bitstream`/`MMIO` erişilebilir |
 | FCLK0 | Boot'ta **100,0 MHz** — ama ⚠️ **overlay yüklenince 62,5 MHz** oluyor (2026-09-27, T032). Sebep: `qir_bd.tcl` kristali **33,333** verdi, PYNQ-Z2'ninki **50 MHz**; Vivado IO PLL'i 1600 sanıp bölenleri 4×4 seçti, kartın IO PLL'i 1000 MHz. SLCR'den doğrulandı (IO/ARM/DDR FBDIV 20/26/21 ×50 MHz). `board.py` artık **ayarlayıp doğruluyor** (bölenler 1×10 → 100,000). PL ve zamanlama kapanışı **etkilenmez** |
 | Kart parolası | ⚠️ **fabrika varsayılanı** (`/etc/shadow` 2019'dan beri değişmemiş). Kasadaki değer karta hiç uygulanmamış — bkz. [secrets-audit.md](../../docs/secrets-audit.md) |
-| Besleme | **JP5 = `USB`** (kullanıcı teyidi 2026-09-27; adaptörsüz). USB kaynağı — dizüstü portu mu şarj aleti mi — **kaydedilmedi**; enerji ölçümünden (öbek 6) önce yazılmalı. US1 bu düzende koşuldu.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
+| Besleme | ⚠️ **8 Eki'den beri enerji düzeni**: JP5 köprüsü **çıkarılmış**, adaptör (12 V) → kartın regülatörü → REG pini → INA219 → orta pin; micro-USB çıkarılmış (v1.3 §13). — Gecikme düzeni: **JP5 = `USB`** (kullanıcı teyidi 2026-09-27; adaptörsüz). USB kaynağı — dizüstü portu mu şarj aleti mi — **kaydedilmedi**; enerji ölçümünden (öbek 6) önce yazılmalı. US1 bu düzende koşuldu.<br>✅ **Gerilim düşüşü ölçülmedi** (27 Eyl, `agent/xadc_izle.py`): US1 koşumları boyunca 50 sn, 78.988 örnek — VCCINT **≥ 1,0151 V**, VCCBRAM ≥ 1,0159 V (aralık 0,95–1,05). Yani bu iş yükünde "sessiz yanlış sonuç" endişesi ölçümle kapandı.<br>⛔ Enerji ölçümü (öbek 6) **hangi düzende** yapıldığını kaydetmek ZORUNDA; iki düzen karışırsa rakamlar kıyaslanamaz |
 | PYNQ | **2.5**, çekirdek `4.19.0-xilinx-v2019.1`, Python 3.6.5. ✅ G0 geçti — 6 yıllık fark sorun çıkarmadı |
-| INA219 | **HW-831B modülü, I2C tarafı bağlı** (27 Eyl): VCC→3.3V (ölçüldü 3,32 V), GND, SCL/SDA → Arduino başlığının sol ucu (P15/P16). **T047 geçti** (`0x40`, yapılandırma `0x399F`). ⚠️ Pin başlığı ve klemens **LEHİMSİZ** — temas aralıklı (240 denemede 7). VIN+/VIN− boş. **T046 öncesi**: lehim + vidalı klemensli DC jak adaptörleri (dişi/erkek) + JP5=REG, adaptör 12 V 2,5 A |
+| INA219 | ✅ **8 Eki: lehimli, kalibre** (R_etkin 0,12896 Ω, [§6.3](../../docs/olculen-degerler.md)), kartın güç yolunda (JP5). — **HW-831B modülü, I2C tarafı bağlı** (27 Eyl): VCC→3.3V (ölçüldü 3,32 V), GND, SCL/SDA → Arduino başlığının sol ucu (P15/P16). **T047 geçti** (`0x40`, yapılandırma `0x399F`). ⚠️ Pin başlığı ve klemens **LEHİMSİZ** — temas aralıklı (240 denemede 7). VIN+/VIN− boş. **T046 öncesi**: lehim + vidalı klemensli DC jak adaptörleri (dişi/erkek) + JP5=REG, adaptör 12 V 2,5 A |
 | Dizüstü | ⚠️ **günde ~1 mavi ekran** — NVIDIA sürücüsü, risk [GK-01](../../docs/risk-register.md). Uzun ölçüm serileri **koşum başına** diske yazılmalı |
 
 **Kart boot etmezse**: kırmızı LED yanıp **yeşil DONE sönükse ve konsol
@@ -239,7 +239,7 @@ Aynı kod konak CPU'da **3,273 ms** (CPU 11,4× hızlı); kart üstü ARM'da **8
 
 Eski metin: 37,28 ms, CPU'nun turbo ve plato
 değerlerinin arasına düşüyor. Tezin sonucu **enerji ekseninde** belirlenecek —
-kaba hesap FPGA lehine 3,5–5,8× ama **ölçülmedi**.
+kaba hesap FPGA lehine 3,5–5,8× ama **ölçülmedi**. ✅ *8 Eki ölçüldü* ([olculen-degerler §6.4](../../docs/olculen-degerler.md)): kart F2 0,0172 J/koşum ek enerji (kartın 5 V girişi); 0,644 J farklı ortamdır, kıyasa girmez.
 
 ⚠️ Eski CPU rakamları (77,6 / 92,7 ms) **geçersiz** — arka planda cosim
 koşarken alınmışlardı ve `TEKRAR=15` yalnız turbo penceresini görüyordu.
@@ -268,7 +268,7 @@ Tez/makale için tek referans: [docs/olculen-degerler.md](../../docs/olculen-deg
 | 2 | 2 — blok tasarım + bitstream | T013–T018 | ✅ **BİTTİ — WNS +0,776 ns** |
 | 3 | 4 — US1 kartta koşum + 20 izdüşüm 🎯 | T026–T038 | ✅ **BİTTİ — MVP (27 Eyl)**: p=1/p=2 20/20 bit bit |
 | 4 | 5 — US2 gecikme, üç kapsam | T039–T045 | ✅ **BİTTİ** (27 Eyl): p=2 36,578 ms, 2,30×; T045 nedeni HLS en kötü durumu, RTL simülasyonuyla doğrulandı |
-| 5 | 6 — US3 enerji (INA219) | T046–T050 | bekliyor |
+| 5 | 6 — US3 enerji (INA219) | T046–T050 | ✅ **BİTTİ** (8 Eki): boşta 1,446 W (5 V girişi); E(P2)/E(F2) **0,87** — PL yolu ek enerjide %15 fazla |
 | 6 | 7 — US4 kıyas matrisi | T051–T055 | bekliyor |
 | 6B | **GPU tabanı** (2026-09-21 eklendi) | T064–T069 | 🔵 T064–T068 + T065b ✅ (30 Eyl gecikme, 3 Eki enerji — GPU serileri güvenilmez işaretli); T069 kaldı |
 | 6C | **Genişlik Pareto eğrisi** — FPGA'ya özgü katkı (2026-09-21 eklendi) | T070–T073 | ✅ **kapandı** (27 Eyl) — dirsek yok; "18 kesişim" anlatısı ölçümle **çöktü**, §2.2b yeniden yazıldı |

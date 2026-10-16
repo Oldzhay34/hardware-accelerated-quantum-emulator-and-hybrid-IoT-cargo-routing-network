@@ -628,8 +628,8 @@ açıklığa kavuşturur (açık iş).
 
 ### 6.3 Kart enerjisi — ölçüm aletinin kalibrasyonu (T048, 7–8 Eki)
 
-⚠️ **Kartın enerjisi henüz ölçülmedi.** Bu bölüm, ölçümden önce zorunlu olan
-alet kalibrasyonunun (SC-005: bilinen yükte sapma < %5) sonuçlarıdır.
+Bu bölüm, ölçümden önce zorunlu olan alet kalibrasyonunun (SC-005: bilinen
+yükte sapma < %5) sonuçlarıdır. **Ölçümün kendisi §6.4'te** (8 Eki).
 Protokol: [kart-enerji-protokolu v1.1](measurements/kart-enerji-protokolu.md)
 (§11: kartın 3,3 V'u + 200 Ω ∥ 220 Ω ağı). Alet: INA219 modülü (HW-831B,
 R100 şönt), kartın kendi PS'inden EMIO I2C ile okunuyor; 30 sn, 5 Hz, 150 örnek.
@@ -674,6 +674,95 @@ doğrulama sapması %0,23. ⚠️ Doğrulama **16,7–34,6 mA** aralığında; k
 içinde sabit), ölçüm akımına taşıma **varsayımdır** (beyan edildi). K4'ün
 çözünürlüğü INA219'un 10 µV LSB'siyle sınırlı (~%0,25).
 
+### 6.4 Kart enerjisi — ÖLÇÜLDÜ (2026-10-08, T049–T050, protokol v1.3)
+
+Protokol: [kart-enerji-protokolu v1.3](measurements/kart-enerji-protokolu.md)
+(🔒 `47b15b1`; alet §6.3'teki gibi R_etkin 0,12896 Ω, doğrulamanın en büyük
+sapması %0,23). Kayıt:
+[kart-enerji_20261008_47b15b1](measurements/kart-enerji_20261008_47b15b1.json)
+(+ `.ornekler.csv`, günlük `.txt`, P2 ikilisinin
+[derleme kaydı](measurements/kart-enerji_20261008_47b15b1.arm-derleme.txt)).
+
+**Kapsam: kartın 5 V girişi.** Ölçüm noktası JP5: REG pini → INA219 → orta
+pin. 12 V → 5 V giriş regülatörü ve adaptörün kaybı **hariç** (§13 Δ2;
+12 V'taki güce çevrilmez). Koşullar: micro-USB çıkarılmış, Ethernet bağlı,
+bitstream `qir_20260920_d350605`, FCLK0 100 MHz (baş/son), INA219 `0x17FF`
+(baş/son), 5 Hz; her seri [boş 170 sn] → [yük 170 sn], sıra F2, P2, F2, P2.
+Kör ön denetim geçti (kart girişi 4,92 V; akım/güç gösterilmedi). Ölçüm
+boyunca kart girişinin en düşük gerilimi **4,888 V** (sınır 4,6 V), en büyük
+akım 0,418 A. F2'de her koşum C-sim bit deseniyle bit bit aynı; P2'de
+`beklenen_deger` −3950,990722656. **Dört seri de geçerli.**
+
+| Seri | P boş | P yük | ΔP (± SE) | N (ısınma dahil) | t_yük / N | **E / koşum** | Nominal 0,1 Ω ile |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 0 F2 (PL) | 1,4481 W | 1,7943 W | 0,3462 W (± 1,2 mW) | 3.435 | 49,55 ms | **0,01716 J** | 0,02213 J |
+| 1 P2 (ARM) | 1,4451 W | 1,6337 W | 0,1886 W (± 0,4 mW) | 2.012 | 84,64 ms | **0,01597 J** | 0,02059 J |
+| 2 F2 (PL) | 1,4454 W | 1,7923 W | 0,3469 W (± 1,1 mW) | 3.444 | 49,42 ms | **0,01714 J** | 0,02211 J |
+| 3 P2 (ARM) | 1,4455 W | 1,6109 W | 0,1654 W (± 0,2 mW) | 2.026 | 84,07 ms | **0,01390 J** | 0,01793 J |
+| **F2 ort.** | | | 0,347 W | | 49,5 ms | **0,01715 J** (tekrarlar %0,08) | |
+| **P2 ort.** | | | 0,177 W | | 84,4 ms | **0,01493 J** (tekrarlar **%13,8**) | |
+
+SE gösterge niteliğindedir (ardışık örnekler ilintili). Nominal sütun yalnız
+bilgi (§12); manşet R_etkin ile.
+
+- **Boştaki güç** (bitstream yüklü, çekirdek boşta): **1,446 W**, dört
+  pencerede 3 mW içinde.
+- **E(P2) / E(F2) = 0,87** (seri çiftleri 0,93 / 0,81).
+- F2 sırasında `T_cekirdek` medyanı **36,578 / 36,578 ms** — REG beslemesinde
+  gecikme USB'dekiyle aynı.
+
+**Manşet (ön kayıtlı yöntem, delta)**: hesabı PS'ten PL'e taşımak koşumu
+hızlandırıyor (çekirdek 2,30×; bu ölçümdeki tam çağrı düzeyinde 84,4 / 49,5 ms
+= **1,70×**) ama **koşum başına ek enerjiyi düşürmüyor**: PL yolu ARM'dan
+**~%15 fazla** harcıyor. Neden: PL yolunun ek gücü ARM'ınkinin ~2 katı
+(0,347 W'a karşı 0,177 W) ve 1,70×'lik hız bunu karşılamıyor.
+
+**Bilgi — ön kayıtlı DEĞİL, türetilmiş**: kartın boştaki gücü de koşumlara
+paylaştırılırsa (P̄_yük × t / N) koşum başına **toplam** enerji F2 **0,089 J**,
+P2 **0,137 J** → PL yolu **1,54× az**. Kart başka iş yapmıyorsa boştaki güç
+zaten ödenir; bu bakış da anlamlıdır ama manşet değildir.
+
+**Sınırlar (beyan)**:
+- **F2 ve P2'nin işi eşit değil** (protokol §5'te böyleydi): F2 **tam çağrı**
+  — ARM'da kodlama + 1.095 yazma + koşum + okuma (49,5 ms'in 36,6 ms'i
+  çekirdek); P2 yalnız çekirdek döngüsü (girdi bir kez hazırlanır).
+  Asimetri **F2'nin aleyhine**. PL'nin kendi ek gücü ayrıca ölçülemiyor
+  (raylar ayrı değil, §10).
+- Kapsam kartın 5 V girişi (giriş regülatörü ve adaptör hariç).
+- R_etkin 16,7–34,6 mA'de doğrulandı, ölçüm 0,29–0,42 A'de (orantılılık
+  varsayımı, §12).
+- Öz-ölçüm: örnekleyici kartın ARM'ında koşar; delta'da sadeleşir, P2'de
+  ARM'ı iş yüküyle paylaşır (§3).
+- **P2 tekrarları farklı seviyede**: her yük penceresi kendi içinde kararlı
+  (17 sn dilimler 1,632–1,638 W ve 1,610–1,613 W), ama seviyeler 23 mW farklı;
+  ARM medyanı 84,56 / 84,00 ms. **Nedeni bilinmiyor** (çekirdek ataması?
+  bellek yerleşimi? — doğrulanmadı). Örnek ayıklanmadı (§7).
+- P2 ikilisi **21 Eyl kaynaklarından** derlendi (`34eb9a8` `hls/src` +
+  `--saniye`'li bench sürücüsü). Bugünkü kaynaklarla float `beklenen_deger`
+  −3950,989990234 çıkıyor: 6C'nin (`29b253c`) trig tablosu değişikliği float
+  yolunun son basamaklarını değiştirmiş; sabit noktalı W=18 yolu (bitstream)
+  iki tabloda bit bit aynı, iş miktarı aynı. Dizüstü/GPU float serileri
+  (30 Eyl sonrası) −3950,989990234 kullanır.
+
+**Dizüstüyle (bilgi — aynı yöntem, farklı alet ve kapsam)**: kartın 5 V
+girişi ↔ pildeki dizüstünün tamamı. Aynı algoritma, koşum başına ek enerji:
+kart F2 0,0172 J, kart P2 0,0149 J, dizüstü CPU tek iş parçacığı 0,0217 J
+(§6.2), dizüstü GPU 0,0127 J (⚠️ güvenilmez). Hızda sıra tersine: dizüstü CPU
+F2'den 11,2× hızlı. Zarf: kart 5 V girişinde boşta 1,45 W / F2 yükünde
+1,79 W; dizüstü boşta ~25 W, GPU yükünde 43 W (§6.2).
+
+**Ön kayıtlı beklentiler (§8 ve v1.3)**:
+
+| # | Beklenti | Sonuç |
+|---|---|---|
+| B1 | Boştaki toplam güç 1,5–4,0 W | ❌ **1,446 W** — az farkla altında; kapsam v1.3'te daraldı (giriş regülatörü hariç), aralık önceden **değiştirilmedi** |
+| B2 | F2'de ΔP ≤ 1,0 W | ✅ 0,347 W |
+| B3 | F2 E/koşum ≤ 0,0217 J (dizüstü CPU) | ✅ 0,01715 J — kapsamlar farklı |
+| B4 | E(P2) / E(F2) ≥ 1,5 | ❌ **0,87** — PL yolu koşum başına ek enerjide %15 fazla |
+| B5 | Kalibrasyon sapması < %2 | ◐ K1–K3 (v1.0/v1.1) ~%30 ❌; v1.2 düzeltmesiyle doğrulama %0,23 (§6.3) |
+| B6 | F2 `T_cekirdek` medyanı 36,578 ms ± %0,5 | ✅ 36,578 / 36,578 ms |
+| B7 | İki tekrarın E/koşum'u birbirinin %10'u içinde | ◐ F2 %0,08 ✅; P2 **%13,8** ❌ |
+
 ---
 
 ## 7. NE İDDİA EDİLEBİLİR, NE EDİLEMEZ
@@ -712,15 +801,28 @@ içinde sabit), ölçüm akımına taşıma **varsayımdır** (beyan edildi). K4
   normalizasyonu P_opt'u 121× artırıyor; p=1'de normalize **sabit açı** tek
   çağrıyla (türetilmiş 37 ms) soğuk COBYLA'dan iyi. Sıcak başlangıç çağrıyı
   en fazla %26 azaltıyor.
+- ✅ **Kart enerjisi ölçüldü** (8 Eki, §6.4): kartın 5 V girişi boşta
+  **1,45 W**, F2 yükünde **1,79 W**; koşum başına ek enerji F2 (PL)
+  **0,0172 J**, P2 (ARM) **0,0149 J**. **Daima kapsamıyla** yazılır:
+  *"kartın 5 V girişi, giriş regülatörü hariç"*.
 
 **EDİLEMEZ**:
 
 - ❌ **Genel bir hızlanma iddiası.** Geçerli tek hızlanma PS↔PL 2,30×'tir;
   aynı çekirdek dizüstü CPU'da FPGA'dan **11,2× hızlı** (3,273 ms vs
   36,578 ms). "FPGA hızlandırıyor" cümlesi tabansız kurulamaz.
-- ⚠️ **FPGA ile enerji karşılaştırması** — dizüstü tarafı ölçüldü (§6.2;
-  19 Eyl'in 0,644 J'si farklı ortamdır, kıyasa girmez), **FPGA tarafı
-  ölçülmedi** (öbek 6, INA219). Tek taraflı rakam karşılaştırma üretmez.
+- ❌ **"PL'e taşımak enerji kazandırır"** — koşum başına ek enerjide PL yolu
+  ARM'dan **%15 fazla** harcıyor (E(P2)/E(F2) = 0,87, §6.4; ön kayıtlı B4
+  tutmadı). Yazılabilecek olan: *"PL yolu 1,70× (tam çağrı) / 2,30×
+  (çekirdek) hızlı, ek gücü ~2× yüksek; koşum başına ek enerji ARM'la aynı
+  mertebede. Boştaki güç dahil edilirse koşum başına toplam enerji 1,54× az
+  (ön kayıtlı değil)."* "Donanım hızlandırmalı" ifadesi enerji verimliliği
+  ima etmez.
+- ⚠️ **Dizüstü ↔ kart enerji kıyası** — iki taraf da ölçüldü ama kapsam
+  (pildeki dizüstünün tamamı ↔ kartın 5 V girişi) ve alet farklı; yön bilgi
+  olarak yazılır: koşum başına ek enerji kartta (F2 0,0172 J) dizüstü CPU tek
+  iş parçacığından (0,0217 J) az — ama dizüstü 11,2× hızlı. 19 Eyl'in 0,644 J'si
+  farklı ortamdır, kıyasa girmez.
 - ⛔ **"GPU daha verimli" ya da "GPU daha verimsiz"** — GPU serileri güvenilmez
   işaretli (§6.2); yön bilgi olarak yazılabilir, sonuç olarak yazılamaz.
 - ❌ **Rota optimizasyonunda herhangi bir hızlanma.** Kaba kuvvet aynı makinede
@@ -735,9 +837,10 @@ içinde sabit), ölçüm akımına taşıma **varsayımdır** (beyan edildi). K4
   RTX 4060 Laptop'ta **0,997 ms**, FPGA'dan **36,7×** hızlı. Yazılabilecek
   olan: *"GPU hızda 36,7× önde; FPGA belirlenimcilikte önde (p99/medyan
   1,0004'e karşı 20)"* — ikisi birlikte, tabanlarıyla.
-- ⚠️ FPGA'nın savunması **dağıtım zarfı** (~5 W, konaksız), hız değil —
-  GPU iş yükü altında dizüstünün tamamı **43 W** çekti (§6.2; GPU'nun kendi
-  payı ayrıca ölçülmedi).
+- ⚠️ FPGA'nın savunması **dağıtım zarfı** (konaksız), hız değil — kartın
+  5 V girişi boşta 1,45 W, yükte 1,79 W ölçüldü (§6.4, giriş regülatörü
+  hariç); GPU iş yükü altında dizüstünün tamamı **43 W** çekti (§6.2; GPU'nun
+  kendi payı ayrıca ölçülmedi).
 - ❌ **Aer rakamlarını FPGA'yla kıyaslamak** — Aer katmanı (§6.1) yalnız
   "Aer içinde GPU/CPU oranı" (1,2×) için geçerli.
 - ⚠️ **n=16 RTL eşdeğerliği kısmen** — çıkış portu bit bit doğrulandı, ancak
@@ -779,6 +882,15 @@ implementasyondan gelmelidir.* HLS tahmini yalnızca hangi varyantların
 | Sıcak başlangıç artımlı yolda "99 → birkaç adım" (sistem-mimarisi §7) | En fazla −%26 (p=1, N); p=2'de sıfır | Ana kaldıraç değil; sabit açı (p=1) ve ölçekleme |
 | H1: R'de sonuç tohuma daha duyarlı | Ters (1/20) | R'de bütün tohumlar aynı derecede kötü |
 | N5: pilde GPU verimi düşer | Pilde 3,5× **yüksek** (kör değildi) | Nedeni bilinmiyor — prizdeki T067 değerleri sorgulanmalı (§6.2) |
+
+**Kart enerjisi — tutmayan ön kayıtlı beklentiler (8 Eki, §6.4)**:
+
+| Beklenti | Ölçüm | Sonuç |
+|---|---|---|
+| B4: PL'e taşımak koşum başına enerjiyi ≥ 1,5× azaltır ("PL 2,30× hızlı; ek güç farkı bunu yiyemez") | E(P2)/E(F2) = **0,87** | PL yolunun ek gücü ARM'ınkinin ~2 katı ve hızı (tam çağrıda 1,70×) bunu karşılamıyor. "Hızlı = verimli" varsayımı **artımlı enerjide** tutmadı |
+| B1: boştaki toplam güç 1,5–4,0 W | 1,446 W | Kapsam v1.3'te daraldı (giriş regülatörü hariç); beklenti 12 V için yazılmıştı, aralık değiştirilmedi |
+| B7: P2 tekrarları %10 içinde | %13,8 | Her pencere kendi içinde kararlı, seviye tekrar arasında değişiyor; neden bilinmiyor |
+| B5: kalibrasyon sapması < %2 | K1–K3 ~%30 | Modüle özgü kazanç hatası (hatalar #14); v1.2 etkin şönt düzeltmesiyle %0,23 (§6.3) |
 
 ---
 

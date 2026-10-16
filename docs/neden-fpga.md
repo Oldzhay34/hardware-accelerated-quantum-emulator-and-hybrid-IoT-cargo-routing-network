@@ -166,7 +166,7 @@ Bunların her biri kulağa makul gelir ve her biri ilk soruda çöker.
 |---|---|
 | *"FPGA daha hızlı"* | **Değil.** n=16 yalnızca 65.536 genlik ≈ 1 MB; bir GPU'nun L2 önbelleğine sığar. Beklenti GPU'nun iki-üç kat büyüklük önde olduğu yönünde. Zaten CPU'ya karşı bile **başabaşız** (37,28 ms vs 32,75–41,93 ms) |
 | *"FPGA daha çok kübite ölçeklenir"* | **Tam tersi.** Biz 16 kübitte BRAM'e sıkıştık (%67 dolu). GPU 30+ kübite çıkar, çünkü GB'larca belleği var. Bu argüman kurulursa karşı taraf bir cümleyle yıkar |
-| *"FPGA daha az enerji harcar"* | **Hâlâ söylenemez** — FPGA tarafı ölçülmedi (öbek 6). Dizüstü tarafı ölçüldü (3 Eki, [olculen-degerler §6.2](olculen-degerler.md)): aynı algoritma CPU tek iş parçacığı **0,0217 J/koşum**; GPU ~0,013 J (⚠️ güvenilmez işaretli). Ölçmeden söylenirse Anayasa madde II ihlal edilir |
+| *"FPGA daha az enerji harcar"* | **Ölçüldü ve genel hâliyle yanlış** (8 Eki, [olculen-degerler §6.4](olculen-degerler.md)): kartın içinde PL yolu koşum başına **ek** enerjide ARM'dan **%15 fazla** harcıyor (0,0172 vs 0,0149 J). Söylenebilecek olan zarftır: kartın 5 V girişi 1,45–1,79 W. — Önceki not: Dizüstü tarafı ölçüldü (3 Eki, [olculen-degerler §6.2](olculen-degerler.md)): aynı algoritma CPU tek iş parçacığı **0,0217 J/koşum**; GPU ~0,013 J (⚠️ güvenilmez işaretli). Ölçmeden söylenirse Anayasa madde II ihlal edilir |
 | *"Kuantum-esinli hesap özel donanım ister"* | İstemez. Yapılan iş doğrusal cebir; GPU'lar bunda mükemmeldir |
 | *"Rota optimizasyonunu hızlandırıyoruz"* | **Hayır.** Kaba kuvvet ~85.000× hızlı ve kesin (§0.5). Bu cümle projenin temelini çürütür |
 
@@ -204,7 +204,12 @@ Buradan çıkan üç argüman — ve hiçbiri "araca sığar mı" değil:
 **(a) Sürekli çalışan bir servis düğümü.** Bu bir pil ömrü meselesi değil,
 **7/24 işletme maliyeti** meselesi. PYNQ-Z2 ~5 W sürekli ≈ 44 kWh/yıl. Aynı
 işi yapan bir GPU + konak sistem 150–300 W bandındadır. Görev döngüsü sürekli
-olduğu için enerji argümanı zayıflamaz, **şekil değiştirir**.
+olduğu için enerji argümanı zayıflamaz, **şekil değiştirir**. ✅ **8 Eki
+ölçüldü** ([olculen-degerler §6.4](olculen-degerler.md)): kartın 5 V girişi
+boşta **1,45 W**, F2 yükünde **1,79 W** (giriş regülatörü hariç) — "~5 W"
+bir üst sınırdı, ölçülen değer değil. "GPU + konak 150–300 W" ise
+**ölçülmedi**; ölçülen tek dayanak dizüstünün tamamının GPU yükünde 43 W
+çekmesi (§6.2).
 
 **(b) FPGA aynı zamanda G/Ç göbeğidir.** Kartın kendi ARM'ı Linux koşuyor;
 Ethernet, I2C, GPIO, UART üstünde. ESP32'lerle **doğrudan** konuşabiliyor.
@@ -452,8 +457,10 @@ GPU kazandı — beklendiği gibi ve beklenen büyüklükte (ön kayıtlı G1: �
 ≥ 36×; kıl payı tuttu). Kaybedilen eksen hız; FPGA'nın ölçülmüş üstünlüğü
 **belirlenimcilik** (§2.3) ve ölçülmemiş ama savunulan üstünlüğü **dağıtım
 zarfı** (§2.1). Enerji: dizüstü tarafı ölçüldü (T068, 3 Eki; GPU serileri
-güvenilmez işaretli — [olculen-degerler §6.2](olculen-degerler.md)), FPGA
-tarafı ölçülmedi (öbek 6). ⚠️ Pilde aynı GPU iş yükü 0,555 ms ölçüldü — 36,7×
+güvenilmez işaretli — [olculen-degerler §6.2](olculen-degerler.md)); FPGA
+tarafı 8 Eki'de ölçüldü (kartın 5 V girişi, [§6.4](olculen-degerler.md)):
+PL yolu koşum başına ek enerjide ARM'dan %15 fazla, boştaki güç dahil
+1,54× az (ön kayıtlı değil). ⚠️ Pilde aynı GPU iş yükü 0,555 ms ölçüldü — 36,7×
 prizdeki T067 koşullarına aittir, fark açıklanana kadar öyle yazılır.
 
 ⚠️ Aer'le ölçülen GPU (29,94 ms) bu tabloya **girmez**: Aer QAOA'yı

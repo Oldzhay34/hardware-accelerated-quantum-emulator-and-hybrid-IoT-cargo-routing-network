@@ -427,7 +427,7 @@ mikrosaniye, yani **~100×**. **[T]**
 > bile hızlıdır. Bu zinciri kuran bir savunma, ilk ölçümde çöker.
 
 Doğru çerçeve hız değil **verimliliktir**: birim güç veya birim silikon
-başına iş. Ve o eksen **henüz ölçülmemiştir** — FPGA enerjisi bilinmiyor.
+başına iş. Ve o eksen **henüz ölçülmemiştir** — FPGA enerjisi bilinmiyor. ✅ *8 Eki ölçüldü* ([olculen-degerler §6.4](olculen-degerler.md)): kartın içinde PL yolu koşum başına ek enerjide ARM'dan %15 fazla.
 **[?]**
 
 ### 5.3 GPU'nun yapısal olarak yapamadığı şey

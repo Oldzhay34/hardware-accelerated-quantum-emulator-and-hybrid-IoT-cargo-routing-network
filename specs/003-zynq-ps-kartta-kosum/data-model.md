@@ -142,8 +142,18 @@ geçerli sayılmaz.
 `EnerjiOlcumu` kimliğine **işaret eder**. `hizlanma` iki taraf da doluysa
 hesaplanır, aksi hâlde `null` kalır ve `not` zorunlu olur.
 
-> ⚠️ Gecikme ekseninde başabaş beklendiği **şimdiden biliniyor** (FPGA 37,28 ms
-> tahmini, CPU turbo 32,75 / plato 41,93 ms). `hizlanma < 1` çıkması bir hata
+> 🔄 **16 Eki — tasarım v1** (kullanıcı onayı): matris iki taraflı değil
+> **çok platformlu** — "aynı algoritma" katmanında ARM (PS), FPGA (PL),
+> dizüstü CPU ve GPU; her platform hücresi gecikme ve enerji kaydına işaret
+> eder, oranlar **FPGA'ya göre** verilir. Değişmezler aynen geçerli
+> (SC-007, SC-008, FR-012). Ek kural: enerji oranı yalnız **aynı kapsamda**
+> (kartın 5 V girişi ↔ kartın 5 V girişi); kapsamlar arası değerler yan
+> yana durur, oran kurulmaz. Aer katmanı ayrı tablodur ve FPGA'yla
+> kıyaslanmaz. Uygulama: `scripts/build_comparison_matrix.py`.
+
+> ⚠️ ~~Gecikme ekseninde başabaş beklendiği **şimdiden biliniyor** (FPGA 37,28 ms
+> tahmini, CPU turbo 32,75 / plato 41,93 ms).~~ — 21 Eyl: bu taban (Qiskit Aer)
+> geçersiz; aynı algoritmada dizüstü CPU FPGA'dan 11,2× hızlı. `hizlanma < 1` çıkması bir hata
 > değil, **bulgudur** ve öyle raporlanır (Prensip II).
 
 ---
